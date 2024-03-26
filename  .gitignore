@@ -1,0 +1,29 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Caching
+*.cache/
+
+# Logs
+*.log
+
+# Ignore the virtual environment
+venv/
+env/
+
+# Database
+db.sqlite3
+
+# Static files
+/static/
+
+# Media files
+/media/
+
+# Ignore local settings
+local_settings.py
+
+# Ignore environment file
+.env
