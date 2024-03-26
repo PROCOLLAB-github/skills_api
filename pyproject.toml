@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "procollab-skills"
+version = "0.1.0"
+description = "prototype"
+authors = ["Alexey Kudelko <flexivanov237@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

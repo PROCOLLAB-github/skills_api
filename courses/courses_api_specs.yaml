@@ -1,0 +1,244 @@
+openapi: 3.0.0
+info:
+ title: Courses API
+ version: 1.0.0
+paths:
+ /courses/{task_id}:
+   get:
+     summary: Получить информацию о содержании задания
+     description: count - это количество вопросов и инфо-слайдов в задании
+     parameters:
+       - name: task_id
+         in: path
+         required: true
+         schema:
+           type: integer
+     responses:
+       '200':
+         description: Successful response
+         content:
+           application/json:
+             schema:
+               type: object
+               properties:
+                 count:
+                   type: integer
+                 step_data:
+                   type: array
+                   items:
+                     type: object
+                     properties:
+                       id:
+                         type: integer
+                       type:
+                         type: string
+                       is_done:
+                         type: boolean
+ /courses/info-slide/{infoslide_id}:
+   get:
+     summary: получить детали инфо-слайда
+     parameters:
+       - name: infoslide_id
+         in: path
+         required: true
+         schema:
+           type: integer
+     responses:
+       '200':
+         description: Successful response
+         content:
+           application/json:
+             schema:
+               type: object
+               properties:
+                 text:
+                   type: string
+                 file:
+                   type: string
+ /courses/single-correct/{question_id}:
+   get:
+     description: получить данные вопроса с одним правильным ответом
+     tags:
+     - questions
+     parameters:
+       - name: question_id
+         in: path
+         required: true
+         schema:
+           type: integer
+     responses:
+       '200':
+         description: Successful response
+         content:
+           application/json:
+             schema:
+               type: object
+               properties:
+                 question_text:
+                   type: string
+                 description:
+                   type: string
+                 file:
+                   type: string
+                 answers:
+                   type: array
+                   items:
+                     type: object
+                     properties:
+                       id:
+                         type: integer
+                       answer_text:
+                         type: string
+ /courses/single-correct-question/{answer_id}:
+   post:
+     description: проверить ответ пользователя на правильность
+     tags:
+     - questions
+     parameters:
+       - name: answer_id
+         in: path
+         required: true
+         schema:
+           type: integer
+     responses:
+       '200':
+         description: Successful response
+         content:
+           application/json:
+             schema:
+               type: object
+               properties:
+                 is_correct:
+                   type: boolean
+                 correct_answer:
+                   type: integer
+ /courses/connect-question/{question_id}:
+   get:
+     description: вывод данных о вопросе на соотношение
+     tags:
+     - questions
+     parameters:
+       - name: question_id
+         in: path
+         required: true
+         schema:
+           type: integer
+     responses:
+       '200':
+         description: Successful response
+         content:
+           application/json:
+             schema:
+               type: object
+               properties:
+                 question_text:
+                   type: string
+                 connect_left:
+                   type: array
+                   items:
+                     type: object
+                     properties:
+                       id:
+                         type: integer
+                       text:
+                         type: string
+                 connect_right:
+                   type: array
+                   items:
+                     type: string
+   post:
+     parameters:
+         - name: question_id
+           in: path
+           required: true
+           schema:
+             type: integer
+     description: проверить ответы пользователя на вопрос с соотношением на правильность
+     tags:
+     - questions
+     requestBody:
+       content:
+         application/json:
+           schema:
+             type: array
+             items:
+               type: object
+               properties:
+                 left_id:
+                   type: integer
+                 right_text:
+                   type: string
+     responses:
+       '200':
+         description: Successful response
+         content:
+           application/json:
+             schema:
+               type: array
+               items:
+                 type: object
+                 properties:
+                   left_id:
+                     type: integer
+                   right_text:
+                     type: string
+                   is_correct:
+                     type: boolean
+ /courses/exclude-question/{question_id}:
+   get:
+     description: получить данные вопроса, где надо сключить неверные варианты ответа
+     tags:
+     - questions
+     parameters:
+       - name: question_id
+         in: path
+         required: true
+         schema:
+           type: integer
+     responses:
+       '200':
+         description: Successful response
+         content:
+           application/json:
+             schema:
+               type: object
+               properties:
+                 question_text:
+                   type: string
+                 question_description:
+                   type: string
+                 options:
+                   type: array
+                   items:
+                     type: object
+                     properties:
+                       id:
+                         type: integer
+                       text:
+                         type: string
+   post:
+     description: проверить ответы пользователя на вопрос по исключению неправильных ответов на правильность
+     tags:
+     - questions
+     parameters:
+       - name: question_id
+         in: path
+         required: true
+         schema:
+           type: integer
+     requestBody:
+       content:
+         application/json:
+           schema:
+             type: array
+             items:
+               type: integer
+     responses:
+       '200':
+         description: Successful response
+         content:
+           application/json:
+             schema:
+               type: array
+               items:
+                 type: integer
