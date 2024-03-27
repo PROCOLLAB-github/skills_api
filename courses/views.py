@@ -1,4 +1,4 @@
-from django.db.models import Count, Q, F
+from django.db.models import Count, Q, F, Prefetch, Case, When, BooleanField
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from courses.mapping import TYPE_TASK_OBJECT
 from courses.models import Task, Skill
 from courses.serializers import TaskSerializer, SkillsBasicSerializer
+from progress.models import TaskObjUserResult
 from progress.pagination import DefaultPagination
 from progress.serializers import ResponseSerializer
 
@@ -21,9 +22,19 @@ class TaskList(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         task_id = self.kwargs.get("task_id")
 
+        profile_id=1
+
         task = Task.objects.prefetch_related("task_objects").get(id=int(task_id))
 
-        task_objects = task.task_objects.all().order_by("ordinal_number")
+        task_objects = (
+            task.task_objects
+            .annotate(has_user_results=Case(
+                When(user_results__user_profile__id=profile_id, then=True),
+                default=False,
+                output_field=BooleanField()
+            ))
+            .order_by("ordinal_number")
+        )
 
         data = {"count": task_objects.count(), "step_data": []}
         for task_object in task_objects:
@@ -31,7 +42,7 @@ class TaskList(generics.ListAPIView):
                 {
                     "id": task_object.id,
                     "type": TYPE_TASK_OBJECT[task_object.content_type.model],
-                    "is_done": True,  # TODO add checking of existing later
+                    "is_done": task_object.has_user_results,
                 }
             )
 
@@ -42,8 +53,6 @@ class TaskList(generics.ListAPIView):
             return Response(
                 {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
             )
-
-
 
 
 # TODO добавить поля для навыков

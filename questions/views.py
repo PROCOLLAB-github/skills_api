@@ -7,7 +7,7 @@ from .models import (
     QuestionSingleAnswer,
     SingleAnswer,
     QuestionConnect,
-    ConnectAnswer,
+    ConnectAnswer, InfoSlide,
 )
 from courses.models import TaskObject
 from courses.serializers import (
@@ -26,6 +26,7 @@ import random
 
 # TODO сделать, чтобы если юзер прошёл задание идеально правильно ранее (есть сохраненный результат), то выводился ещё и он,
 # а не только вопросhttps://www.figma.com/file/cZKZgA3ZywZykhZuHn1OQk/ProCollab?type=design&node-id=377-634&mode=design&t=Pxo1vEpfsWDnicoF-0
+from .serializers import InfoSlideSerializer
 
 
 class QuestionSingleAnswerGet(generics.ListAPIView):

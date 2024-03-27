@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+class FileSerializer(serializers.ListSerializer):
+    child = serializers.FileField(required=False)
 
 class InfoSlideSerializer(serializers.Serializer):
     text = serializers.CharField()

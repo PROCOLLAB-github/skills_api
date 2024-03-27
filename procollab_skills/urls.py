@@ -25,5 +25,6 @@ urlpatterns = [
     path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),
     # apps
     path("courses/", include("courses.urls")),
+    path("questions/", include("questions.urls")),
     path("progress/", include("progress.urls")),
 ]
