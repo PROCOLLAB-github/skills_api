@@ -4,8 +4,8 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 
 from courses.mapping import TYPE_TASK_OBJECT
-from courses.models import Task, TaskObject, InfoSlide, Skill
-from courses.serializers import TaskSerializer, InfoSlideSerializer, SkillsBasicSerializer
+from courses.models import Task, Skill
+from courses.serializers import TaskSerializer, SkillsBasicSerializer
 from progress.pagination import DefaultPagination
 from progress.serializers import ResponseSerializer
 
@@ -44,47 +44,8 @@ class TaskList(generics.ListAPIView):
             )
 
 
-class InfoSlideDetails(generics.ListAPIView):
-    serializer_class = InfoSlideSerializer
-
-    @extend_schema(
-        summary="Выводит информацию для информационного слайда",
-        tags=["Навыки и задачи"],
-    )
-    def get(self, request, *args, **kwargs):
-        task_object_id = self.kwargs.get("infoslide_id")
-
-        needed_task_object = TaskObject.objects.prefetch_related("content_object").get(
-            id=task_object_id
-        )
-
-        info_slide: InfoSlide = needed_task_object.content_object
-        serializer = self.serializer_class(
-            data={
-                "text": info_slide.text,
-                "files": [file.link for file in info_slide.files.all()],
-            }
-        )
-        if serializer.is_valid():
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response(
-                {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-            )
 
 
-# GET навыков
-# request: /courses/skills-list/
-# response
-a = [
-    {
-        "name": str,
-        "who_made": str,
-        "file": str,  # file url
-        "description": str or None,
-        "quantity_of_levels": str,  # 5 уровней
-    }
-]
 # TODO добавить поля для навыков
 @extend_schema(
     summary="Выводит все навыки на платформе",

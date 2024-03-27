@@ -6,9 +6,17 @@ WORKDIR /code
 
 COPY ./ /code/
 
-RUN pip install --upgrade pip && pip install --upgrade setuptools wheel
-RUN pip install -r requirements.txt
-RUN pip install django-cors-headers
+ENV POETRY_VERSION=1.2.2
+
+RUN pip install "poetry==$POETRY_VERSION"
+
+COPY poetry.lock pyproject.toml /code/
+
+RUN poetry config virtualenvs.create false \
+    && poetry install  --no-root
+
+RUN mkdir /staticfiles
+RUN mkdir //static
 
 RUN python manage.py migrate
 EXPOSE 8000

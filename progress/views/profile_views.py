@@ -1,40 +1,14 @@
-from django.db.models import QuerySet
-
-
-# GET профиль юзера
-# /progress/profile/{user_id}
-# response
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
 
 from courses.models import Skill
-from courses.serializers import IntegerListSerializer
-from progress.models import UserTest, UserProfile
-from progress.serializers import ResponseSerializer, HollowSerializer
+from progress.models import UserProfile
+from progress.serializers import ResponseSerializer, HollowSerializer, IntegerListSerializer
 from progress.services import get_user_data, get_current_level
+
 # TODO разобраться с выводом очков
-a = {
-    "user_data": {
-        "first_name": str,
-        "last_name": str,
-        "age": int,
-        "specialization": str,
-        "geo_position": str
-    },
-    "skills": {
-        int: {  # ключ - это id навыка
-            "skill_name": str,
-            "level": int
-        }
-    },
-    "months": [
-        {
-            "month": str, #  название месяца
-            "is_passed": bool
-        }
-    ]
-}
+
 
 class UserProfileList(generics.ListAPIView):
     serializer_class = ResponseSerializer
@@ -54,14 +28,6 @@ class UserProfileList(generics.ListAPIView):
 
         data = {"user_data" :user_data} | {"skills": skills_and_levels} | {"months": months}
         return Response(data, status=200)
-
-
-# PATCH выбор навыков из уже прокаченных на 1 лвл хотя бы
-# /progress/choose-skills
-# request body:
-c = [int]
-# response
-"204"
 
 
 @extend_schema(

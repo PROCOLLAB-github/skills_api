@@ -3,19 +3,22 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from rest_framework import generics, status, serializers
 
-from courses.models import (
-    TaskObject,
+from .models import (
     QuestionSingleAnswer,
     SingleAnswer,
     QuestionConnect,
     ConnectAnswer,
 )
+from courses.models import TaskObject
 from courses.serializers import (
     SingleQuestionAnswerSerializer,
     SingleCorrectPostSerializer,
     ConnectQuestionSerializer,
     ConnectQuestionPostResponseSerializer,
-    SimpleNumberListSerializer, ConnectAnswerSerializer, CustomTextSucessSerializer, CustomTextSerializer,
+    SimpleNumberListSerializer,
+    ConnectAnswerSerializer,
+    CustomTextSucessSerializer,
+    CustomTextSerializer,
 )
 
 import random
@@ -230,3 +233,34 @@ class QuestionExcludePost(generics.CreateAPIView):
             return Response({"text": "need more..."}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"text": "success"}, status=status.HTTP_201_CREATED)
+
+
+
+
+class InfoSlideDetails(generics.ListAPIView):
+    serializer_class = InfoSlideSerializer
+
+    @extend_schema(
+        summary="Выводит информацию для информационного слайда",
+        tags=["Навыки и задачи"],
+    )
+    def get(self, request, *args, **kwargs):
+        task_object_id = self.kwargs.get("infoslide_id")
+
+        needed_task_object = TaskObject.objects.prefetch_related("content_object").get(
+            id=task_object_id
+        )
+
+        info_slide: InfoSlide = needed_task_object.content_object
+        serializer = self.serializer_class(
+            data={
+                "text": info_slide.text,
+                "files": [file.link for file in info_slide.files.all()],
+            }
+        )
+        if serializer.is_valid():
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(
+                {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+            )

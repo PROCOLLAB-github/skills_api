@@ -36,3 +36,6 @@ class UserScoreSerializer(serializers.Serializer):
     specialization = serializers.CharField(max_length=100)
     geo_position = serializers.CharField(max_length=100)
     score_count = serializers.IntegerField()
+
+class IntegerListSerializer(serializers.ListSerializer):
+    child = serializers.IntegerField()

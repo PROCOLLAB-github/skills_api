@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "courses",
     "files",
     "progress",
+    "questions"
 ]
 
 MIDDLEWARE = [

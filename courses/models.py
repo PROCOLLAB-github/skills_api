@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Max
 
 
 class Skill(models.Model):
@@ -38,7 +39,9 @@ class Task(models.Model):
 class TaskObject(models.Model):
     ordinal_number = models.PositiveSmallIntegerField(
         null=True,
-        verbose_name="Порядковый номер"
+        blank=True,
+        verbose_name="Порядковый номер",
+        help_text="Если не указать, то автоматически станет последним в порядке показа"
     )
     task = models.ForeignKey(
         Task,
@@ -62,8 +65,13 @@ class TaskObject(models.Model):
     class Meta:
         verbose_name = "Часть задачи"
         verbose_name_plural = "Части задачи"
+        unique_together = ("task", "ordinal_number")
 
-    # TODO сделать функцию, которая автоматически при методе
-    #  save будет делать ordinal number больше самого последнего ordinal number на 1
+    def save(self, *args, **kwargs):
+        if self.ordinal_number is None: # если порядковый номер слайда не введен
+            last_task_obj = self.task.task_objects.aggregate(Max('ordinal_number'))
+            self.ordinal_number = last_task_obj.get('ordinal_number__max', 0) + 1
+        super().save(*args, **kwargs)
+
 
     # TODO сделать валидацию и то, что выше
