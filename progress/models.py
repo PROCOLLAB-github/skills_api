@@ -34,7 +34,7 @@ class UserProfile(models.Model):
 
 
 class TaskObjUserResult(models.Model):
-    task_object = models.ForeignKey(
+    task_object = models.OneToOneField(
         TaskObject,
         on_delete=models.CASCADE,
         related_name="user_results",
@@ -47,10 +47,6 @@ class TaskObjUserResult(models.Model):
         verbose_name="Профиль пользователя"
     )
 
-    correctness = models.FloatField(
-        validators=CORRECTNESS_VALUE_VALIDATOR,
-        verbose_name="Правильность ответа"
-    )
     points_gained = models.PositiveIntegerField(
         verbose_name="Набранные баллы"
     )
@@ -60,9 +56,12 @@ class TaskObjUserResult(models.Model):
         null=False,
         default=timezone.now
     )
+
     def __str__(self):
         return f"{self.task_object.task.name} {self.task_object.ordinal_number} {self.user_profile.user.first_name}"
 
     class Meta:
         verbose_name = "Ответ пользователя на единицу задания"
         verbose_name_plural = "Ответы пользователя на единицу задания"
+        unique_together = ("task_object", "user_profile")
+

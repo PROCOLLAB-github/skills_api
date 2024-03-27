@@ -55,7 +55,7 @@ class TaskList(generics.ListAPIView):
             )
 
 
-# TODO добавить поля для навыков
+# TODO добавить поля для количества навыков
 @extend_schema(
     summary="Выводит все навыки на платформе",
     description="""Пока эндпоинт немного пустой, потом будут добавлены поля: who_made, file, description, quantity_of_levels""",

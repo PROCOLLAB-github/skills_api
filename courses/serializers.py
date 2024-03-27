@@ -32,6 +32,7 @@ class SingleAnswerSerializer(serializers.Serializer):
 
 
 class SingleQuestionAnswerSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
     question_text = serializers.CharField()
     description = serializers.CharField(required=False)
     files = FileSerializer(required=False)
@@ -62,10 +63,12 @@ class ConnectQuestionPostResponseSerializer(serializers.ListSerializer):
     child = ScoredConnectAnswerSerializer()
 
 
-class ConnectAnswerSerializer(serializers.Serializer):
+class ConnectAnswerItemSerializer(serializers.Serializer):
     left_id = serializers.IntegerField()
     right_text = serializers.CharField()
 
+class ConnectAnswerSerializer(serializers.ListSerializer):
+    child = ConnectAnswerItemSerializer()
 
 class ConnectQuestionPostRequestSerializer(serializers.Serializer):
     answer = ConnectAnswerSerializer(many=True)

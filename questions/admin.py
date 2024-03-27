@@ -2,20 +2,30 @@ from django.contrib import admin
 
 from questions.models import QuestionSingleAnswer, SingleAnswer, InfoSlide, QuestionConnect, ConnectAnswer
 
+class ConnectAnswersInline(admin.TabularInline):  # Или StackedInline для другого стиля отображения
+    model = ConnectAnswer
+    extra = 0
+
 
 @admin.register(QuestionConnect)
 class QuestionConnectAdmin(admin.ModelAdmin):
-    pass
+    inlines = [ConnectAnswersInline]
+
+
 
 
 @admin.register(ConnectAnswer)
 class ConnectAnswerAdmin(admin.ModelAdmin):
     pass
 
+class SingleAnswersInline(admin.StackedInline):
+    model = SingleAnswer
+    extra = 0
+
 
 @admin.register(QuestionSingleAnswer)
 class QuestionSingleAnswerAdmin(admin.ModelAdmin):
-    pass
+    inlines = [SingleAnswersInline]
 
 
 @admin.register(SingleAnswer)

@@ -1,10 +1,14 @@
 import datetime
 
+from django.db import IntegrityError
 from django.db.models import Q, Count, F, Case, When, BooleanField, QuerySet
+from rest_framework import status
+from rest_framework.response import Response
 
-from courses.models import Skill, Task
+from courses.models import Skill, Task, TaskObject
 from progress.mapping import MONTH_MAPPING
-from progress.models import UserTest, UserProfile
+from progress.models import UserProfile, TaskObjUserResult
+from questions.mapping import POINTS_MAPPING, TaskObjs
 
 
 def get_user_data(profile_id: int) -> dict:
@@ -150,6 +154,28 @@ def get_current_level(user_profile_id: int) -> tuple[dict, list]:
     return skills_data, months_data
 
 
+
+def check_if_answered(task_obj_id: int, user_profile_id: int):
+    if_user_already_passed = TaskObjUserResult.objects.filter(
+        task_object_id=task_obj_id,
+        user_profile_id=user_profile_id
+    ).exists()
+    return if_user_already_passed
+
+def check_if_answered_get(task_obj_id: int, user_profile_id: int, type_task_obj: TaskObjs):
+    if_user_already_passed = TaskObjUserResult.objects.filter(
+        task_object_id=task_obj_id,
+        user_profile_id=user_profile_id,
+        points_gained=POINTS_MAPPING[type_task_obj]
+    )
+    return if_user_already_passed
+
+def create_user_result(task_obj_id: int, user_profile_id: int, type_task_obj: TaskObjs):
+    TaskObjUserResult.objects.create(
+        task_object_id=task_obj_id,
+        user_profile_id=user_profile_id,
+        points_gained=POINTS_MAPPING[type_task_obj]
+    )
 
 
 

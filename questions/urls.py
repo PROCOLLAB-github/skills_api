@@ -1,16 +1,16 @@
 from django.urls import path
 
 from questions.views import InfoSlideDetails, QuestionSingleAnswerGet, SingleCorrectPost, QuestionConnectGet, \
-    ConnectQuestionPost, QuestionExcludePost
+    ConnectQuestionPost, QuestionExcludePost, QuestionExcludeAnswerGet
 
 urlpatterns = [
     path(
-        "info-slide/<int:infoslide_id>",
+        "info-slide/<int:task_obj_id>",
         InfoSlideDetails.as_view(),
         name="infoslide_details",
     ),
     path(
-        "single-correct/<int:question_single_answer_id>",
+        "single-correct/<int:task_obj_id>",
         QuestionSingleAnswerGet.as_view(),
         name="single_answer",
     ),
@@ -20,17 +20,22 @@ urlpatterns = [
         name="single_answer",
     ),
     path(
-        "connect/<int:question_connection_id>",
+        "connect/<int:task_obj_id>",
         QuestionConnectGet.as_view(),
         name="single_answer",
     ),
     path(
-        "connect/check/<int:question_connection_id>",
+        "connect/check/<int:task_obj_id>",
         ConnectQuestionPost.as_view(),
         name="single_answer",
     ),
     path(
-        "exclude/check/<int:exclude_question_id>",
+        "exclude-correct/<int:task_obj_id>",
+        QuestionExcludeAnswerGet.as_view(),
+        name="single_answer",
+    ),
+    path(
+        "exclude/check/<int:task_obj_id>",
         QuestionExcludePost.as_view(),
         name="single_answer",
     ),
