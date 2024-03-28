@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import *
+
+from .models import TaskObjUserResult, UserTest, UserProfile
 
 
 @admin.register(TaskObjUserResult)
@@ -8,10 +9,10 @@ class TaskAdmin(admin.ModelAdmin):
 
 
 @admin.register(UserTest)
-class TaskAdmin(admin.ModelAdmin):
+class UserTestAdmin(admin.ModelAdmin):
     pass
 
 
 @admin.register(UserProfile)
-class TaskAdmin(admin.ModelAdmin):
+class UserProfileAdmin(admin.ModelAdmin):
     pass

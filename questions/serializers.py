@@ -1,7 +1,9 @@
 from rest_framework import serializers
 
+
 class FileSerializer(serializers.ListSerializer):
     child = serializers.FileField(required=False)
+
 
 class InfoSlideSerializer(serializers.Serializer):
     text = serializers.CharField()
@@ -35,10 +37,12 @@ class ConnectQuestionSerializer(serializers.Serializer):
     connect_left = SingleAnswerSerializer(many=True)
     connect_right = StrSerializer(many=True)
 
+
 class ScoredConnectAnswerSerializer(serializers.Serializer):
     left_id = serializers.IntegerField()
     right_text = serializers.CharField(max_length=255)
     is_correct = serializers.BooleanField()
+
 
 class ConnectQuestionPostResponseSerializer(serializers.ListSerializer):
     child = ScoredConnectAnswerSerializer()

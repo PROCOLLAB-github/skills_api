@@ -2,8 +2,11 @@
 name = "procollab-skills"
 version = "0.1.0"
 description = "prototype"
-authors = ["Alexey Kudelko <flexivanov237@gmail.com>"]
+authors = ["Alexey Kudelko <flexivanov237@gmail.com>", "Igor Kuzmenkov <tkdomigor@gmail.com>"]
 readme = "README.md"
+
+[tool.black]
+line-length = 120
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -48,6 +51,9 @@ wheel = "0.42.0"
 python-decouple = "^3.8"
 whitenoise = "^6.6.0"
 
+[tool.poetry.group.dev.dependencies]
+flake8 = "^7.0.0"
+pre-commit = "^3.7.0"
 
 [build-system]
 requires = ["poetry-core"]

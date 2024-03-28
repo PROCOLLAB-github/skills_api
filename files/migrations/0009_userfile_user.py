@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("files", "0008_remove_userfile_user"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

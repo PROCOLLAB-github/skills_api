@@ -1,5 +1,3 @@
-from django.shortcuts import render
-
 # Create your views here.
 
 
@@ -22,7 +20,6 @@ a = {
 # response:
 b = {"text": str, "file": str or None}  # url файла
 
-
 # GET единичного вопроса
 # request: /courses/single-correct/{id}
 # response:
@@ -33,14 +30,12 @@ c = {
     "answers": [{"id": int, "answer_text": str}],
 }
 
-
 # POST единичного запроса
 # request: /courses/single-correct/{answer_id}
 # response:
 e = {
     "is_correct": bool,
-    "correct_answer": int
-    or None,  # выдаёт id правильного ответа, если is_correct = false. иначе - null
+    "correct_answer": int or None,  # выдаёт id правильного ответа, если is_correct = false. иначе - null
 }
 
 # GET вопроса на соотношение

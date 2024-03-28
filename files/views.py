@@ -4,9 +4,9 @@ from rest_framework import permissions, status
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
-from files.service import CDN, SelectelSwiftStorage
 from files.models import UserFile
 from files.serializers import UserFileSerializer
+from files.service import CDN, SelectelSwiftStorage
 
 
 class FileView(generics.GenericAPIView):
@@ -42,9 +42,7 @@ class FileView(generics.GenericAPIView):
             link = request.query_params.get("link")
         else:
             return Response(
-                {
-                    "error": "you have to pass the link of the object you want to delete in query parameters"
-                },
+                {"error": "you have to pass the link of the object you want to delete in query parameters"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         instance = get_object_or_404(self.get_queryset(), link=link)

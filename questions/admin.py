@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from questions.models import QuestionSingleAnswer, SingleAnswer, InfoSlide, QuestionConnect, ConnectAnswer
+from questions.models import (
+    QuestionSingleAnswer,
+    SingleAnswer,
+    InfoSlide,
+    QuestionConnect,
+    ConnectAnswer,
+)
+
 
 class ConnectAnswersInline(admin.TabularInline):  # Или StackedInline для другого стиля отображения
     model = ConnectAnswer
@@ -12,11 +19,10 @@ class QuestionConnectAdmin(admin.ModelAdmin):
     inlines = [ConnectAnswersInline]
 
 
-
-
 @admin.register(ConnectAnswer)
 class ConnectAnswerAdmin(admin.ModelAdmin):
     pass
+
 
 class SingleAnswersInline(admin.StackedInline):
     model = SingleAnswer

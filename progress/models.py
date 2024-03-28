@@ -1,8 +1,7 @@
+from django.db import models
 from django.utils import timezone
 
-from django.db import models
 from courses.models import TaskObject, Skill
-from progress.validators import CORRECTNESS_VALUE_VALIDATOR
 
 
 class UserTest(models.Model):
@@ -19,7 +18,10 @@ class UserTest(models.Model):
 
 class UserProfile(models.Model):
     user = models.ForeignKey(
-        UserTest, on_delete=models.CASCADE, related_name="profiles", verbose_name="Пользователь"
+        UserTest,
+        on_delete=models.CASCADE,
+        related_name="profiles",
+        verbose_name="Пользователь",
     )
     chosen_skills = models.ManyToManyField(Skill, related_name="profile_skills", verbose_name="Выбранные навыки")
 
@@ -38,24 +40,18 @@ class TaskObjUserResult(models.Model):
         TaskObject,
         on_delete=models.CASCADE,
         related_name="user_results",
-        verbose_name="Объект задачи"
+        verbose_name="Объект задачи",
     )
     user_profile = models.ForeignKey(
         UserProfile,
         on_delete=models.CASCADE,
         related_name="task_obj_results",
-        verbose_name="Профиль пользователя"
+        verbose_name="Профиль пользователя",
     )
 
-    points_gained = models.PositiveIntegerField(
-        verbose_name="Набранные баллы"
-    )
+    points_gained = models.PositiveIntegerField(verbose_name="Набранные баллы")
 
-    datetime_created = models.DateTimeField(
-        verbose_name="Дата создания",
-        null=False,
-        default=timezone.now
-    )
+    datetime_created = models.DateTimeField(verbose_name="Дата создания", null=False, default=timezone.now)
 
     def __str__(self):
         return f"{self.task_object.task.name} {self.task_object.ordinal_number} {self.user_profile.user.first_name}"
@@ -64,4 +60,3 @@ class TaskObjUserResult(models.Model):
         verbose_name = "Ответ пользователя на единицу задания"
         verbose_name_plural = "Ответы пользователя на единицу задания"
         unique_together = ("task_object", "user_profile")
-

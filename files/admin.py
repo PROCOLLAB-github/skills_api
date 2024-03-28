@@ -3,9 +3,8 @@ import reprlib
 from django.contrib import admin
 from django.forms import ModelForm, FileField
 
-from files.service import CDN, SelectelSwiftStorage
 from files.models import UserFile
-
+from files.service import CDN, SelectelSwiftStorage
 
 
 class UserFileForm(ModelForm):

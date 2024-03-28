@@ -1,5 +1,3 @@
-
-
 from django.urls import path
 
 from progress.views.profile_views import UserProfileList, UserChooseSkills

@@ -2,7 +2,6 @@ from django.urls import path
 
 from courses.views import SkillsList, SkillDetails, TaskList
 
-
 urlpatterns = [
     path("<int:task_id>", TaskList.as_view(), name="task_list"),
     path(
@@ -16,5 +15,3 @@ urlpatterns = [
         name="single_answer",
     ),
 ]
-
-

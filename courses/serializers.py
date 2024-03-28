@@ -11,9 +11,7 @@ class StepSerializer(serializers.Serializer):
 
 
 class TaskSerializer(serializers.Serializer):
-    count = serializers.IntegerField(
-        help_text="количество вопросов и информационных слайдов у задания"
-    )
+    count = serializers.IntegerField(help_text="количество вопросов и информационных слайдов у задания")
     step_data = StepSerializer(many=True)
 
 
@@ -54,10 +52,12 @@ class ConnectQuestionSerializer(serializers.Serializer):
     connect_left = SingleAnswerSerializer(many=True)
     connect_right = StrSerializer(many=True)
 
+
 class ScoredConnectAnswerSerializer(serializers.Serializer):
     left_id = serializers.IntegerField()
     right_text = serializers.CharField(max_length=255)
     is_correct = serializers.BooleanField()
+
 
 class ConnectQuestionPostResponseSerializer(serializers.ListSerializer):
     child = ScoredConnectAnswerSerializer()
@@ -67,8 +67,10 @@ class ConnectAnswerItemSerializer(serializers.Serializer):
     left_id = serializers.IntegerField()
     right_text = serializers.CharField()
 
+
 class ConnectAnswerSerializer(serializers.ListSerializer):
     child = ConnectAnswerItemSerializer()
+
 
 class ConnectQuestionPostRequestSerializer(serializers.Serializer):
     answer = ConnectAnswerSerializer(many=True)
@@ -81,6 +83,7 @@ class IntegerListSerializer(serializers.ListSerializer):
 class SimpleNumberListSerializer(serializers.Serializer):
     numbers = IntegerListSerializer(child=serializers.IntegerField(), allow_empty=False)
 
+
 class SkillsBasicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
@@ -89,6 +92,7 @@ class SkillsBasicSerializer(serializers.ModelSerializer):
 
 class CustomTextSerializer(serializers.Serializer):
     text = serializers.CharField(default="need more...")
+
 
 class CustomTextSucessSerializer(serializers.Serializer):
     text = serializers.CharField(default="success")

@@ -17,9 +17,7 @@ User = get_user_model()
 
 
 class File:
-    def __init__(
-        self, file: TemporaryUploadedFile | InMemoryUploadedFile, quality: int = 70
-    ):
+    def __init__(self, file: TemporaryUploadedFile | InMemoryUploadedFile, quality: int = 70):
         self.size = file.size
         self.name = File._get_name(file)
         self.extension = File._get_extension(file)
@@ -123,9 +121,7 @@ class SelectelSwiftStorage(Storage):
         }
         response = requests.post(settings.SELECTEL_AUTH_TOKEN_URL, json=data)
         if response.status_code not in [200, 201]:
-            raise SelectelUploadError(
-                "Couldn't generate a token for Selectel Swift API (selcdn)"
-            )
+            raise SelectelUploadError("Couldn't generate a token for Selectel Swift API (selcdn)")
         return response.headers["x-subject-token"]
 
 

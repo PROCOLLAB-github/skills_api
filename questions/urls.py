@@ -1,7 +1,14 @@
 from django.urls import path
 
-from questions.views import InfoSlideDetails, QuestionSingleAnswerGet, SingleCorrectPost, QuestionConnectGet, \
-    ConnectQuestionPost, QuestionExcludePost, QuestionExcludeAnswerGet
+from questions.views import (
+    InfoSlideDetails,
+    QuestionSingleAnswerGet,
+    SingleCorrectPost,
+    QuestionConnectGet,
+    ConnectQuestionPost,
+    QuestionExcludePost,
+    QuestionExcludeAnswerGet,
+)
 
 urlpatterns = [
     path(
@@ -39,7 +46,4 @@ urlpatterns = [
         QuestionExcludePost.as_view(),
         name="single_answer",
     ),
-
 ]
-
-

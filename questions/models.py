@@ -12,11 +12,8 @@ class AbstractQuestion(models.Model):
         abstract = True
 
 
-
 class QuestionSingleAnswer(AbstractQuestion):
-    files = models.ManyToManyField(
-        UserFile, related_name="single_questions", blank=True
-    )
+    files = models.ManyToManyField(UserFile, related_name="single_questions", blank=True)
 
     class Meta:
         verbose_name = "Вопрос с одним правильным ответов"
@@ -24,14 +21,11 @@ class QuestionSingleAnswer(AbstractQuestion):
 
 
 class QuestionConnect(AbstractQuestion):
-    files = models.ManyToManyField(
-        UserFile, related_name="connect_questions", blank=True
-    )
+    files = models.ManyToManyField(UserFile, related_name="connect_questions", blank=True)
 
     class Meta:
         verbose_name = "Вопрос на соотношение"
         verbose_name_plural = "Вопросы на соотношение"
-
 
 
 class SingleAnswer(models.Model):
@@ -60,7 +54,6 @@ class ConnectAnswer(models.Model):
     class Meta:
         verbose_name = "Ответ для вопроса на соотношение"
         verbose_name_plural = "Ответы для вопроса на соотношение"
-
 
 
 class InfoSlide(models.Model):

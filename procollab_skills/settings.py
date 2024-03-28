@@ -1,7 +1,5 @@
-import os
 from pathlib import Path
 from decouple import config
-
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -15,8 +13,7 @@ ALLOWED_HOSTS = [
     "localhost",
     "0.0.0.0",
     "api.skills.procollab.ru",
-    "skills.procollab.ru"
-    "app.procollab.ru",
+    "skills.procollab.ru" "app.procollab.ru",
     "procollab.ru",
     "dev.skills.procollab.ru",
     "web",  # From Docker
@@ -36,7 +33,7 @@ INSTALLED_APPS = [
     "courses",
     "files",
     "progress",
-    "questions"
+    "questions",
 ]
 
 MIDDLEWARE = [
@@ -73,7 +70,6 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
-
 if DEBUG:
     DATABASES = {
         "default": {
@@ -100,7 +96,6 @@ else:
             "PORT": config("DATABASE_PORT", default="5432", cast=str),
         }
     }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -131,20 +126,12 @@ STATIC_ROOT = BASE_DIR / "static"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 SELECTEL_ACCOUNT_ID = config("SELECTEL_ACCOUNT_ID", cast=str, default="")
-SELECTEL_CONTAINER_NAME = config(
-    "SELECTEL_CONTAINER_NAME", cast=str, default=""
-)
-SELECTEL_CONTAINER_USERNAME = config(
-    "SELECTEL_CONTAINER_USERNAME", cast=str, default=""
-)
-SELECTEL_CONTAINER_PASSWORD = config(
-    "SELECTEL_CONTAINER_PASSWORD", cast=str, default=""
-)
+SELECTEL_CONTAINER_NAME = config("SELECTEL_CONTAINER_NAME", cast=str, default="")
+SELECTEL_CONTAINER_USERNAME = config("SELECTEL_CONTAINER_USERNAME", cast=str, default="")
+SELECTEL_CONTAINER_PASSWORD = config("SELECTEL_CONTAINER_PASSWORD", cast=str, default="")
 
 SELECTEL_AUTH_TOKEN_URL = "https://api.selcdn.ru/v3/auth/tokens"
-SELECTEL_SWIFT_URL = (
-    f"https://api.selcdn.ru/v1/SEL_{SELECTEL_ACCOUNT_ID}/{SELECTEL_CONTAINER_NAME}/"
-)
+SELECTEL_SWIFT_URL = f"https://api.selcdn.ru/v1/SEL_{SELECTEL_ACCOUNT_ID}/{SELECTEL_CONTAINER_NAME}/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from courses.models import *
+from courses.models import Skill, Task, TaskObject
 
 
 @admin.register(Skill)
@@ -24,6 +24,3 @@ class TaskObjectAdmin(admin.ModelAdmin):
 
     def task_name(self, obj):
         return obj.task.name
-
-
-

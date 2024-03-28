@@ -1,5 +1,3 @@
-
-
 # GET топ юзеров по очкам (фильтр по году месяцу дню)
 from django.db.models import Sum, Q
 from drf_spectacular.utils import extend_schema
@@ -19,15 +17,12 @@ class UserScoreRating(generics.ListAPIView):
     @extend_schema(
         summary="Топ юзеров по количеству очков",
         description="""Пока что фильтры не реализованы, это позже""",
-        tags=["Рейтинг"]
+        tags=["Рейтинг"],
     )
     def get(self, request, *args, **kwargs):
         user_queries = (
-            UserProfile.objects
-            .select_related("user")
-            .annotate(
-                score_count=Sum("chosen_skills__tasks__task_objects__user_results__points_gained")
-            )
+            UserProfile.objects.select_related("user")
+            .annotate(score_count=Sum("chosen_skills__tasks__task_objects__user_results__points_gained"))
             .order_by("-score_count")
         )
         # TODO добавить фильтры день месяц год
@@ -41,8 +36,9 @@ class UserScoreRating(generics.ListAPIView):
                 "age": user_profile.user.age,
                 "specializtion": user_profile.user.specialization,
                 "geo_position": user_profile.user.geo_position,
-                "score_count": user_profile.score_count
-            } for user_profile in paginated_data
+                "score_count": user_profile.score_count,
+            }
+            for user_profile in paginated_data
         ]
         return Response(data, status=status.HTTP_200_OK)
 
@@ -54,7 +50,7 @@ class UserSkillsRating(generics.ListAPIView):
     @extend_schema(
         summary="Топ навыков юзера по количеству очков",
         description="""Пока не выводит уровень. Этим я потом займусь.""",
-        tags=["Рейтинг"]
+        tags=["Рейтинг"],
     )
     def get(self, request, *args, **kwargs):
         # TODO добавить отображение уровней у навыков
@@ -63,15 +59,11 @@ class UserSkillsRating(generics.ListAPIView):
         profile_id = 1
 
         user_skills = (
-            Skill.objects
-            .prefetch_related("profile_skills")
+            Skill.objects.prefetch_related("profile_skills")
             .filter(
-                Q(profile_skills__id=profile_id) | Q(
-                    tasks__task_objects__user_results__user_profile__id=profile_id)
+                Q(profile_skills__id=profile_id) | Q(tasks__task_objects__user_results__user_profile__id=profile_id)
             )
-            .annotate(
-                score_count=Sum("tasks__task_objects__user_results__points_gained")
-            )
+            .annotate(score_count=Sum("tasks__task_objects__user_results__points_gained"))
             .order_by("-score_count")
             .distinct()
         )
@@ -79,11 +71,5 @@ class UserSkillsRating(generics.ListAPIView):
         paginator = self.pagination_class()
         paginated_data = paginator.paginate_queryset(user_skills, self.request)
 
-        data = [
-            {
-                "skill_name": skill.name,
-                "score_count": skill.score_count
-            } for skill in paginated_data
-        ]
+        data = [{"skill_name": skill.name, "score_count": skill.score_count} for skill in paginated_data]
         return Response(data, status=status.HTTP_200_OK)
-
