@@ -4,7 +4,6 @@ from courses.mapping import SWAGGER_API_HINTS
 from courses.models import Skill
 
 
-
 class StepSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     type = serializers.ChoiceField(choices=SWAGGER_API_HINTS)
@@ -20,16 +19,11 @@ class FileSerializer(serializers.ListSerializer):
     child = serializers.FileField(required=False)
 
 
-
-
 class StrSerializer(serializers.Serializer):
     string = serializers.CharField(required=False)
-
 
 
 class SkillsBasicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
         fields = "__all__"
-
-

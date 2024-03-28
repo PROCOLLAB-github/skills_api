@@ -32,7 +32,7 @@ from .models import (
 #  то выводился ещё и он,
 # а не только вопрос
 # https://www.figma.com/file/cZKZgA3ZywZykhZuHn1OQk/ProCollab?type=design&node-id=377-634&mode=design&t=Pxo1vEpfsWDnicoF-0
-from .serializers import InfoSlideSerializer, IntegerListSerializer
+from .serializers import InfoSlideSerializer
 
 
 class QuestionSingleAnswerGet(generics.ListAPIView):
@@ -61,7 +61,9 @@ class QuestionSingleAnswerGet(generics.ListAPIView):
         answers = [{"id": answer.id, "answer_text": answer.text} for answer in all_answers]
 
         user_result = check_if_answered_get(task_object_id, profile_id, "question_single_answer")
-        correct_answer = [{"id": all_answers.get(is_correct=True).id, "answer_text": all_answers.get(is_correct=True).text}]
+        correct_answer = [
+            {"id": all_answers.get(is_correct=True).id, "answer_text": all_answers.get(is_correct=True).text}
+        ]
         random.shuffle(answers)
 
         serializer = self.serializer_class(
@@ -150,7 +152,7 @@ class QuestionConnectGet(generics.ListAPIView):
                     "files": [file.link for file in question.files.all()],
                     "connect_left": connect_left,
                     "connect_right": connect_right,
-                    "is_answered": True
+                    "is_answered": True,
                 }
             )
             serializer.is_valid()
@@ -245,7 +247,9 @@ class QuestionExcludeAnswerGet(generics.ListAPIView):
 
         all_answers = question.single_answers.all()
         answers = [{"id": answer.id, "answer_text": answer.text} for answer in all_answers]
-        answers_to_exclude = [{"id": answer.id, "answer_text": answer.text} for answer in all_answers if answer.is_correct is True]
+        answers_to_exclude = [
+            {"id": answer.id, "answer_text": answer.text} for answer in all_answers if answer.is_correct is True
+        ]
 
         if check_if_answered_get(task_object_id, profile_id, "question_exclude"):
             serializer = self.serializer_class(

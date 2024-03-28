@@ -1,7 +1,9 @@
 from rest_framework import serializers
 
+
 class IsAnsweredSerializer(serializers.Serializer):
     is_answered = serializers.BooleanField(default=False)
+
 
 class FileSerializer(serializers.ListSerializer):
     child = serializers.FileField(required=False)
@@ -66,11 +68,10 @@ class IntegerListSerializer(serializers.ListSerializer):
 class SimpleNumberListSerializer(serializers.Serializer):
     numbers = IntegerListSerializer(child=serializers.IntegerField(), allow_empty=False)
 
+
 class CustomTextSerializer(serializers.Serializer):
     text = serializers.CharField(default="need more...")
 
 
 class CustomTextSucessSerializer(serializers.Serializer):
     text = serializers.CharField(default="success")
-
-

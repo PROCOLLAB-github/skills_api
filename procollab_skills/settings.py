@@ -9,7 +9,6 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = [
     "127.0.0.1:8000",
-
     "127.0.0.1",
     "localhost",
     "0.0.0.0",
@@ -29,7 +28,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://procollab.ru",
     "https://www.procollab.ru",
     "https://app.procollab.ru",
-    "https://dev.procollab.ru"
+    "https://dev.procollab.ru",
 ]
 
 INSTALLED_APPS = [
