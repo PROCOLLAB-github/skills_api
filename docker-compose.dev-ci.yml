@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+  web:
+    container_name: web
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      HOST: 0.0.0.0
+
+  nginx:
+    container_name: nginx
+    build: ./nginx
+    depends_on:
+      - web
+    ports:
+      - 8000:80
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    expose:
+      - 6379
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:
