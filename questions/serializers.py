@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+class IsAnsweredSerializer(serializers.Serializer):
+    is_answered = serializers.BooleanField(default=False)
 
 class FileSerializer(serializers.ListSerializer):
     child = serializers.FileField(required=False)
@@ -15,7 +17,7 @@ class SingleAnswerSerializer(serializers.Serializer):
     answer_text = serializers.CharField()
 
 
-class SingleQuestionAnswerSerializer(serializers.Serializer):
+class SingleQuestionAnswerSerializer(IsAnsweredSerializer):
     question_text = serializers.CharField()
     description = serializers.CharField(required=False)
     files = FileSerializer(required=False)
@@ -31,7 +33,7 @@ class StrSerializer(serializers.Serializer):
     string = serializers.CharField(required=False)
 
 
-class ConnectQuestionSerializer(serializers.Serializer):
+class ConnectQuestionSerializer(IsAnsweredSerializer):
     id = serializers.IntegerField()
     question_text = serializers.CharField(required=False)
     connect_left = SingleAnswerSerializer(many=True)
@@ -63,3 +65,12 @@ class IntegerListSerializer(serializers.ListSerializer):
 
 class SimpleNumberListSerializer(serializers.Serializer):
     numbers = IntegerListSerializer(child=serializers.IntegerField(), allow_empty=False)
+
+class CustomTextSerializer(serializers.Serializer):
+    text = serializers.CharField(default="need more...")
+
+
+class CustomTextSucessSerializer(serializers.Serializer):
+    text = serializers.CharField(default="success")
+
+
