@@ -131,11 +131,11 @@ def get_current_level(user_profile_id: int) -> tuple[dict, list]:
     return skills_data, months_data
 
 
-def check_if_answered(task_obj_id: int, user_profile_id: int):
-    if_user_already_passed = TaskObjUserResult.objects.filter(
-        task_object_id=task_obj_id, user_profile_id=user_profile_id
-    ).exists()
-    return if_user_already_passed
+# def check_if_answered(task_obj_id: int, user_profile_id: int):
+#     if_user_already_passed = TaskObjUserResult.objects.filter(
+#         task_object_id=task_obj_id, user_profile_id=user_profile_id
+#     ).exists()
+#     return if_user_already_passed
 
 
 def check_if_answered_get(task_obj_id: int, user_profile_id: int, type_task_obj: TaskObjs):
@@ -143,7 +143,7 @@ def check_if_answered_get(task_obj_id: int, user_profile_id: int, type_task_obj:
         task_object_id=task_obj_id,
         user_profile_id=user_profile_id,
         points_gained=POINTS_MAPPING[type_task_obj],
-    )
+    ).first()
     return if_user_already_passed
 
 

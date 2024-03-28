@@ -9,14 +9,27 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = [
     "127.0.0.1:8000",
+
     "127.0.0.1",
     "localhost",
     "0.0.0.0",
     "api.skills.procollab.ru",
-    "skills.procollab.ru" "app.procollab.ru",
+    "skills.procollab.ru",
+    "app.procollab.ru",
     "procollab.ru",
     "dev.skills.procollab.ru",
     "web",  # From Docker
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8001",
+    "http://127.0.0.1:8001",
+    "http://0.0.0.0:8000",
+    "https://api.procollab.ru",
+    "https://procollab.ru",
+    "https://www.procollab.ru",
+    "https://app.procollab.ru",
+    "https://dev.procollab.ru"
 ]
 
 INSTALLED_APPS = [

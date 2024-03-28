@@ -6,7 +6,7 @@ from rest_framework import generics, status, serializers
 from rest_framework.response import Response
 
 from courses.models import TaskObject
-from courses.serializers import (
+from .serializers import (
     SingleQuestionAnswerSerializer,
     SingleCorrectPostSerializer,
     ConnectQuestionSerializer,
@@ -18,7 +18,6 @@ from courses.serializers import (
 )
 from progress.services import (
     create_user_result,
-    check_if_answered,
     check_if_answered_get,
 )
 from .models import (
@@ -61,16 +60,8 @@ class QuestionSingleAnswerGet(generics.ListAPIView):
         all_answers = question.single_answers.all()
         answers = [{"id": answer.id, "answer_text": answer.text} for answer in all_answers]
 
-        if check_if_answered_get(task_object_id, profile_id, "question_single_answer"):
-            serializer = SingleCorrectPostSerializer(
-                data={
-                    "is_correct": True,
-                    "correct_answer": all_answers.get(is_correct=True).text,
-                }
-            )
-            serializer.is_valid()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
+        user_result = check_if_answered_get(task_object_id, profile_id, "question_single_answer")
+        correct_answer = [{"id": all_answers.get(is_correct=True).id, "answer_text": all_answers.get(is_correct=True).text}]
         random.shuffle(answers)
 
         serializer = self.serializer_class(
@@ -79,7 +70,8 @@ class QuestionSingleAnswerGet(generics.ListAPIView):
                 "question_text": question.text,
                 "description": question.description,
                 "files": [file.link for file in question.files.all()],
-                "answers": answers,
+                "is_answered": True if user_result else False,
+                "answers": correct_answer if user_result else answers,
             }
         )
         if serializer.is_valid():
@@ -104,12 +96,6 @@ class SingleCorrectPost(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         task_obj_id = self.request.query_params.get("task_obj_id")
         profile_id = 1
-
-        if check_if_answered(task_obj_id, profile_id):
-            return Response(
-                {"error": "Вы уже решали этот вопрос!"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
         given_answer = SingleAnswer.objects.select_related("question").get(id=self.kwargs.get("answer_id"))
         serializer_context = {"given_answer": given_answer}
@@ -151,23 +137,27 @@ class QuestionConnectGet(generics.ListAPIView):
         question: QuestionConnect = needed_task_object.content_object
 
         all_connect_answers: QuerySet[ConnectAnswer] = question.connect_answers.all()
+
         connect_right = [{"string": answer.connect_right} for answer in all_connect_answers]
+        connect_left = [{"id": answer.id, "answer_text": answer.connect_left} for answer in all_connect_answers]
+
         if check_if_answered_get(task_object_id, profile_id, "question_connect"):
-            serializer = ConnectQuestionPostResponseSerializer(
-                data=[
-                    {
-                        "left_id": connect_answer.id,
-                        "right_text": connect_answer.connect_right,
-                        "is_correct": True,
-                    }
-                    for connect_answer in all_connect_answers
-                ]
+            serializer = self.serializer_class(
+                data={
+                    "id": question.id,
+                    "question_text": question.text,
+                    "description": question.description,
+                    "files": [file.link for file in question.files.all()],
+                    "connect_left": connect_left,
+                    "connect_right": connect_right,
+                    "is_answered": True
+                }
             )
             serializer.is_valid()
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         random.shuffle(connect_right)
-        connect_left = [{"id": answer.id, "answer_text": answer.connect_left} for answer in all_connect_answers]
+
         random.shuffle(connect_left)
 
         serializer = self.serializer_class(
@@ -200,12 +190,6 @@ class ConnectQuestionPost(generics.CreateAPIView):
         user_answers = request.data
         profile_id = 1
 
-        if check_if_answered(task_obj_id, profile_id):
-            return Response(
-                {"error": "Вы уже решали этот вопрос!"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         question = TaskObject.objects.prefetch_related("content_object__connect_answers").get(id=task_obj_id)
 
         all_answer_options = question.content_object.connect_answers.all()
@@ -216,7 +200,7 @@ class ConnectQuestionPost(generics.CreateAPIView):
             user_answer["is_correct"] = check_answer.connect_right == user_answer["right_text"]
             scored_answers.append(user_answer)
 
-        if sum(1 for user_answer in user_answers if user_answer["is_correct"] is False):
+        if not sum(1 for user_answer in user_answers if user_answer["is_correct"] is False):
             create_user_result(task_obj_id, profile_id, "question_connect")
 
         serializer = self.serializer_class(data=scored_answers)
@@ -261,10 +245,18 @@ class QuestionExcludeAnswerGet(generics.ListAPIView):
 
         all_answers = question.single_answers.all()
         answers = [{"id": answer.id, "answer_text": answer.text} for answer in all_answers]
+        answers_to_exclude = [{"id": answer.id, "answer_text": answer.text} for answer in all_answers if answer.is_correct is True]
 
-        if check_if_answered(task_object_id, profile_id):
-            serializer = IntegerListSerializer(
-                data=list(all_answers.filter(is_correct=False).values_list("id", flat=True))
+        if check_if_answered_get(task_object_id, profile_id, "question_exclude"):
+            serializer = self.serializer_class(
+                data={
+                    "id": needed_task_object.id,
+                    "question_text": question.text,
+                    "description": question.description,
+                    "files": [file.link for file in question.files.all()],
+                    "is_answered": True,
+                    "answers": answers_to_exclude,
+                }
             )
             if serializer.is_valid():
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -310,15 +302,6 @@ class QuestionExcludePost(generics.CreateAPIView):
 
         task_obj = TaskObject.objects.prefetch_related("content_object").get(id=task_obj_id)
         answers_of_question = SingleAnswer.objects.filter(question=task_obj.content_object)
-
-        if check_if_answered(task_obj_id, profile_id):
-            serializer = IntegerListSerializer(
-                data=list(answers_of_question.filter(is_correct=False).values_list("id", flat=True))
-            )
-            if serializer.is_valid():
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         given_answers = answers_of_question.filter(id__in=given_answer_ids)
         quantity_needed_answers = answers_of_question.filter(is_correct=False).count()
