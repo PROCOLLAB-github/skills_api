@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   web:
-    container_name: web
+    container_name: skills_web
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -13,15 +13,15 @@ services:
       HOST: 0.0.0.0
 
   nginx:
-    container_name: nginx
+    container_name: skills_nginx
     build: ./nginx
     depends_on:
       - web
     ports:
-      - 8000:80
+      - 8001:80
 
   redis:
-    container_name: redis
+    container_name: skills_redis
     image: redis:latest
     expose:
       - 6379
