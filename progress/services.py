@@ -102,7 +102,6 @@ def get_current_level(user_profile_id: int) -> tuple[dict, list]:
         for skill in user_skills:
             levels_of_skill = tasks.values_list("level", flat=True).distinct()
             for level in levels_of_skill:
-
                 task_statistics = (
                     tasks.prefetch_related("task_objects")
                     .filter(level=level, skill=skill)

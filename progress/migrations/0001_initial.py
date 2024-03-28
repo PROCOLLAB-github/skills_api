@@ -31,16 +31,12 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "last_name",
-                    models.CharField(
-                        max_length=30, verbose_name="Фамилия пользователя"
-                    ),
+                    models.CharField(max_length=30, verbose_name="Фамилия пользователя"),
                 ),
                 ("age", models.IntegerField(verbose_name="Возраст пользователя")),
                 (
                     "specialization",
-                    models.CharField(
-                        max_length=40, verbose_name="Специальность пользователя"
-                    ),
+                    models.CharField(max_length=40, verbose_name="Специальность пользователя"),
                 ),
                 ("geo_position", models.CharField(max_length=50)),
             ],
@@ -102,9 +98,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "datetime_created",
-                    models.DateTimeField(
-                        default=django.utils.timezone.now, verbose_name="Дата создания"
-                    ),
+                    models.DateTimeField(default=django.utils.timezone.now, verbose_name="Дата создания"),
                 ),
                 (
                     "task_object",

@@ -27,9 +27,7 @@ class Migration(migrations.Migration):
                 ("text", models.TextField()),
                 (
                     "files",
-                    models.ManyToManyField(
-                        blank=True, related_name="info_slides", to="files.userfile"
-                    ),
+                    models.ManyToManyField(blank=True, related_name="info_slides", to="files.userfile"),
                 ),
             ],
             options={
@@ -109,9 +107,7 @@ class Migration(migrations.Migration):
                 ("description", models.TextField(null=True)),
                 (
                     "files",
-                    models.ManyToManyField(
-                        blank=True, related_name="single_questions", to="files.userfile"
-                    ),
+                    models.ManyToManyField(blank=True, related_name="single_questions", to="files.userfile"),
                 ),
             ],
             options={
