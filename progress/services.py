@@ -1,6 +1,6 @@
 import datetime
 
-from django.db.models import Q, Count, F
+from django.db.models import Q, Count, F, Case, When, BooleanField
 
 from courses.models import Skill, Task
 from progress.mapping import MONTH_MAPPING
@@ -28,7 +28,7 @@ def months_passed_data():
     sec = last_month.replace(day=1)
     last_last_month = sec - datetime.timedelta(days=1)
 
-    return last_month, last_last_month
+    return last_last_month, last_month
 
 
 def get_current_level(user_profile_id: int) -> tuple[dict, list]:
@@ -49,6 +49,7 @@ def get_current_level(user_profile_id: int) -> tuple[dict, list]:
         .annotate(
             num_questions=Count("task_objects"),
             num_answers=Count("task_objects__user_results"),
+            is_done=Case(When(num_questions=F("num_answers"), then=True), default=False, output_field=BooleanField()),
         )
         .distinct()
     )
@@ -61,12 +62,10 @@ def get_current_level(user_profile_id: int) -> tuple[dict, list]:
         for level in levels_of_skill:
             if "level" not in skills_data[skill.id].keys():
                 skills_data[skill.id]["level"] = 1
-            # quantity_tasks_of_skill = tasks.filter(level=level, skill=skill).count()
-            # quantity_of_done_tasks  = tasks.filter(level=level,skill=skill, num_questions=F("num_answers")).count()
 
             task_statistics = tasks.filter(level=level, skill=skill).aggregate(
                 quantity_tasks_of_skill=Count("id"),
-                quantity_of_done_tasks=Count("id", filter=F("num_questions") == F("num_answers")),
+                quantity_of_done_tasks=Count("id", filter=Q(is_done=True)),
             )
 
             # Извлекаем значение quantity_tasks_of_skill и quantity_of_done_tasks из результата
@@ -78,7 +77,6 @@ def get_current_level(user_profile_id: int) -> tuple[dict, list]:
 
             # if quantity_of_done_tasks == quantity_tasks_of_skill:
             #     skills_data[skill.id]["level"] += 1
-
     user_skills_ids = user_skills.filter(profile_skills__id=user_profile_id).values_list("id", flat=True)
 
     # проверка прогресса недопройденных навыков
@@ -118,15 +116,13 @@ def get_current_level(user_profile_id: int) -> tuple[dict, list]:
                 )
 
                 # Извлекаем значение quantity_tasks_of_skill и quantity_of_done_tasks из результата
-                total_tasks = task_statistics.get("num_questions1", 0)
+                total_tasks = task_statistics.get("num_questions", 0)
                 total_done_tasks = task_statistics.get("num_answers_of_month", 0)
 
                 if total_tasks == total_done_tasks:
                     months_counter += 1
-        if months_counter == user_skills.count():
-            months_data.append({"month": MONTH_MAPPING[month.month], "is_passed": True})
-        else:
-            months_data.append({"month": MONTH_MAPPING[month.month], "is_passed": False})
+
+        months_data.append({"month": MONTH_MAPPING[month.month], "is_passed": months_counter == user_skills.count()})
 
     return skills_data, months_data
 
