@@ -16,7 +16,7 @@ ALLOWED_HOSTS = [
     "skills.procollab.ru",
     "app.procollab.ru",
     "procollab.ru",
-    "dev.skills.procollab.ru",
+    "skills.dev.procollab.ru",
     "web",  # From Docker
 ]
 
