@@ -1,7 +1,7 @@
 from django.urls import path
 
-from progress.views.profile_views import UserProfileList, UserChooseSkills
-from progress.views.rating_views import UserScoreRating, UserSkillsRating
+from progress.views.profile import UserProfileList, UserChooseSkills
+from progress.views.rating import UserScoreRating, UserSkillsRating
 
 urlpatterns = [
     path(
