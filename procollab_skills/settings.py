@@ -1,6 +1,13 @@
 from pathlib import Path
 from decouple import config
 
+import mimetypes
+
+mimetypes.add_type("application/javascript", ".js", True)
+mimetypes.add_type("text/css", ".css", True)
+mimetypes.add_type("text/html", ".html", True)
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config("DJANGO_SECRET_KEY", cast=str)
@@ -8,6 +15,7 @@ SECRET_KEY = config("DJANGO_SECRET_KEY", cast=str)
 DEBUG = config("DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = [
+    "127.0.0.1:8001",
     "127.0.0.1:8000",
     "127.0.0.1",
     "localhost",
@@ -30,6 +38,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://app.procollab.ru",
     "https://dev.procollab.ru",
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -124,16 +134,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "ru-ru"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Europe/Moscow"
 
 USE_I18N = True
 
 USE_TZ = True
 
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "static"
+STATIC_ROOT = BASE_DIR / "nginx/static"
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
