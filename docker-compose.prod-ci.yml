@@ -2,6 +2,7 @@ version: '3.9'
 
 services:
   web:
+    container_name: skills_web
     image: ghcr.io/procollab-github/skills_api:latest
     restart: always
     env_file:
@@ -12,6 +13,7 @@ services:
       - 8000
 
   nginx:
+    container_name: skills_nginx
     build: ./nginx
     depends_on:
       - web
@@ -19,6 +21,7 @@ services:
       - 8001:80
 
   redis:
+    container_name: skills_redis
     image: redis:latest
     expose:
       - 6379
