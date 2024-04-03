@@ -12,17 +12,19 @@ ENV PYTHONFAULTHANDLER=1 \
 
 RUN pip install "poetry==$POETRY_VERSION"
 
-WORKDIR /code
+RUN mkdir /procollab
 
-COPY poetry.lock pyproject.toml /code/
+WORKDIR /procollab
+
+COPY poetry.lock pyproject.toml /procollab/
 
 RUN poetry config virtualenvs.create false \
     && poetry install  --no-root
 
-RUN mkdir /code/staticfiles
-RUN mkdir /code/static
+RUN mkdir /procollab/staticfiles
+RUN mkdir /procollab/static
 
-COPY . .
+COPY . /procollab/
 
 CMD ["bash", "./scripts/startup.sh"]
 

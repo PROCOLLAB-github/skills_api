@@ -2,6 +2,7 @@ version: '3.9'
 
 services:
   web:
+    container_name: skills_web
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -10,15 +11,22 @@ services:
       - .env
     environment:
       HOST: 0.0.0.0
+    volumes:
+      - static-volume:/procollab/static
+
 
   nginx:
+    container_name: skills_nginx
     build: ./nginx
     depends_on:
       - web
     ports:
       - 8001:80
+    volumes:
+      - static-volume:/procollab/static
 
   redis:
+    container_name: skills_redis
     image: redis:latest
     expose:
       - 6379
@@ -27,3 +35,4 @@ services:
 
 volumes:
   redis-data:
+  static-volume:
