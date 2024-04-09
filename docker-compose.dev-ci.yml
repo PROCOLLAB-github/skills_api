@@ -7,13 +7,14 @@ services:
       context: .
       dockerfile: ./Dockerfile
     restart: unless-stopped
+    command:  bash ./scripts/startup.sh
     env_file:
       - .env
     environment:
       HOST: 0.0.0.0
     volumes:
       - static-volume:/procollab/static
-
+      - .:/procollab
 
   nginx:
     container_name: skills_nginx
@@ -32,7 +33,39 @@ services:
       - 6379
     volumes:
       - redis-data:/data
+    depends_on:
+      - web
+
+  celerys:
+    restart: always
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    env_file:
+      - .env
+    command: bash ./scripts/celery.sh
+    #command: ls -la
+    depends_on:
+      - redis
+      - web
+    volumes:
+       - .:/procollab
+
+  db:
+    container_name: skills_db
+    image: postgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5432:5432
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
 
 volumes:
   redis-data:
   static-volume:
+  postgres_data:

@@ -10,6 +10,7 @@ from questions.mapping import POINTS_MAPPING, TaskObjs
 
 def get_user_data(profile_id: int) -> dict:
     user_profile = UserProfile.objects.select_related("user").prefetch_related("chosen_skills").get(id=profile_id)
+    # TODO добавить сериалайзер
     user = user_profile.user
     return {
         "first_name": user.first_name,
@@ -31,7 +32,7 @@ def months_passed_data():
     return last_last_month, last_month
 
 
-def get_current_level(user_profile_id: int) -> tuple[dict, list]:
+def get_current_level(user_profile_id: int) -> dict:
     """Выдаёт наиболее маленький непройденный уровень у всех скиллов пользователя"""
     user_skills = (  # получаем все скиллы у юзера. те, которые он выбрал, и те, которые он пытался решать
         Skill.objects.prefetch_related("profile_skills")
@@ -91,6 +92,31 @@ def get_current_level(user_profile_id: int) -> tuple[dict, list]:
                 )
                 skills_data[skill_id]["progress"] = progress * 100
 
+    return skills_data
+
+
+def last_two_months_stats(user_profile_id: int) -> list[dict]:
+    user_skills = (  # получаем все скиллы у юзера. те, которые он выбрал, и те, которые он пытался решать
+        Skill.objects.prefetch_related("profile_skills")
+        .filter(
+            Q(profile_skills__id=user_profile_id)
+            | Q(tasks__task_objects__user_results__user_profile__id=user_profile_id)
+        )
+        .annotate(total_tasks=Count("tasks"))
+        .distinct()
+    )
+    # TODO do something with reused code
+    tasks = (  # получаем все задачи у скиллов с количеством вопросов и ответов
+        Task.objects.select_related("skill")
+        .filter(skill__in=user_skills)
+        .annotate(
+            num_questions=Count("task_objects"),
+            num_answers=Count("task_objects__user_results"),
+            is_done=Case(When(num_questions=F("num_answers"), then=True), default=False, output_field=BooleanField()),
+        )
+        .distinct()
+    )
+
     months = months_passed_data()  # получаем два предыдущих месяца
     months_data = []
 
@@ -124,7 +150,7 @@ def get_current_level(user_profile_id: int) -> tuple[dict, list]:
 
         months_data.append({"month": MONTH_MAPPING[month.month], "is_passed": months_counter == user_skills.count()})
 
-    return skills_data, months_data
+    return months_data
 
 
 # def check_if_answered(task_obj_id: int, user_profile_id: int):
@@ -149,43 +175,3 @@ def create_user_result(task_obj_id: int, user_profile_id: int, type_task_obj: Ta
         user_profile_id=user_profile_id,
         points_gained=POINTS_MAPPING[type_task_obj],
     )
-
-
-def get_passed_skills_data() -> dict:
-    pass
-    """ 
-
-     1) как получить последний уровень юзера для скилла?
-     сравнить количество (уникальных для задач) ответов пользователя для всех задач определённого скилла.
-     если для всех задач определённого уровня есть решение, то +1 уровень.
-
-     итоговое число будет количество пройденных уровней. чтобы получить последний доступный уровень 
-     к нему надо прибавить +1.
-
-     кэшировать.
-
-     прогонять 1 раз в месяц.
-
-     2) как посмотреть, завершил ли пользователь уровень для скилла за месяц?
-     сделать то же самое, что и в первом пункте, но в рамках месяца.
-     если в течение месяца появилось количество ответов (уникальных для задач), равное количеству задач
-     скилла для уровня скилла, к которому эти задачи привязаны, то считать этот месяц выполненным.
-
-     кэшировать.
-
-     прогонять 1 раз в месяц.
-
-
-     3) как выдавать юзеру возможность проходить уровень на месяц?
-     давать доступ юзеру к последнему непройденному по расчётам из пункта 1.
-
-     кэшировать.
-
-     прогонять единожды в месяц.
-
-     4) как выбирать курсы  
-
-     5) как выбрать навыки месяца?
-     выводить количество очков для навыков, у которых есть результаты прохождения, которые были созданы в данном месяце
-
-    """
