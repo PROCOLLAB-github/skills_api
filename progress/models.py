@@ -1,4 +1,5 @@
 from django.db import models
+
 from django.utils import timezone
 
 from courses.models import TaskObject, Skill
@@ -23,7 +24,9 @@ class UserProfile(models.Model):
         related_name="profiles",
         verbose_name="Пользователь",
     )
-    chosen_skills = models.ManyToManyField(Skill, related_name="profile_skills", verbose_name="Выбранные навыки")
+    chosen_skills = models.ManyToManyField(
+        Skill, related_name="profile_skills", verbose_name="Выбранные навыки", blank=True
+    )
 
     # TODO перенести некоторую логику оценок в профиль пользователя, чтобы уменьшить нагрузку на БД
 
