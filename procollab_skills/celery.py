@@ -17,9 +17,9 @@ app.conf.task_serializer = "json"
 
 # Расписание задач
 app.conf.beat_schedule = {
-    "nullify_skills_for_all_users": {
-        "task": "progress.tasks.nullify_skills_for_all_users",
-        "schedule": crontab(0, 0, day_of_month="1"),
+    "daily_resub_users": {
+        "task": "subscription.tasks.daily_resub_users",
+        "schedule": crontab(minute=0, hour=0),
     },
     "profile_month_recache": {
         "task": "progress.tasks.profile_month_recache",

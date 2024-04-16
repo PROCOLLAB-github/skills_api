@@ -1,6 +1,6 @@
 from typing import Union, Literal
 
-POINTS_MAPPING = {
+POINTS_MAPPING: dict[str, int] = {
     "info_slide": 10,
     "question_single_answer": 25,
     "question_connect": 50,

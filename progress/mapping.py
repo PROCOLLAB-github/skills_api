@@ -1,4 +1,4 @@
-MONTH_MAPPING = {
+MONTH_MAPPING: dict[int, str] = {
     1: "Январь",
     2: "Февраль",
     3: "Март",

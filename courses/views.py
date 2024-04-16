@@ -63,20 +63,6 @@ class SkillsList(generics.ListAPIView):
     queryset = Skill.objects.all()
 
 
-# GET заданий по skill_id
-# request: /courses/skills-list/
-# response
-a = [
-    {
-        "name": str,
-        "who_made": str,
-        "file": str,  # file url
-        "description": str or None,
-        "quantity_of_levels": str,  # 5 уровней
-    }
-]
-
-
 @extend_schema(
     summary="Выводит подробую информацию о навыке",
     description="""Выводит только тот уровень, который юзер может пройти. Остальные для прохождения закрыты""",

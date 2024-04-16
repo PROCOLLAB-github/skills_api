@@ -1,5 +1,6 @@
 from pathlib import Path
 from decouple import config
+from yookassa import Configuration
 
 import mimetypes
 
@@ -57,6 +58,7 @@ INSTALLED_APPS = [
     "files",
     "progress",
     "questions",
+    "subscription",
 ]
 
 MIDDLEWARE = [
@@ -147,6 +149,19 @@ USE_I18N = True
 
 USE_TZ = True
 
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+SPECTACULAR_SETTINGS = {
+    "SWAGGER_UI_DIST": "SIDECAR",  # shorthand to use the sidecar instead
+    "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
+    "REDOC_DIST": "SIDECAR",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    # OTHER SETTINGS
+}
+
+# statics settings
+
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "/static"
 
@@ -178,3 +193,7 @@ CELERY_RESULT_BACKEND = "redis://skills_redis:6379"
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TASK_SERIALIZER = "json"
+
+
+Configuration.secret_key = config("YOOKASSA_API_KEY", default="")
+Configuration.account_id = config("YOOKASSA_SHOP_ID", default="")
