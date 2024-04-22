@@ -36,6 +36,9 @@ def daily_resub_users() -> str:
                 payment_method_id=payment.id,
                 metadata={"user_profile_id": payment.metadata["user_profile_id"]},
             )
+
+            # TODO настроить веб-хук, чтобы
+            #  при уведомлениях об успешных платежах, у нужных юзеров бы обновлялась подписка
             new_payment = create_payment(payload)
             if new_payment.status == "succeeded":
                 autopay_on_profiles.get(id=new_payment.metadata["user_profile_id"])

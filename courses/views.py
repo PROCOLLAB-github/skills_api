@@ -1,13 +1,16 @@
-from django.db.models import Count, Q, F, Case, When, BooleanField
+from django.db.models import Count, Q, F, Case, When, BooleanField, Sum
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
 
 from courses.mapping import TYPE_TASK_OBJECT
-from courses.models import Task, Skill
-from courses.serializers import TaskSerializer, SkillsBasicSerializer
+from courses.models import Task, Skill, TaskObject
+from courses.serializers import TaskSerializer, SkillsBasicSerializer, TasksOfSkillSerializer
+from courses.utils.get_skill_level import get_skill_level
+from progress.models import TaskObjUserResult
 from progress.pagination import DefaultPagination
 from progress.serializers import ResponseSerializer
+from questions.serializers import IntegerListSerializer
 
 
 class TaskList(generics.ListAPIView):
@@ -64,7 +67,7 @@ class SkillsList(generics.ListAPIView):
 
 
 @extend_schema(
-    summary="Выводит подробую информацию о навыке",
+    summary="Выводит подробную информацию о навыке",
     description="""Выводит только тот уровень, который юзер может пройти. Остальные для прохождения закрыты""",
     tags=["Навыки и задачи"],
 )
@@ -73,10 +76,14 @@ class SkillDetails(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         skill_id = self.kwargs.get("skill_id")
+        user_profile_id = 1
 
         skill = (  # получаем все скиллы у юзера. те, которые он выбрал, и те, которые он пытался решать
             Skill.objects.prefetch_related("profile_skills")
-            .filter(id=skill_id)
+            .filter(
+                Q(profile_skills__id=user_profile_id)
+                | Q(tasks__task_objects__user_results__user_profile__id=user_profile_id)
+            )
             .annotate(total_tasks=Count("tasks"))
             .distinct()
             .first()
@@ -100,23 +107,17 @@ class SkillDetails(generics.ListAPIView):
         for level in levels_of_skill:
             if "level" not in skill_data[skill.id].keys():
                 skill_data[skill.id]["level"] = 1
-            # quantity_tasks_of_skill = tasks.filter(level=level, skill=skill).count()
-            # quantity_of_done_tasks  = tasks.filter(level=level,skill=skill, num_questions=F("num_answers")).count()
 
             task_statistics = tasks.filter(level=level, skill=skill).aggregate(
                 quantity_tasks_of_skill=Count("id"),
                 quantity_of_done_tasks=Count("id", filter=F("num_questions") == F("num_answers")),
             )
 
-            # Извлекаем значение quantity_tasks_of_skill и quantity_of_done_tasks из результата
             total_tasks = task_statistics.get("quantity_tasks_of_skill", 0)
             total_done_tasks = task_statistics.get("quantity_of_done_tasks", 0)
 
             if total_tasks == total_done_tasks:
                 skill_data[skill.id]["level"] += 1
-
-            # if quantity_of_done_tasks == quantity_tasks_of_skill:
-            #     skills_data[skill.id]["level"] += 1
 
         user_skills_ids = [skill.id]
 
@@ -136,4 +137,51 @@ class SkillDetails(generics.ListAPIView):
                 skill_data[skill_id]["progress"] = progress * 100
 
         data = {"skills": skill_data}
+        return Response(data, status=200)
+
+
+@extend_schema(
+    summary="""Вывод задач для навыков""",
+    request=IntegerListSerializer,
+    responses={200: TasksOfSkillSerializer(many=True)},
+    tags=["Навыки и задачи"],
+)
+class TasksOfSkill(generics.ListAPIView):
+    serializer_class = TasksOfSkillSerializer
+
+    def get_queryset(self):
+        skill_id = self.kwargs.get("skill_id")
+        queryset = Task.objects.filter(skill_id=skill_id).order_by("-level").only("id", "name", "level")
+        return queryset
+
+
+@extend_schema(
+    summary="""Инфа о новом уровне""",
+    request=IntegerListSerializer,
+    # responses={200: TasksOfSkillSerializer(many=True)},
+    tags=["Навыки и задачи"],
+)
+class NewLevel(generics.ListAPIView):
+    serializer_class = ...
+
+    def list(self, request, *args, **kwargs):
+        user_profile_id = 1
+
+        task_id = self.kwargs.get("task_id")
+        task = Task.objects.get(id=task_id)
+        skill_level = get_skill_level(
+            skill_id=task.skill.id,
+            user_profile_id=user_profile_id,
+        )
+
+        points = (
+            TaskObjUserResult.objects.filter(
+                user_profile_id=user_profile_id,
+                task_object_id__in=TaskObject.objects.filter(task=task).values_list("id", flat=True),
+            )
+            .only("points_gained")
+            .aggregate(points_sum=Sum("points_gained"))
+        )
+
+        data = {"points_for_task": points["points_sum"], **skill_level[list(skill_level.keys())[0]]}
         return Response(data, status=200)

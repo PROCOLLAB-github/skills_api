@@ -23,6 +23,7 @@ class Task(models.Model):
     name = models.CharField(max_length=50, verbose_name="Название")
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE, related_name="tasks", verbose_name="Навык")
     level = models.IntegerField(default=1, verbose_name="Уровень")
+    # TODO добавить порядковый номер для показа
 
     def __str__(self):
         return f"{self.name} {self.skill.name} {self.level}"

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from courses.mapping import SWAGGER_API_HINTS
-from courses.models import Skill
+from courses.models import Skill, Task
 
 
 class StepSerializer(serializers.Serializer):
@@ -27,3 +27,9 @@ class SkillsBasicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
         fields = "__all__"
+
+
+class TasksOfSkillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        exclude = ["skill"]

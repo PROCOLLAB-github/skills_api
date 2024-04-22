@@ -49,7 +49,9 @@ def get_current_level(user_profile_id: int) -> dict:
         .filter(skill__in=user_skills)
         .annotate(
             num_questions=Count("task_objects"),
-            num_answers=Count("task_objects__user_results"),
+            num_answers=Count(
+                "task_objects__user_results", filter=Q(task_objects__user_results__user_profile__id=user_profile_id)
+            ),
             is_done=Case(When(num_questions=F("num_answers"), then=True), default=False, output_field=BooleanField()),
         )
         .distinct()
@@ -76,8 +78,6 @@ def get_current_level(user_profile_id: int) -> dict:
             if total_tasks == total_done_tasks:
                 skills_data[skill.id]["level"] += 1
 
-            # if quantity_of_done_tasks == quantity_tasks_of_skill:
-            #     skills_data[skill.id]["level"] += 1
     user_skills_ids = user_skills.filter(profile_skills__id=user_profile_id).values_list("id", flat=True)
 
     # проверка прогресса недопройденных навыков
@@ -153,14 +153,7 @@ def last_two_months_stats(user_profile_id: int) -> list[dict]:
     return months_data
 
 
-# def check_if_answered(task_obj_id: int, user_profile_id: int):
-#     if_user_already_passed = TaskObjUserResult.objects.filter(
-#         task_object_id=task_obj_id, user_profile_id=user_profile_id
-#     ).exists()
-#     return if_user_already_passed
-
-
-def check_if_answered_get(task_obj_id: int, user_profile_id: int, type_task_obj: TaskObjs):
+def check_if_answered_get(task_obj_id: int, user_profile_id: int, type_task_obj: TaskObjs) -> TaskObjUserResult:
     if_user_already_passed = TaskObjUserResult.objects.filter(
         task_object_id=task_obj_id,
         user_profile_id=user_profile_id,

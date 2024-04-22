@@ -62,5 +62,5 @@ class UserChooseSkills(generics.UpdateAPIView):
 
             user_profile.chosen_skills.add(*skills)
             return Response("success", status=status.HTTP_204_NO_CONTENT)
-        except ValidationError as e:
+        except ValidationError as e:  # для случая, если юзер выбрал больше 5-ти
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
