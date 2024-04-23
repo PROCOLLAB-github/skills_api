@@ -41,8 +41,6 @@ CSRF_TRUSTED_ORIGINS = [
     "https://dev.procollab.ru",
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -55,6 +53,7 @@ INSTALLED_APPS = [
     "drf_spectacular_sidecar",  # required for Django collectstatic discovery
     "celery",
     "django_celery_beat",
+    "corsheaders",
     # apps
     "courses",
     "files",
@@ -66,6 +65,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
