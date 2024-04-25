@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from courses.mapping import SWAGGER_API_HINTS
 from courses.models import Skill, Task
+from files.models import FileModel
 
 
 class StepSerializer(serializers.Serializer):
@@ -23,13 +24,21 @@ class StrSerializer(serializers.Serializer):
     string = serializers.CharField(required=False)
 
 
-class SkillsBasicSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Skill
-        fields = "__all__"
-
-
 class TasksOfSkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         exclude = ["skill"]
+
+
+class FileModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FileModel
+        fields = ("name", "file")
+
+
+class SkillsBasicSerializer(serializers.ModelSerializer):
+    file = FileModelSerializer()
+
+    class Meta:
+        model = Skill
+        fields = ("id", "name", "who_created", "file", "quantity_of_levels")

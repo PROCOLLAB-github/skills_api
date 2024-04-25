@@ -1,20 +1,28 @@
+from abc import ABC
+
 from rest_framework import serializers
+
+from questions.models import InfoSlide
 
 
 class IsAnsweredSerializer(serializers.Serializer):
     is_answered = serializers.BooleanField(default=False)
 
 
-class FileSerializer(serializers.ListSerializer):
+class FileSerializer(serializers.ListSerializer, ABC):
     child = serializers.FileField(required=False)
 
 
 class InfoSlideSerializer(serializers.Serializer):
     text = serializers.CharField()
-    files = FileSerializer(required=False)
+    files = FileSerializer()
+
+    class Meta:
+        model = InfoSlide
+        fields = ["text", "files"]
 
 
-class SingleAnswerSerializer(serializers.Serializer):
+class SingleAnswerSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     answer_text = serializers.CharField()
 

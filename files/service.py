@@ -3,17 +3,15 @@ from abc import ABC, abstractmethod
 
 import requests
 from django.conf import settings
-from django.contrib.auth import get_user_model
+
 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
 from requests import Response
 
+from procollab_skills.settings import SELECTEL_SWIFT_URL
 from files.constants import SUPPORTED_IMAGES_TYPES
 from files.exceptions import SelectelUploadError
 from files.helpers import convert_image_to_webp
 from files.typings import FileInfo
-from procollab_skills.settings import SELECTEL_SWIFT_URL
-
-User = get_user_model()
 
 
 class File:
@@ -52,7 +50,7 @@ class Storage(ABC):
         pass
 
     @abstractmethod
-    def upload(self, file: File, user: User) -> FileInfo:
+    def upload(self, file: File) -> FileInfo:
         pass
 
 
@@ -61,8 +59,8 @@ class SelectelSwiftStorage(Storage):
         token = self._get_auth_token()
         return requests.delete(url, headers={"X-Auth-Token": token})
 
-    def upload(self, file: File, user: User) -> FileInfo:
-        url = self._upload(file, user)
+    def upload(self, file: File) -> FileInfo:
+        url = self._upload(file)
         return FileInfo(
             url=url,
             name=file.name,
@@ -71,9 +69,9 @@ class SelectelSwiftStorage(Storage):
             size=file.size,
         )
 
-    def _upload(self, file: File, user: User) -> str:
+    def _upload(self, file: File) -> str:
         token = self._get_auth_token()
-        url = self._generate_url(file, user)
+        url = self._generate_url(file)
 
         requests.put(
             url,
@@ -86,19 +84,13 @@ class SelectelSwiftStorage(Storage):
 
         return url
 
-    def _generate_url(self, file: File, user: User) -> str:
+    def _generate_url(self, file: File) -> str:
         """
         Generates url for selcdn
         Returns:
             url: str looks like /hashedEmail/hashedFilename_hashedTime.extension
         """
-        return (
-            f"{SELECTEL_SWIFT_URL}"
-            f"{abs(hash(user.email))}"
-            f"/{abs(hash(file.name))}"
-            f"_{abs(hash(time.time()))}"
-            f".{file.extension}"
-        )
+        return f"{SELECTEL_SWIFT_URL}" f"/{abs(hash(file.name))}" f"_{abs(hash(time.time()))}" f".{file.extension}"
 
     @staticmethod
     def _get_auth_token():
@@ -135,7 +127,6 @@ class CDN:
     def upload(
         self,
         file: TemporaryUploadedFile | InMemoryUploadedFile,
-        user: User,
         quality: int = 70,
     ) -> FileInfo:
-        return self.storage.upload(File(file, quality), user)
+        return self.storage.upload(File(file, quality))

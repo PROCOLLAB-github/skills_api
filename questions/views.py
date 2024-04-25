@@ -328,7 +328,7 @@ class InfoSlideDetails(generics.ListAPIView):
         tags=["Навыки и задачи"],
     )
     def get(self, request, *args, **kwargs):
-        task_object_id = self.kwargs.get("infoslide_id")
+        task_object_id = self.kwargs.get("task_obj_id")
 
         needed_task_object = TaskObject.objects.prefetch_related("content_object").get(id=task_object_id)
 
@@ -336,7 +336,7 @@ class InfoSlideDetails(generics.ListAPIView):
         serializer = self.serializer_class(
             data={
                 "text": info_slide.text,
-                "files": [file.link for file in info_slide.files.all()],
+                "files": [file.file for file in info_slide.files.all()],
             }
         )
         if serializer.is_valid():

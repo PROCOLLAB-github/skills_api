@@ -3,13 +3,16 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Max
 
+from files.models import FileModel
+
 
 class Skill(models.Model):
     name = models.CharField(max_length=50, verbose_name="Название навыка")
-
-    # who created
-    # picture of who created
-    # quantity of levels
+    who_created = models.CharField(max_length=50, verbose_name="Кто создал")
+    file = models.ForeignKey(
+        FileModel, on_delete=models.CASCADE, related_name="skill", verbose_name="Картинка", null=True
+    )
+    quantity_of_levels = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.name}"
@@ -17,6 +20,15 @@ class Skill(models.Model):
     class Meta:
         verbose_name = "Навык"
         verbose_name_plural = "Навыки"
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:  # Проверка, сохранен ли объект в базе данных
+            super().save(*args, **kwargs)  # Если объект еще не сохранен, сохраняем его сначала
+
+        quantity_unique_levels = Task.objects.filter(skill=self).values("level").distinct().count()
+        self.quantity_of_levels = quantity_unique_levels
+
+        super().save(*args, **kwargs)
 
 
 class Task(models.Model):

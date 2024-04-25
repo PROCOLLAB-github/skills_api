@@ -1,19 +1,19 @@
 from django.db import models
 
-from files.models import UserFile
+from files.models import FileModel
 
 
 class AbstractQuestion(models.Model):
     text = models.CharField(max_length=100)
     description = models.TextField(null=True)
-    files = models.ManyToManyField(UserFile, related_name="question", blank=True)
+    files = models.ManyToManyField(FileModel, related_name="question", blank=True)
 
     class Meta:
         abstract = True
 
 
 class QuestionSingleAnswer(AbstractQuestion):
-    files = models.ManyToManyField(UserFile, related_name="single_questions", blank=True)
+    files = models.ManyToManyField(FileModel, related_name="single_questions", blank=True)
 
     class Meta:
         verbose_name = "Вопрос с одним правильным ответов"
@@ -21,7 +21,7 @@ class QuestionSingleAnswer(AbstractQuestion):
 
 
 class QuestionConnect(AbstractQuestion):
-    files = models.ManyToManyField(UserFile, related_name="connect_questions", blank=True)
+    files = models.ManyToManyField(FileModel, related_name="connect_questions", blank=True)
 
     class Meta:
         verbose_name = "Вопрос на соотношение"
@@ -58,7 +58,7 @@ class ConnectAnswer(models.Model):
 
 class InfoSlide(models.Model):
     text = models.TextField()
-    files = models.ManyToManyField(UserFile, related_name="info_slides", blank=True)
+    files = models.ManyToManyField(FileModel, related_name="info_slides", blank=True)
 
     class Meta:
         verbose_name = "Информационный слайд"

@@ -170,13 +170,16 @@ STATIC_ROOT = BASE_DIR / "/static"
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
-SELECTEL_ACCOUNT_ID = config("SELECTEL_ACCOUNT_ID", cast=str, default="")
-SELECTEL_CONTAINER_NAME = config("SELECTEL_CONTAINER_NAME", cast=str, default="")
-SELECTEL_CONTAINER_USERNAME = config("SELECTEL_CONTAINER_USERNAME", cast=str, default="")
-SELECTEL_CONTAINER_PASSWORD = config("SELECTEL_CONTAINER_PASSWORD", cast=str, default="")
+SELECTEL_ACCOUNT_ID = config("SELECTEL_ACCOUNT_ID", cast=str, default="123456")
+SELECTEL_CONTAINER_NAME = config("SELECTEL_CONTAINER_NAME", cast=str, default="procollab_media")
+SELECTEL_CONTAINER_USERNAME = config("SELECTEL_CONTAINER_USERNAME", cast=str, default="228194_backend")
+SELECTEL_CONTAINER_PASSWORD = config("SELECTEL_CONTAINER_PASSWORD", cast=str, default="PWD")
 
 SELECTEL_AUTH_TOKEN_URL = "https://api.selcdn.ru/v3/auth/tokens"
 SELECTEL_SWIFT_URL = f"https://api.selcdn.ru/v1/SEL_{SELECTEL_ACCOUNT_ID}/{SELECTEL_CONTAINER_NAME}/"
+
+# if DEBUG:
+#     SELECTEL_SWIFT_URL += "debug/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -200,3 +203,6 @@ CELERY_TASK_SERIALIZER = "json"
 
 Configuration.secret_key = config("YOOKASSA_API_KEY", default="")
 Configuration.account_id = config("YOOKASSA_SHOP_ID", default="")
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
