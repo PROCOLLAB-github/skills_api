@@ -71,13 +71,16 @@ class QuestionSingleAnswerGet(generics.ListAPIView):
                 "id": needed_task_object.id,
                 "question_text": question.text,
                 "description": question.description,
-                "files": [file.link for file in question.files.all()],
+                "files": [file.file for file in question.files.all()],
                 "is_answered": True if user_result else False,
                 "answers": correct_answer if user_result else answers,
             }
         )
         if serializer.is_valid():
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            dt = serializer.data
+            added_files_data = ["https://skills.dev.procollab.ru" + i for i in dt["files"]]
+            dt["files"] = added_files_data
+            return Response(dt, status=status.HTTP_200_OK)
         else:
             return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -263,6 +266,7 @@ class QuestionExcludeAnswerGet(generics.ListAPIView):
                 }
             )
             if serializer.is_valid():
+
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -274,12 +278,15 @@ class QuestionExcludeAnswerGet(generics.ListAPIView):
                 "id": needed_task_object.id,
                 "question_text": question.text,
                 "description": question.description,
-                "files": [file.link for file in question.files.all()],
+                "files": [file.file for file in question.files.all()],
                 "answers": answers,
             }
         )
         if serializer.is_valid():
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            dt = serializer.data
+            added_files_data = ["https://skills.dev.procollab.ru" + i for i in dt["files"]]
+            dt["files"] = added_files_data
+            return Response(dt, status=status.HTTP_200_OK)
         else:
             return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -340,6 +347,8 @@ class InfoSlideDetails(generics.ListAPIView):
             }
         )
         if serializer.is_valid():
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            added_files_data = ["https://skills.dev.procollab.ru" + i for i in serializer.data["files"]]
+            data = {"text": info_slide.text, "files": added_files_data}
+            return Response(data, status=status.HTTP_200_OK)
         else:
             return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

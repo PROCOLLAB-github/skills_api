@@ -10,7 +10,7 @@ class IsAnsweredSerializer(serializers.Serializer):
 
 
 class FileSerializer(serializers.ListSerializer, ABC):
-    child = serializers.FileField(required=False)
+    child = serializers.FileField()
 
 
 class InfoSlideSerializer(serializers.Serializer):
@@ -22,7 +22,7 @@ class InfoSlideSerializer(serializers.Serializer):
         fields = ["text", "files"]
 
 
-class SingleAnswerSerializer(serializers.ModelSerializer):
+class SingleAnswerSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     answer_text = serializers.CharField()
 

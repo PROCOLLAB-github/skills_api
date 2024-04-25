@@ -37,9 +37,11 @@ class UserScoreRating(generics.ListAPIView):
                 "specializtion": user_profile.user.specialization,
                 "geo_position": user_profile.user.geo_position,
                 "score_count": user_profile.score_count,
+                "file": "https://skills.dev.procollab.ru" + user_profile.file.file.url,
             }
             for user_profile in paginated_data
         ]
+
         return Response(data, status=status.HTTP_200_OK)
 
 

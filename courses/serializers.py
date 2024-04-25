@@ -33,11 +33,11 @@ class TasksOfSkillSerializer(serializers.ModelSerializer):
 class FileModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = FileModel
-        fields = ("name", "file")
+        fields = ("file",)
 
 
 class SkillsBasicSerializer(serializers.ModelSerializer):
-    file = FileModelSerializer()
+    file = FileModelSerializer(many=True)
 
     class Meta:
         model = Skill

@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 
 from courses.models import TaskObject, Skill
+from files.models import FileModel
 
 
 class UserTest(models.Model):
@@ -25,8 +26,10 @@ class UserProfile(models.Model):
         related_name="profiles",
         verbose_name="Пользователь",
     )
-
     chosen_skills = models.ManyToManyField(Skill, related_name="profile_skills", verbose_name="Выбранные навыки")
+    file = models.ForeignKey(
+        FileModel, on_delete=models.CASCADE, related_name="profiles", verbose_name="Картинка", null=True
+    )
 
     is_autopay_allowed = models.BooleanField(default=True)
     last_subscription_date = models.DateField(
