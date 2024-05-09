@@ -35,7 +35,7 @@ def get_stats(skill_id: int, profile_id: int) -> dict:
     return new_data
 
 
-def get_skills_details(skill_id: int, user_profile_id: int):
+def get_skills_details(skill_id: int, user_profile_id: int) -> dict:
     # user_profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
 
     skill = (  # получаем все скиллы у юзера. те, которые он выбрал, и те, которые он пытался решать

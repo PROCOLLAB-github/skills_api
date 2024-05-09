@@ -92,6 +92,7 @@ class TaskObjUserResult(models.Model):
         verbose_name="Профиль пользователя",
     )
 
+    text = models.TextField(null=False, help_text="Для ответов юзера, которые связаны с вопросами по вводу ответа")
     points_gained = models.PositiveIntegerField(verbose_name="Набранные баллы")
 
     datetime_created = models.DateTimeField(verbose_name="Дата создания", null=False, default=timezone.now)

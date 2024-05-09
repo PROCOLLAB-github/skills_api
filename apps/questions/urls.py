@@ -9,6 +9,7 @@ from questions.views import (
     QuestionExcludePost,
     QuestionExcludeAnswerGet,
 )
+from questions.views.questions import QuestionWriteAnswer
 
 urlpatterns = [
     path(
@@ -44,6 +45,11 @@ urlpatterns = [
     path(
         "exclude/check/<int:task_obj_id>",
         QuestionExcludePost.as_view(),
+        name="single_answer",
+    ),
+    path(
+        "write/<int:task_obj_id>",
+        QuestionWriteAnswer.as_view(),
         name="single_answer",
     ),
 ]

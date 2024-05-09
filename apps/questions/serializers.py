@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework_dataclasses.serializers import DataclassSerializer
 
 from questions.models import InfoSlide
-from questions.typing import QuestionExcludeSerializerData, SingleAnswerData
+from questions.typing import QuestionExcludeSerializerData, SingleAnswerData, QuestionWriteSerializerData
 
 
 class IsAnsweredSerializer(serializers.Serializer):
@@ -85,3 +85,8 @@ class CustomTextSerializer(serializers.Serializer):
 
 class CustomTextSucessSerializer(serializers.Serializer):
     text = serializers.CharField(default="success")
+
+
+class WriteQuestionSerializer(DataclassSerializer):
+    class Meta:
+        dataclass = QuestionWriteSerializerData

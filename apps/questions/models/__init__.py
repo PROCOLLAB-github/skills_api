@@ -1,12 +1,12 @@
-from .questions_models import QuestionSingleAnswer, InfoSlide, QuestionConnect, WriteQuestion
-from .answers_models import SingleAnswer, ConnectAnswer, UserWriteAnswer
+from .questions import QuestionSingleAnswer, InfoSlide, QuestionConnect, QuestionWrite
+from .answers import AnswerSingle, AnswerConnect, AnswerUserWrite
 
 __all__ = [
     "QuestionSingleAnswer",
     "InfoSlide",
     "QuestionConnect",
-    "WriteQuestion",
-    "SingleAnswer",
-    "ConnectAnswer",
-    "UserWriteAnswer",
+    "QuestionWrite",
+    "AnswerSingle",
+    "AnswerConnect",
+    "AnswerUserWrite",
 ]

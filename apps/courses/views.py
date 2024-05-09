@@ -44,7 +44,7 @@ class TaskList(generics.ListAPIView):
         data = {"count": task_objects.count(), "step_data": []}
         for task_object in task_objects:
             type_task = TYPE_TASK_OBJECT[task_object.content_type.model]
-            # TODO позже поставить сюда ENUM
+            # TODO вместо словаря сделать Enum
             if type_task == "question_single_answer" and task_object.content_object.is_exclude:
                 type_task = "exclude_question"
             data["step_data"].append(

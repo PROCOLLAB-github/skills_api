@@ -39,7 +39,9 @@ class InfoSlide(models.Model):
         verbose_name_plural = "Информационные слайды"
 
 
-class WriteQuestion(AbstractQuestion):
+class QuestionWrite(AbstractQuestion):
+    files = models.ManyToManyField(FileModel, related_name="write_questions", blank=True)
+
     class Meta:
         verbose_name = "Вопрос на ввод ответа"
         verbose_name_plural = "Вопросы на ввод ответа"

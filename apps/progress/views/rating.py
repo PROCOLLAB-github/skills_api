@@ -23,7 +23,7 @@ class UserScoreRating(generics.ListAPIView):
     )
     def get(self, request, *args, **kwargs):
         user_queries = (
-            UserProfile.objects.select_related("user", "user__file")
+            UserProfile.objects.select_related("user", "file")
             .annotate(score_count=Sum("chosen_skills__tasks__task_objects__user_results__points_gained"))
             .order_by("-score_count")
         )
@@ -36,10 +36,10 @@ class UserScoreRating(generics.ListAPIView):
             {
                 "user_name": user_profile.user.first_name + " " + user_profile.user.last_name,
                 "age": user_profile.user.age,
-                "specializtion": user_profile.user.specialization,
+                "specialization": user_profile.user.specialization,
                 "geo_position": user_profile.user.geo_position,
                 "score_count": user_profile.score_count,
-                "file": user_profile.file.link,
+                "file": user_profile.file.link if user_profile.file else None,
             }
             for user_profile in paginated_data
         ]
@@ -59,8 +59,8 @@ class UserSkillsRating(generics.ListAPIView):
     )
     def get(self, request, *args, **kwargs):
         # TODO добавить отображение уровней у навыков
-        # TODO добавить авторизацию
-        profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
+        # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
+        profile_id = 1
 
         user_skills = (
             Skill.objects.prefetch_related("profile_skills")

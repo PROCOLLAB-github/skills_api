@@ -1,10 +1,10 @@
 from django.db import models
 
 from progress.models import UserProfile
-from questions.models.questions_models import QuestionConnect, QuestionSingleAnswer, WriteQuestion
+from questions.models.questions import QuestionConnect, QuestionSingleAnswer, QuestionWrite
 
 
-class SingleAnswer(models.Model):
+class AnswerSingle(models.Model):
     text = models.CharField(max_length=100, null=False)
     is_correct = models.BooleanField(default=False)
     question = models.ForeignKey(
@@ -18,7 +18,7 @@ class SingleAnswer(models.Model):
         verbose_name_plural = "Ответы для вопроса с одним правильным ответом"
 
 
-class ConnectAnswer(models.Model):
+class AnswerConnect(models.Model):
     connect_left = models.CharField(max_length=50, null=False)
     connect_right = models.CharField(max_length=50, null=False)
     question = models.ForeignKey(
@@ -32,10 +32,10 @@ class ConnectAnswer(models.Model):
         verbose_name_plural = "Ответы для вопроса на соотношение"
 
 
-class UserWriteAnswer(models.Model):
+class AnswerUserWrite(models.Model):
     text = models.TextField(null=False)
     write_question = models.ForeignKey(
-        WriteQuestion,
+        QuestionWrite,
         on_delete=models.CASCADE,
         related_name="write_answers",
     )

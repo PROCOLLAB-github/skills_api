@@ -168,17 +168,12 @@ def last_two_months_stats(user_profile_id: int) -> list[dict]:
 
 
 def check_if_answered_get(task_obj_id: int, user_profile_id: int, type_task_obj: TaskObjs) -> TaskObjUserResult:
-    if_user_already_passed = TaskObjUserResult.objects.filter(
+    return TaskObjUserResult.objects.filter(
         task_object_id=task_obj_id,
         user_profile_id=user_profile_id,
         points_gained=type_task_obj.value,
     ).first()
-    return if_user_already_passed
 
 
 def create_user_result(task_obj_id: int, user_profile_id: int, type_task_obj: TaskObjs):
-    TaskObjUserResult.objects.create(
-        task_object_id=task_obj_id,
-        user_profile_id=user_profile_id,
-        points_gained=type_task_obj.value,
-    )
+    TaskObjUserResult.objects.create(task_object_id=task_obj_id, user_profile_id=user_profile_id)

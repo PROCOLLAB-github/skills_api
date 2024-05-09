@@ -7,7 +7,6 @@ urlpatterns = [
     path(
         "profile/",
         UserProfileList.as_view(),
-        name="profile",
     ),
     path(
         "add-skills/",
@@ -17,12 +16,10 @@ urlpatterns = [
     path(
         "user-rating/",
         UserScoreRating.as_view(),
-        name="choose_skills",
     ),
     path(
         "skill-rating/",
         UserSkillsRating.as_view(),
-        name="choose_skills",
     ),
     path(
         "registration/",
