@@ -3,6 +3,7 @@ from abc import ABC
 from rest_framework import serializers
 from rest_framework_dataclasses.serializers import DataclassSerializer
 
+from progress.models import TaskObjUserResult
 from questions.models import InfoSlide
 from questions.typing import QuestionExcludeSerializerData, SingleAnswerData, QuestionWriteSerializerData
 
@@ -90,3 +91,17 @@ class CustomTextSucessSerializer(serializers.Serializer):
 class WriteQuestionSerializer(DataclassSerializer):
     class Meta:
         dataclass = QuestionWriteSerializerData
+
+
+class WriteAnswerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaskObjUserResult
+        fields = ["id", "text"]
+
+
+class WriteAnswerTextSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaskObjUserResult
+        fields = [
+            "text",
+        ]

@@ -1,22 +1,23 @@
-from drf_spectacular.utils import extend_schema, OpenApiParameter
-from rest_framework import generics, status, serializers
+from drf_spectacular.utils import OpenApiParameter, extend_schema
+from rest_framework import generics, serializers, status
 from rest_framework.response import Response
 
 from courses.models import TaskObject
-
 from progress.models import UserProfile
 from progress.services import create_user_result
-
 from questions.mapping import TypeQuestionPoints
-from questions.serializers import (
-    SingleCorrectPostSerializer,
-    ConnectQuestionPostResponseSerializer,
-    SimpleNumberListSerializer,
-    ConnectAnswerSerializer,
-    CustomTextSucessSerializer,
-    CustomTextSerializer,
-)
 from questions.models import AnswerSingle
+from questions.serializers import (
+    ConnectAnswerSerializer,
+    ConnectQuestionPostResponseSerializer,
+    CustomTextSerializer,
+    CustomTextSucessSerializer,
+    SimpleNumberListSerializer,
+    SingleCorrectPostSerializer,
+    WriteAnswerSerializer,
+    WriteAnswerTextSerializer,
+)
+from progress.models import TaskObjUserResult
 
 # TODO сделать, чтобы если юзер прошёл задание идеально правильно ранее (есть сохраненный результат),
 #  то выводился ещё и он,
@@ -38,7 +39,7 @@ class SingleCorrectPost(generics.CreateAPIView):
     serializer_class = SingleCorrectPostSerializer
 
     def create(self, request, *args, **kwargs) -> Response:
-        task_obj_id = self.request.query_params.get("task_obj_id")
+        task_obj_id = request.query_params.get("task_obj_id")
         # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
         profile_id = UserProfile.objects.get(user_id=1).id
 
@@ -70,7 +71,7 @@ class SingleCorrectPost(generics.CreateAPIView):
 class ConnectQuestionPost(generics.CreateAPIView):
     serializer_class = ConnectQuestionPostResponseSerializer
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs) -> Response:
         task_obj_id = self.kwargs.get("task_obj_id")
         user_answers = request.data
         # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
@@ -112,7 +113,7 @@ class ConnectQuestionPost(generics.CreateAPIView):
 class QuestionExcludePost(generics.CreateAPIView):
     serializer_class = SimpleNumberListSerializer
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs) -> Response:
         task_obj_id = self.kwargs.get("task_obj_id")
         # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
         profile_id = UserProfile.objects.get(user_id=1).id
@@ -135,3 +136,35 @@ class QuestionExcludePost(generics.CreateAPIView):
 
 
 # POST ответить на вопрос для текста
+
+
+@extend_schema(
+    summary="Сохранение ответа пользователя на ответ, требующий ввод текста",
+    tags=["Вопросы и инфо-слайд"],
+    request=WriteAnswerTextSerializer(),
+    responses={
+        200: WriteAnswerSerializer,
+        201: WriteAnswerSerializer,
+        400: {"error": "You can't save an empty answer!"},
+    },
+)
+class QuestionWritePost(generics.CreateAPIView):
+    serializer_class = WriteAnswerSerializer
+
+    def create(self, request, *args, **kwargs):
+        task_obj_id = self.kwargs.get("task_obj_id")
+        # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
+        profile_id = 1
+
+        user_answer = request.data["text"]
+        if len(user_answer):
+            query, is_created = TaskObjUserResult.objects.get_or_create(
+                task_object_id=task_obj_id,
+                user_profile_id=profile_id,
+                text=user_answer,
+                points_gained=TypeQuestionPoints.QUESTION_WRITE.value,
+            )
+            serializer = self.serializer_class(query)
+            return Response(serializer.data, status=status.HTTP_201_CREATED if is_created else status.HTTP_200_OK)
+
+        return Response({"error": "You can't save an empty answer!"}, status=status.HTTP_400_BAD_REQUEST)
