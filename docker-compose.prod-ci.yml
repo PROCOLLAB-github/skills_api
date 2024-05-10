@@ -11,8 +11,7 @@ services:
       HOST: 0.0.0.0
     expose:
       - 8000
-    volumes:
-      - static-volume:/procollab/static
+  
 
   nginx:
     container_name: skills_nginx
@@ -21,9 +20,7 @@ services:
       - web
     ports:
       - 8001:80
-    volumes:
-      - static-volume:/procollab/static
-
+    
   redis:
     container_name: skills_redis
     image: redis:latest
@@ -34,5 +31,5 @@ services:
 
 volumes:
   redis-data:
-  static-volume:
+
 
