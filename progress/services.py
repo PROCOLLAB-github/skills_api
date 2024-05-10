@@ -1,6 +1,8 @@
 import datetime
 
 from django.db.models import Q, Count, F, Case, When, BooleanField
+from django_filters import rest_framework as filters
+from django.utils import timezone
 
 from courses.models import Skill, Task
 from progress.mapping import MONTH_MAPPING
@@ -153,13 +155,13 @@ def create_user_result(task_obj_id: int, user_profile_id: int, type_task_obj: Ta
 
 def get_passed_skills_data() -> dict:
     pass
-    """ 
+    """
 
      1) как получить последний уровень юзера для скилла?
      сравнить количество (уникальных для задач) ответов пользователя для всех задач определённого скилла.
      если для всех задач определённого уровня есть решение, то +1 уровень.
 
-     итоговое число будет количество пройденных уровней. чтобы получить последний доступный уровень 
+     итоговое число будет количество пройденных уровней. чтобы получить последний доступный уровень
      к нему надо прибавить +1.
 
      кэшировать.
@@ -183,9 +185,41 @@ def get_passed_skills_data() -> dict:
 
      прогонять единожды в месяц.
 
-     4) как выбирать курсы  
+     4) как выбирать курсы
 
      5) как выбрать навыки месяца?
      выводить количество очков для навыков, у которых есть результаты прохождения, которые были созданы в данном месяце
 
     """
+
+
+class UserScoreRatingFilter(filters.FilterSet):
+    """Фильтр по указанным навыкам и дню/месяцу/году."""
+
+    chosen_skills = filters.CharFilter(method='filter_by_skill_name')
+    time_frame = filters.CharFilter(method='filter_by_time_frame')
+
+    class Meta:
+        model = UserProfile
+        fields = []
+
+    def filter_by_skill_name(self, queryset, name, value):
+        """Фильтрует пользователей на основе навыков."""
+        if value:
+            # Предполагается, что навыки передаются через запятую.
+            queryset = queryset.filter(
+                chosen_skills__name__in=[skill.strip() for skill in value.split(',')]
+            )
+        return queryset.distinct()
+
+    def filter_by_time_frame(self, queryset, name, value):
+        """Фильтрует пользователей на основе временного промежутка."""
+        values = {
+            'last_day': timezone.now() - datetime.timedelta(days=1),
+            'last_month': timezone.now() - datetime.timedelta(days=30),
+            'last_year': timezone.now() - datetime.timedelta(days=365),
+        }
+        if value in values:
+            return queryset.filter(task_obj_results__datetime_created__gte=values[value])
+
+        return queryset

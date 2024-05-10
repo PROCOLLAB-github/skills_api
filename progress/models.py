@@ -15,6 +15,10 @@ class UserTest(models.Model):
         verbose_name = "Пользователь (тестовая модель)"
         verbose_name_plural = "Пользователи (тестовая модель)"
 
+    def get_full_name(self):
+        """Получение имени и фамилии пользователя."""
+        return self.first_name + " " + self.last_name
+
 
 class UserProfile(models.Model):
     user = models.ForeignKey(

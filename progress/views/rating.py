@@ -1,6 +1,7 @@
 # GET топ юзеров по очкам (фильтр по году месяцу дню)
 from django.db.models import Sum, Q
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, status
 from rest_framework.response import Response
 
@@ -8,39 +9,44 @@ from courses.models import Skill
 from progress.models import UserProfile
 from progress.pagination import DefaultPagination
 from progress.serializers import SkillScoreSerializer, UserScoreSerializer
+from progress.services import UserScoreRatingFilter
 
 
+@extend_schema(
+    tags=["Рейтинг"],
+    summary="Топ юзеров по количеству очков.",
+    parameters=[
+        OpenApiParameter(
+            name="chosen_skills",
+            description="Фильтр по выбранным навыкам",
+            required=False,
+            type=OpenApiTypes.STR,
+            style='form',
+            explode=True,
+        ),
+        OpenApiParameter(
+            name="time_frame",
+            description="Фильтр по временным рамкам (last_day, last_month, last_year)",
+            required=False,
+            type=OpenApiTypes.STR,
+            style='form',
+            explode=True,
+        )
+    ]
+)
 class UserScoreRating(generics.ListAPIView):
     serializer_class = UserScoreSerializer
     pagination_class = DefaultPagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = UserScoreRatingFilter
 
-    @extend_schema(
-        summary="Топ юзеров по количеству очков",
-        description="""Пока что фильтры не реализованы, это позже""",
-        tags=["Рейтинг"],
-    )
-    def get(self, request, *args, **kwargs):
+    def get_queryset(self):
         user_queries = (
             UserProfile.objects.select_related("user")
             .annotate(score_count=Sum("chosen_skills__tasks__task_objects__user_results__points_gained"))
             .order_by("-score_count")
         )
-        # TODO добавить фильтры день месяц год
-        # TODO добавить фильтр по конкретным навыкам
-        paginator = self.pagination_class()
-        paginated_data = paginator.paginate_queryset(user_queries, self.request)
-
-        data = [
-            {
-                "user_name": user_profile.user.first_name + " " + user_profile.user.last_name,
-                "age": user_profile.user.age,
-                "specializtion": user_profile.user.specialization,
-                "geo_position": user_profile.user.geo_position,
-                "score_count": user_profile.score_count,
-            }
-            for user_profile in paginated_data
-        ]
-        return Response(data, status=status.HTTP_200_OK)
+        return user_queries
 
 
 class UserSkillsRating(generics.ListAPIView):
