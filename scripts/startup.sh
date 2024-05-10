@@ -1,5 +1,4 @@
 #!/bin/bash
-
 cd apps
 python manage.py migrate
 python manage.py collectstatic --no-input

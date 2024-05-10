@@ -31,7 +31,7 @@ def get_user_data(profile_id: int) -> dict:
     }
 
 
-def months_passed_data() -> tuple[datetime, datetime]:
+def months_passed_data() -> tuple[datetime.date, datetime.date]:
     today = datetime.date.today()
     first = today.replace(day=1)
     last_month = first - datetime.timedelta(days=1)
@@ -167,7 +167,7 @@ def last_two_months_stats(user_profile_id: int) -> list[dict]:
     return months_data
 
 
-def check_if_answered_get(task_obj_id: int, user_profile_id: int, type_task_obj: TaskObjs) -> TaskObjUserResult:
+def check_if_answered_get(task_obj_id: int, user_profile_id: int, type_task_obj: TaskObjs) -> TaskObjUserResult | None:
     return TaskObjUserResult.objects.filter(
         task_object_id=task_obj_id,
         user_profile_id=user_profile_id,
@@ -176,4 +176,8 @@ def check_if_answered_get(task_obj_id: int, user_profile_id: int, type_task_obj:
 
 
 def create_user_result(task_obj_id: int, user_profile_id: int, type_task_obj: TaskObjs):
-    TaskObjUserResult.objects.create(task_object_id=task_obj_id, user_profile_id=user_profile_id)
+    TaskObjUserResult.objects.create(
+        task_object_id=task_obj_id,
+        user_profile_id=user_profile_id,
+        points_gained=type_task_obj.value,
+    )

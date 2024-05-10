@@ -1,6 +1,8 @@
 # GET топ юзеров по очкам (фильтр по году месяцу дню)
 from django.db.models import Sum, Q
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, status
 from rest_framework.response import Response
 
@@ -9,42 +11,41 @@ from procollab_skills.decorators import exclude_auth_perm
 from progress.models import UserProfile
 from progress.pagination import DefaultPagination
 from progress.serializers import SkillScoreSerializer, UserScoreSerializer
+from progress.filters import UserScoreRatingFilter
 
 
-@exclude_auth_perm
+@extend_schema(
+    tags=["Рейтинг"],
+    summary="Топ юзеров по количеству очков.",
+    parameters=[
+        OpenApiParameter(
+            name="skills",
+            description="Фильтр по выбранным навыкам",
+            required=False,
+            type=OpenApiTypes.STR,
+            style="form",
+            explode=True,
+        ),
+        OpenApiParameter(
+            name="time_frame",
+            description="Фильтр по временным рамкам (last_day, last_month, last_year)",
+            required=False,
+            type=OpenApiTypes.STR,
+            style="form",
+            explode=True,
+        ),
+    ],
+)
 class UserScoreRating(generics.ListAPIView):
     serializer_class = UserScoreSerializer
     pagination_class = DefaultPagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = UserScoreRatingFilter
 
-    @extend_schema(
-        summary="Топ юзеров по количеству очков",
-        description="""Пока что фильтры не реализованы, это позже""",
-        tags=["Рейтинг"],
-    )
-    def get(self, request, *args, **kwargs):
-        user_queries = (
-            UserProfile.objects.select_related("user", "file")
-            .annotate(score_count=Sum("chosen_skills__tasks__task_objects__user_results__points_gained"))
-            .order_by("-score_count")
+    def get_queryset(self):
+        return UserProfile.objects.select_related("user", "file").prefetch_related(
+            "chosen_skills__tasks__task_objects__user_results"
         )
-        # TODO добавить фильтры день месяц год
-        # TODO добавить фильтр по конкретным навыкам
-        paginator = self.pagination_class()
-        paginated_data = paginator.paginate_queryset(user_queries, self.request)
-
-        data = [
-            {
-                "user_name": user_profile.user.first_name + " " + user_profile.user.last_name,
-                "age": user_profile.user.age,
-                "specialization": user_profile.user.specialization,
-                "geo_position": user_profile.user.geo_position,
-                "score_count": user_profile.score_count,
-                "file": user_profile.file.link if user_profile.file else None,
-            }
-            for user_profile in paginated_data
-        ]
-
-        return Response(data, status=status.HTTP_200_OK)
 
 
 @exclude_auth_perm
