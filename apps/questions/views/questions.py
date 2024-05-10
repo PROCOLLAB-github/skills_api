@@ -221,6 +221,7 @@ class InfoSlideDetails(generics.ListAPIView):
             data={
                 "text": info_slide.text,
                 "files": [file.link for file in info_slide.files.all()],
+                "is_done": bool(check_if_answered_get(task_object_id, user_profile_id, TypeQuestionPoints.INFO_SLIDE)),
             }
         )
         if serializer.is_valid():

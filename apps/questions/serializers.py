@@ -19,10 +19,11 @@ class FileSerializer(serializers.ListSerializer, ABC):
 class InfoSlideSerializer(serializers.Serializer):
     text = serializers.CharField()
     files = serializers.ListSerializer(child=serializers.CharField())
+    is_done = serializers.BooleanField()
 
     class Meta:
         model = InfoSlide
-        fields = ["text", "files"]
+        fields = ["text", "files", "is_done"]
 
 
 class SingleAnswerSerializer(DataclassSerializer):
