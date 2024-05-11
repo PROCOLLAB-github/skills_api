@@ -168,3 +168,20 @@ class QuestionWritePost(generics.CreateAPIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED if is_created else status.HTTP_200_OK)
 
         return Response({"error": "You can't save an empty answer!"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(
+    summary="Пометить InfoSlide как сделанный",
+    tags=["Вопросы и инфо-слайд"],
+)
+class InfoSlidePost(generics.CreateAPIView):
+    def create(self, request, *args, **kwargs):
+        task_object_id = self.kwargs.get("task_obj_id")
+        user_profile_id = 1
+
+        TaskObjUserResult.objects.get_or_create(
+            task_object_id=task_object_id,
+            user_profile_id=user_profile_id,
+            points_gained=TypeQuestionPoints.INFO_SLIDE.value,
+        )
+        return Response("infoslide marked as read", status=status.HTTP_204_NO_CONTENT)

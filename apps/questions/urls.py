@@ -10,13 +10,17 @@ from questions.views import (
     QuestionExcludePost,
     QuestionExcludeAnswerGet,
 )
-from questions.views.answers import QuestionWritePost
+from questions.views.answers import QuestionWritePost, InfoSlidePost
 from questions.views.questions import QuestionWriteAnswer
 
 urlpatterns = [
     path(
         "info-slide/<int:task_obj_id>",
         InfoSlideDetails.as_view(),
+    ),
+    path(
+        "info-slide/check/<int:task_obj_id>",
+        InfoSlidePost.as_view(),
     ),
     path(
         "single-correct/<int:task_obj_id>",

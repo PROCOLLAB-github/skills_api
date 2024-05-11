@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 from courses.mapping import ModelNameEnum
 from courses.models import TaskObject
-from progress.models import UserProfile, TaskObjUserResult
+from progress.models import UserProfile
 from questions.mapping import TypeQuestionPoints
 from questions.serializers import (
     SingleQuestionAnswerSerializer,
@@ -207,11 +207,6 @@ class InfoSlideDetails(generics.ListAPIView):
             }
         )
         if serializer.is_valid():
-            TaskObjUserResult.objects.get_or_create(
-                task_object_id=task_object_id,
-                user_profile_id=user_profile_id,
-                points_gained=TypeQuestionPoints.INFO_SLIDE.value,
-            )
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
