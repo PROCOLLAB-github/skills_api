@@ -84,7 +84,7 @@ class ConnectQuestionPost(generics.CreateAPIView):
         scored_answers = []
         for user_answer in user_answers:
             check_answer = all_answer_options.get(id=user_answer["left_id"])
-            user_answer["is_correct"] = check_answer.connect_right == user_answer["right_text"]
+            user_answer["is_correct"] = check_answer.id == user_answer["right_id"]
             scored_answers.append(user_answer)
 
         if not sum(1 for user_answer in user_answers if user_answer["is_correct"] is False):
