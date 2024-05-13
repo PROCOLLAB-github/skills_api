@@ -187,3 +187,5 @@ def create_user_result(task_obj_id: int, user_profile_id: int, type_task_obj: Ta
     except IntegrityError as e:
         if "unique constraint" in str(e.args).lower():
             raise UserAlreadyAnsweredException
+        else:
+            raise IntegrityError(str(e))

@@ -59,7 +59,12 @@ class SingleCorrectPost(generics.CreateAPIView):
 
             serializer = self.serializer_class(data=data)
             if serializer.is_valid():
-                return Response({"text": "success"}, status=status.HTTP_201_CREATED)
+                return Response(
+                    data,
+                    status=status.HTTP_201_CREATED
+                    if serializer_context["given_answer"].is_correct
+                    else status.HTTP_400_BAD_REQUEST,
+                )
             else:
                 return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         except UserAlreadyAnsweredException as e:
