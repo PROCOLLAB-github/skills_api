@@ -1,10 +1,12 @@
 import datetime
 
+from django.db import IntegrityError
 from django.db.models import Q, Count, F, Case, When, BooleanField
 
 from courses.models import Skill, Task
 from progress.mapping import MonthMapping
 from progress.models import UserProfile, TaskObjUserResult
+from questions.exceptions import UserAlreadyAnsweredException
 from questions.mapping import TaskObjs
 
 
@@ -176,8 +178,12 @@ def check_if_answered_get(task_obj_id: int, user_profile_id: int, type_task_obj:
 
 
 def create_user_result(task_obj_id: int, user_profile_id: int, type_task_obj: TaskObjs):
-    TaskObjUserResult.objects.create(
-        task_object_id=task_obj_id,
-        user_profile_id=user_profile_id,
-        points_gained=type_task_obj.value,
-    )
+    try:
+        TaskObjUserResult.objects.create(
+            task_object_id=task_obj_id,
+            user_profile_id=user_profile_id,
+            points_gained=type_task_obj.value,
+        )
+    except IntegrityError as e:
+        if "unique constraint" in str(e.args).lower():
+            raise UserAlreadyAnsweredException

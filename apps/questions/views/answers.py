@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from courses.models import TaskObject
 from progress.models import UserProfile
 from progress.services import create_user_result
+from questions.exceptions import UserAlreadyAnsweredException
 from questions.mapping import TypeQuestionPoints
 from questions.models import AnswerSingle
 from questions.serializers import (
@@ -17,7 +18,7 @@ from questions.serializers import (
     WriteAnswerSerializer,
     WriteAnswerTextSerializer,
 )
-from progress.models import TaskObjUserResult
+
 
 # TODO сделать, чтобы если юзер прошёл задание идеально правильно ранее (есть сохраненный результат),
 #  то выводился ещё и он,
@@ -39,63 +40,69 @@ class SingleCorrectPost(generics.CreateAPIView):
     serializer_class = SingleCorrectPostSerializer
 
     def create(self, request, *args, **kwargs) -> Response:
-        task_obj_id = request.query_params.get("task_obj_id")
-        # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
-        profile_id = UserProfile.objects.get(user_id=1).id
+        try:
+            task_obj_id = request.query_params.get("task_obj_id")
+            # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
+            profile_id = UserProfile.objects.get(user_id=1).id
 
-        given_answer = AnswerSingle.objects.select_related("question").get(id=self.kwargs.get("answer_id"))
-        serializer_context = {"given_answer": given_answer}
-        if not given_answer.is_correct:
-            correct_answer = AnswerSingle.objects.filter(question=given_answer.question, is_correct=True).first()
-            serializer_context["correct_answer"] = correct_answer
-        else:
-            create_user_result(task_obj_id, profile_id, TypeQuestionPoints.QUESTION_SINGLE_ANSWER)
+            given_answer = AnswerSingle.objects.select_related("question").get(id=self.kwargs.get("answer_id"))
+            serializer_context = {"given_answer": given_answer}
+            if not given_answer.is_correct:
+                correct_answer = AnswerSingle.objects.filter(question=given_answer.question, is_correct=True).first()
+                serializer_context["correct_answer"] = correct_answer
+            else:
+                create_user_result(task_obj_id, profile_id, TypeQuestionPoints.QUESTION_SINGLE_ANSWER)
 
-        data = {"is_correct": serializer_context["given_answer"].is_correct}
-        if not data["is_correct"]:
-            data["correct_answer"] = serializer_context["correct_answer"].id
+            data = {"is_correct": serializer_context["given_answer"].is_correct}
+            if not data["is_correct"]:
+                data["correct_answer"] = serializer_context["correct_answer"].id
 
-        serializer = self.serializer_class(data=data)
-        if serializer.is_valid():
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            serializer = self.serializer_class(data=data)
+            if serializer.is_valid():
+                return Response({"text": "success"}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        except UserAlreadyAnsweredException as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema(
     summary="Проверить вопрос на соотношение",
     tags=["Вопросы и инфо-слайд"],
-    request=ConnectAnswerSerializer,
+    request=serializers.ListSerializer(child=ConnectAnswerSerializer()),
     responses={201: ConnectQuestionPostResponseSerializer},
 )
 class ConnectQuestionPost(generics.CreateAPIView):
     serializer_class = ConnectQuestionPostResponseSerializer
 
     def create(self, request, *args, **kwargs) -> Response:
-        task_obj_id = self.kwargs.get("task_obj_id")
-        user_answers = request.data
-        # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
-        profile_id = UserProfile.objects.get(user_id=1).id
+        try:
+            task_obj_id = self.kwargs.get("task_obj_id")
+            user_answers = request.data
+            # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
+            profile_id = UserProfile.objects.get(user_id=1).id
 
-        question = TaskObject.objects.prefetch_related("content_object__connect_answers").get(id=task_obj_id)
+            question = TaskObject.objects.prefetch_related("content_object__connect_answers").get(id=task_obj_id)
 
-        all_answer_options = question.content_object.connect_answers.all()
+            all_answer_options = question.content_object.connect_answers.all()
 
-        scored_answers = []
-        for user_answer in user_answers:
-            check_answer = all_answer_options.get(id=user_answer["left_id"])
-            user_answer["is_correct"] = check_answer.id == user_answer["right_id"]
-            scored_answers.append(user_answer)
+            scored_answers = []
+            for user_answer in user_answers:
+                check_answer = all_answer_options.get(id=user_answer["left_id"])
+                user_answer["is_correct"] = check_answer.id == user_answer["right_id"]
+                scored_answers.append(user_answer)
 
-        if not sum(1 for user_answer in user_answers if user_answer["is_correct"] is False):
-            create_user_result(task_obj_id, profile_id, TypeQuestionPoints.QUESTION_CONNECT)
+            if not sum(1 for user_answer in user_answers if user_answer["is_correct"] is False):
+                create_user_result(task_obj_id, profile_id, TypeQuestionPoints.QUESTION_CONNECT)
 
-        serializer = self.serializer_class(data=scored_answers)
+            serializer = self.serializer_class(data=scored_answers)
 
-        if serializer.is_valid():
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            if serializer.is_valid():
+                return Response({"text": "success"}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        except UserAlreadyAnsweredException as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # TODO сделать возможным для прохождения только прохождаемый пользователем навык
@@ -114,25 +121,28 @@ class QuestionExcludePost(generics.CreateAPIView):
     serializer_class = SimpleNumberListSerializer
 
     def create(self, request, *args, **kwargs) -> Response:
-        task_obj_id = self.kwargs.get("task_obj_id")
-        # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
-        profile_id = UserProfile.objects.get(user_id=1).id
-        given_answer_ids = request.data
+        try:
+            task_obj_id = self.kwargs.get("task_obj_id")
+            # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
+            profile_id = UserProfile.objects.get(user_id=1).id
+            given_answer_ids = request.data
 
-        task_obj = TaskObject.objects.prefetch_related("content_object").get(id=task_obj_id)
-        answers_of_question = AnswerSingle.objects.filter(question=task_obj.content_object)
+            task_obj = TaskObject.objects.prefetch_related("content_object").get(id=task_obj_id)
+            answers_of_question = AnswerSingle.objects.filter(question=task_obj.content_object)
 
-        given_answers = answers_of_question.filter(id__in=given_answer_ids)
-        quantity_needed_answers = answers_of_question.filter(is_correct=False).count()
-        data = given_answers.filter(id__in=given_answer_ids, is_correct=True).values_list("id", flat=True)
+            given_answers = answers_of_question.filter(id__in=given_answer_ids)
+            quantity_needed_answers = answers_of_question.filter(is_correct=False).count()
+            data = given_answers.filter(id__in=given_answer_ids, is_correct=True).values_list("id", flat=True)
 
-        if len(data):
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
-        elif quantity_needed_answers != given_answers.count():
-            return Response({"text": "need more..."}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            create_user_result(task_obj_id, profile_id, TypeQuestionPoints.QUESTION_EXCLUDE)
-            return Response({"text": "success"}, status=status.HTTP_201_CREATED)
+            if len(data):
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+            elif quantity_needed_answers != given_answers.count():
+                return Response({"text": "need more..."}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                create_user_result(task_obj_id, profile_id, TypeQuestionPoints.QUESTION_EXCLUDE)
+                return Response({"text": "success"}, status=status.HTTP_201_CREATED)
+        except UserAlreadyAnsweredException as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # POST ответить на вопрос для текста
@@ -152,22 +162,19 @@ class QuestionWritePost(generics.CreateAPIView):
     serializer_class = WriteAnswerSerializer
 
     def create(self, request, *args, **kwargs):
-        task_obj_id = self.kwargs.get("task_obj_id")
-        # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
-        profile_id = 1
+        try:
+            # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
+            profile_id = 1
 
-        user_answer = request.data["text"]
-        if len(user_answer):
-            query, is_created = TaskObjUserResult.objects.get_or_create(
-                task_object_id=task_obj_id,
-                user_profile_id=profile_id,
-                text=user_answer,
-                points_gained=TypeQuestionPoints.QUESTION_WRITE.value,
-            )
-            serializer = self.serializer_class(query)
-            return Response(serializer.data, status=status.HTTP_201_CREATED if is_created else status.HTTP_200_OK)
+            user_answer = request.data["text"]
+            if len(user_answer):
+                create_user_result(self.kwargs.get("task_obj_id"), profile_id, TypeQuestionPoints.QUESTION_WRITE)
+                # serializer = self.serializer_class(query)
+                return Response({"text": "success"}, status=status.HTTP_201_CREATED)
 
-        return Response({"error": "You can't save an empty answer!"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "You can't save an empty answer!"}, status=status.HTTP_400_BAD_REQUEST)
+        except UserAlreadyAnsweredException as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema(
@@ -176,12 +183,9 @@ class QuestionWritePost(generics.CreateAPIView):
 )
 class InfoSlidePost(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
-        task_object_id = self.kwargs.get("task_obj_id")
-        user_profile_id = 1
-
-        TaskObjUserResult.objects.get_or_create(
-            task_object_id=task_object_id,
-            user_profile_id=user_profile_id,
-            points_gained=TypeQuestionPoints.INFO_SLIDE.value,
-        )
-        return Response("infoslide marked as read", status=status.HTTP_204_NO_CONTENT)
+        try:
+            user_profile_id = 1
+            create_user_result(self.kwargs.get("task_obj_id"), user_profile_id, TypeQuestionPoints.INFO_SLIDE)
+            return Response("successful", status=status.HTTP_204_NO_CONTENT)
+        except UserAlreadyAnsweredException as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
