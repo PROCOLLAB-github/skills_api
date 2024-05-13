@@ -83,7 +83,7 @@ class ConnectQuestionPost(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
-            task_obj_id = self.request.query_params.get("task_obj_id")
+            task_obj_id = self.kwargs.get("task_obj_id")
             user_answers = request.data
             # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
             profile_id = UserProfile.objects.get(user_id=1).id
