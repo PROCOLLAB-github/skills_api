@@ -34,6 +34,7 @@ from questions.typing import (
     QuestionWriteSerializerData,
     AnswerUserWriteData,
     QuestionСonnectSerializerData,
+    SingleConnectedAnswerData,
 )
 
 
@@ -105,8 +106,19 @@ class QuestionConnectGet(generics.ListAPIView):
 
         all_connect_answers: QuerySet[AnswerConnect] = question.connect_answers.all()
 
-        connect_right = [SingleAnswerData(id=answer.id, text=answer.connect_right) for answer in all_connect_answers]
-        connect_left = [SingleAnswerData(id=answer.id, text=answer.connect_left) for answer in all_connect_answers]
+        target_left = [
+            SingleConnectedAnswerData(id=answer.id, text=answer.connect_left)
+            if answer.connect_left
+            else SingleConnectedAnswerData(id=answer.id, file=answer.file_left.link)
+            for answer in all_connect_answers
+        ]
+        target_right = [
+            SingleConnectedAnswerData(id=answer.id, text=answer.connect_right)
+            if answer.connect_right
+            else SingleConnectedAnswerData(id=answer.id, file=answer.file_right.link)
+            for answer in all_connect_answers
+        ]
+
         # TODO переписать с датаклассами
 
         question_data = QuestionСonnectSerializerData(
@@ -114,14 +126,14 @@ class QuestionConnectGet(generics.ListAPIView):
             text=question.text,
             description=question.description,
             files=[file.link for file in question.files.all()],
-            connect_left=connect_left,
-            connect_right=connect_right,
+            connect_left=target_left,
+            connect_right=target_right,
         )
         if check_if_answered_get(task_object_id, profile_id, TypeQuestionPoints.QUESTION_CONNECT):
             question_data.is_answered = True
         else:
-            random.shuffle(connect_right)
-            random.shuffle(connect_left)
+            random.shuffle(target_right)
+            random.shuffle(target_left)
 
         serializer = self.serializer_class(question_data)
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -8,7 +8,6 @@ from progress.services import create_user_result
 from questions.mapping import TypeQuestionPoints
 from questions.models import AnswerSingle
 from questions.serializers import (
-    ConnectAnswerSerializer,
     ConnectQuestionPostResponseSerializer,
     CustomTextSerializer,
     CustomTextSucessSerializer,
@@ -16,6 +15,7 @@ from questions.serializers import (
     SingleCorrectPostSerializer,
     WriteAnswerSerializer,
     WriteAnswerTextSerializer,
+    ConnectQuestionPostRequestSerializer,
 )
 from progress.models import TaskObjUserResult
 
@@ -65,7 +65,7 @@ class SingleCorrectPost(generics.CreateAPIView):
 @extend_schema(
     summary="Проверить вопрос на соотношение",
     tags=["Вопросы и инфо-слайд"],
-    request=ConnectAnswerSerializer,
+    request=ConnectQuestionPostRequestSerializer,
     responses={201: ConnectQuestionPostResponseSerializer},
 )
 class ConnectQuestionPost(generics.CreateAPIView):
@@ -73,7 +73,7 @@ class ConnectQuestionPost(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs) -> Response:
         task_obj_id = self.kwargs.get("task_obj_id")
-        user_answers = request.data
+        user_answers = request.data['answer']
         # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
         profile_id = UserProfile.objects.get(user_id=1).id
 
@@ -87,7 +87,7 @@ class ConnectQuestionPost(generics.CreateAPIView):
             user_answer["is_correct"] = check_answer.id == user_answer["right_id"]
             scored_answers.append(user_answer)
 
-        if not sum(1 for user_answer in user_answers if user_answer["is_correct"] is False):
+        if all(user_answer["is_correct"] for user_answer in user_answers):
             create_user_result(task_obj_id, profile_id, TypeQuestionPoints.QUESTION_CONNECT)
 
         serializer = self.serializer_class(data=scored_answers)
