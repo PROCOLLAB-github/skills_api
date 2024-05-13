@@ -17,6 +17,7 @@ from questions.serializers import (
     SingleCorrectPostSerializer,
     WriteAnswerSerializer,
     WriteAnswerTextSerializer,
+    QuestionTextSerializer,
 )
 
 
@@ -30,7 +31,7 @@ from questions.serializers import (
     summary="Проверяет прохождение вопроса c одним правильным ответов. ",
     tags=["Вопросы и инфо-слайд"],
     description="""Помимо этого создаёт результат прохождения пользователем вопроса.""",
-    request=None,
+    request=QuestionTextSerializer(),
     responses={201: SingleCorrectPostSerializer},
     parameters=[
         OpenApiParameter(name="task_obj_id", required=True, type=int),
@@ -45,7 +46,7 @@ class SingleCorrectPost(generics.CreateAPIView):
             # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
             profile_id = UserProfile.objects.get(user_id=1).id
 
-            given_answer = AnswerSingle.objects.select_related("question").get(id=self.kwargs.get("answer_id"))
+            given_answer = AnswerSingle.objects.select_related("question").get(id=request.data["answer_id"])
             serializer_context = {"given_answer": given_answer}
             if not given_answer.is_correct:
                 correct_answer = AnswerSingle.objects.filter(question=given_answer.question, is_correct=True).first()
@@ -82,7 +83,7 @@ class ConnectQuestionPost(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
-            task_obj_id = self.kwargs.get("task_obj_id")
+            task_obj_id = self.request.query_params.get("task_obj_id")
             user_answers = request.data
             # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
             profile_id = UserProfile.objects.get(user_id=1).id
@@ -90,22 +91,36 @@ class ConnectQuestionPost(generics.CreateAPIView):
             question = TaskObject.objects.prefetch_related("content_object__connect_answers").get(id=task_obj_id)
 
             all_answer_options = question.content_object.connect_answers.all()
+            answers_left_to_check = list(all_answer_options.values_list("id", flat=True))
+            # all_answers_count = all_answer_options.count()
 
             scored_answers = []
             for user_answer in user_answers:
                 check_answer = all_answer_options.get(id=user_answer["left_id"])
                 user_answer["is_correct"] = check_answer.id == user_answer["right_id"]
                 scored_answers.append(user_answer)
+                if user_answer["is_correct"]:
+                    if (
+                        user_answer["left_id"] in answers_left_to_check
+                    ):  # КОСТЫЛЬ УБРАТЬ КОГДА РАЗЮБЬЁМ ОТВЕТЫ НА РАЗНЫЕ МОДЕЛИ
+                        answers_left_to_check.remove(user_answer["left_id"])
+                    if user_answer["right_id"] in answers_left_to_check:
+                        answers_left_to_check.remove(user_answer["right_id"])
 
-            if not sum(1 for user_answer in user_answers if user_answer["is_correct"] is False):
-                create_user_result(task_obj_id, profile_id, TypeQuestionPoints.QUESTION_CONNECT)
+            if_false_answers = bool(sum(1 for user_answer in user_answers if user_answer["is_correct"] is False))
+            if_unchecked_answers = bool(len(answers_left_to_check))
 
             serializer = self.serializer_class(data=scored_answers)
 
-            if serializer.is_valid():
+            if serializer.is_valid() and not if_false_answers and not if_unchecked_answers:
+                create_user_result(task_obj_id, profile_id, TypeQuestionPoints.QUESTION_CONNECT)
                 return Response({"text": "success"}, status=status.HTTP_201_CREATED)
-            else:
+            elif not serializer.is_valid():
                 return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+            if if_false_answers:
+                return Response(scored_answers, status.HTTP_400_BAD_REQUEST)
+
         except UserAlreadyAnsweredException as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

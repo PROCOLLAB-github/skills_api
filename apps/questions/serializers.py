@@ -112,3 +112,7 @@ class WriteAnswerTextSerializer(serializers.ModelSerializer):
         fields = [
             "text",
         ]
+
+
+class QuestionTextSerializer(serializers.Serializer):
+    answer_id = serializers.IntegerField()
