@@ -8,6 +8,13 @@ class SingleAnswerData:
 
 
 @dataclass
+class SingleConnectedAnswerData:
+    id: int
+    text: str | None = None
+    file: str | None = None
+
+
+@dataclass
 class QuestionSerializerData:
     id: int
     question_text: str | None
@@ -37,7 +44,7 @@ class QuestionСonnectSerializerData:
     id: int
     text: str
     description: str
-    connect_left: list[SingleAnswerData]
-    connect_right: list[SingleAnswerData]
+    connect_left: list[SingleConnectedAnswerData]
+    connect_right: list[SingleConnectedAnswerData]
     files: list[str]
     is_answered: bool | None = False

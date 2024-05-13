@@ -59,6 +59,13 @@ class ConnectQuestionSerializer(DataclassSerializer):
     class Meta:
         dataclass = QuestionСonnectSerializerData
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Удаляет "лишние" null поля: если вопрос содержит картинку, но не содержит "text" поля, "text" убирается.
+        data["connect_left"] = [{k: v for k, v in item.items() if v is not None} for item in data["connect_left"]]
+        data["connect_right"] = [{k: v for k, v in item.items() if v is not None} for item in data["connect_right"]]
+        return data
+
 
 class ScoredConnectAnswerSerializer(serializers.Serializer):
     left_id = serializers.IntegerField()

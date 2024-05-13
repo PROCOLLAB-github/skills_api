@@ -9,7 +9,6 @@ from questions.exceptions import UserAlreadyAnsweredException
 from questions.mapping import TypeQuestionPoints
 from questions.models import AnswerSingle
 from questions.serializers import (
-    ConnectAnswerSerializer,
     ConnectQuestionPostResponseSerializer,
     CustomTextSerializer,
     CustomTextSucessSerializer,
@@ -18,6 +17,7 @@ from questions.serializers import (
     WriteAnswerSerializer,
     WriteAnswerTextSerializer,
     QuestionTextSerializer,
+    ConnectAnswerSerializer,
 )
 
 
@@ -107,7 +107,7 @@ class ConnectQuestionPost(generics.CreateAPIView):
                     if user_answer["right_id"] in answers_left_to_check:
                         answers_left_to_check.remove(user_answer["right_id"])
 
-            if_false_answers = bool(sum(1 for user_answer in user_answers if user_answer["is_correct"] is False))
+            if_false_answers = not all(user_answer["is_correct"] for user_answer in user_answers)
             if_unchecked_answers = bool(len(answers_left_to_check))
 
             serializer = self.serializer_class(data=scored_answers)
@@ -118,7 +118,7 @@ class ConnectQuestionPost(generics.CreateAPIView):
             elif not serializer.is_valid():
                 return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-            if if_false_answers:
+            if if_false_answers or if_unchecked_answers:
                 return Response(scored_answers, status.HTTP_400_BAD_REQUEST)
 
         except UserAlreadyAnsweredException as e:
