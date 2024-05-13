@@ -39,7 +39,7 @@ urlpatterns = [
         ConnectQuestionPost.as_view(),
     ),
     path(
-        "exclude-correct/<int:task_obj_id>",
+        "exclude/<int:task_obj_id>",
         QuestionExcludeAnswerGet.as_view(),
     ),
     path(
