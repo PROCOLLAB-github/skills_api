@@ -42,7 +42,7 @@ class SingleCorrectPost(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
-            task_obj_id = request.query_params.get("task_obj_id")
+            task_obj_id = request.kwargs.get("task_obj_id")
             # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
             profile_id = UserProfile.objects.get(user_id=1).id
 

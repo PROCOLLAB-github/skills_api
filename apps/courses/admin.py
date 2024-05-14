@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.contrib.contenttypes.models import ContentType
+from django import forms
+from django.db.models import Q
 
 from courses.models import Skill, Task, TaskObject
 from questions.models import QuestionSingleAnswer
@@ -14,8 +17,26 @@ class TaskAdmin(admin.ModelAdmin):
     pass
 
 
+class TaskObjectForm(forms.ModelForm):
+    content_type = forms.ModelChoiceField(
+        queryset=ContentType.objects.filter(
+            Q(app_label="questions", model="infoslide")
+            | Q(app_label="questions", model="questionconnect")
+            | Q(app_label="questions", model="questionsingleanswer")
+            | Q(app_label="questions", model="questionwrite")
+            | Q(app_label="questions", model="writequestion")
+        ),
+        label="Content Type",
+    )
+
+    class Meta:
+        model = TaskObject
+        fields = "__all__"
+
+
 @admin.register(TaskObject)
 class TaskObjectAdmin(admin.ModelAdmin):
+    form = TaskObjectForm
     ordering = ("-task__id", "ordinal_number")
     list_display = (
         "id",

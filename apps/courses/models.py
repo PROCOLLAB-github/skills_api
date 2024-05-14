@@ -39,7 +39,7 @@ class Task(models.Model):
     # TODO добавить порядковый номер для показа
 
     def __str__(self):
-        return f"{self.name} {self.skill.name} {self.level}"
+        return f"name:<{self.name}> skill:<{self.skill.name}> level:<{self.level}>"
 
     class Meta:
         verbose_name = "Задача"
@@ -59,12 +59,8 @@ class TaskObject(models.Model):
         related_name="task_objects",
         verbose_name="Задача",
     )
-
     content_type = models.ForeignKey(
-        ContentType,
-        on_delete=models.CASCADE,
-        related_name="task_objects_content",
-        verbose_name="Тип единицы задачи",
+        ContentType, on_delete=models.CASCADE, related_name="task_objects_content", verbose_name="Тип единицы задачи"
     )
     object_id = models.PositiveIntegerField(verbose_name="ID единицы задачи")
     content_object = GenericForeignKey("content_type", "object_id")

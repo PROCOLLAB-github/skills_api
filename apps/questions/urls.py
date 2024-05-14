@@ -27,7 +27,7 @@ urlpatterns = [
         QuestionSingleAnswerGet.as_view(),
     ),
     path(
-        "single-correct/check/",
+        "single-correct/check/<int:task_obj_id>",
         SingleCorrectPost.as_view(),
     ),
     path(
