@@ -18,8 +18,8 @@ class QuestionSingleAnswer(AbstractQuestion):
     )
 
     class Meta:
-        verbose_name = "Вопрос с одним правильным ответов"
-        verbose_name_plural = "Вопросы с одним правильным ответов"
+        verbose_name = "Вопрос с одним правильным ответом"
+        verbose_name_plural = "Вопросы с одним правильным ответом"
 
 
 class QuestionConnect(AbstractQuestion):
