@@ -3,6 +3,7 @@ from dataclasses import asdict
 
 from django.db.models import QuerySet
 from drf_spectacular.utils import extend_schema
+
 from rest_framework import generics, status
 from rest_framework.response import Response
 
@@ -22,11 +23,6 @@ from questions.models import (
     AnswerConnect,
     InfoSlide,
 )
-
-# TODO сделать, чтобы если юзер прошёл задание идеально правильно ранее (есть сохраненный результат),
-#  то выводился ещё и он,
-# а не только вопрос
-# https://www.figma.com/file/cZKZgA3ZywZykhZuHn1OQk/ProCollab?type=design&node-id=377-634&mode=design&t=Pxo1vEpfsWDnicoF-0
 from questions.serializers import InfoSlideSerializer
 from questions.permissions import CheckQuestionTypePermission
 from questions.typing import (
@@ -147,6 +143,7 @@ class QuestionExcludeAnswerGet(generics.ListAPIView):
         profile_id = UserProfile.objects.get(user_id=1).id
 
         question: QuestionSingleAnswer = self.request_question
+
         all_answers = question.single_answers.all()
         answers = [SingleAnswerData(id=answer.id, text=answer.text) for answer in all_answers]
         answers_to_exclude = [
@@ -187,9 +184,9 @@ class InfoSlideDetails(generics.ListAPIView):
             data={
                 "text": info_slide.text,
                 "files": [file.link for file in info_slide.files.all()],
-                "is_done": bool(check_if_answered_get(
-                    self.task_object_id, user_profile_id, TypeQuestionPoints.INFO_SLIDE
-                )),
+                "is_done": bool(
+                    check_if_answered_get(self.task_object_id, user_profile_id, TypeQuestionPoints.INFO_SLIDE)
+                ),
             }
         )
         if serializer.is_valid():
@@ -222,7 +219,7 @@ class QuestionWriteAnswer(generics.ListAPIView):
         )
 
         if user_answer := check_if_answered_get(
-                self.task_object_id, user_profile_id, TypeQuestionPoints.QUESTION_WRITE
+            self.task_object_id, user_profile_id, TypeQuestionPoints.QUESTION_WRITE
         ):
             write_question.answer = AnswerUserWriteData(id=user_answer.id, text=user_answer.text)
 
