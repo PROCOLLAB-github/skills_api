@@ -34,13 +34,13 @@ class CheckQuestionTypePermission(permissions.BasePermission):
                     .content_object
                 )
 
-                needed, gotten = wrong_endpoint_text(request_question, view)
+                needed_model_class, gotten_model_class = wrong_endpoint_text(request_question, view)
                 raise PermissionDenied(
                     {
                         "error": (
                             f"You tried to summon taskobject with a wrong endpoint. "
-                            f"Instead of using '{needed}' endpoint, "
-                            f"try using '{gotten}' endpoint."
+                            f"Instead of using '{needed_model_class}' endpoint, "
+                            f"try using '{gotten_model_class}' endpoint."
                         )
                     }
                 )
@@ -48,8 +48,8 @@ class CheckQuestionTypePermission(permissions.BasePermission):
                 raise AttributeError(str(e))
 
         request_question = request_task_object.content_object
-        needed, gotten = wrong_endpoint_text(request_question, view)
-        if isinstance(request_question, view.expected_question_model) and needed == gotten:
+        needed_model_class, gotten_model_class = wrong_endpoint_text(request_question, view)
+        if isinstance(request_question, view.expected_question_model) and needed_model_class == gotten_model_class:
             # Установка атрибутов класса представления, чтобы повторно не дергать БД с запросом.
             view.task_object_id = task_object_id
             view.request_question = request_question
@@ -58,8 +58,8 @@ class CheckQuestionTypePermission(permissions.BasePermission):
             {
                 "error": (
                     f"You tried to summon taskobject with a wrong endpoint. "
-                    f"Instead of using '{needed}' endpoint, "
-                    f"try using '{gotten}' endpoint."
+                    f"Instead of using '{needed_model_class}' endpoint, "
+                    f"try using '{gotten_model_class}' endpoint."
                 )
             }
         )
