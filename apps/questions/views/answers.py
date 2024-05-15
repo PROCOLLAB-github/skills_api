@@ -1,4 +1,4 @@
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, serializers, status
 from rest_framework.response import Response
 
@@ -33,16 +33,13 @@ from questions.serializers import (
     description="""Помимо этого создаёт результат прохождения пользователем вопроса.""",
     request=QuestionTextSerializer(),
     responses={201: SingleCorrectPostSerializer},
-    parameters=[
-        OpenApiParameter(name="task_obj_id", required=True, type=int),
-    ],
 )
 class SingleCorrectPost(generics.CreateAPIView):
     serializer_class = SingleCorrectPostSerializer
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
-            task_obj_id = request.kwargs.get("task_obj_id")
+            task_obj_id = self.kwargs.get("task_obj_id")
             # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
             profile_id = UserProfile.objects.get(user_id=1).id
 
@@ -155,7 +152,7 @@ class QuestionExcludePost(generics.CreateAPIView):
             data = given_answers.filter(id__in=given_answer_ids, is_correct=True).values_list("id", flat=True)
 
             if len(data):
-                return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"is_correct": False, "wrong_answers": data}, status=status.HTTP_400_BAD_REQUEST)
             elif quantity_needed_answers != given_answers.count():
                 return Response({"text": "need more..."}, status=status.HTTP_400_BAD_REQUEST)
             else:

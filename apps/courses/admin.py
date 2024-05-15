@@ -24,7 +24,6 @@ class TaskObjectForm(forms.ModelForm):
             | Q(app_label="questions", model="questionconnect")
             | Q(app_label="questions", model="questionsingleanswer")
             | Q(app_label="questions", model="questionwrite")
-            | Q(app_label="questions", model="writequestion")
         ),
         label="Content Type",
     )
@@ -55,5 +54,6 @@ class TaskObjectAdmin(admin.ModelAdmin):
         else:
             return obj.content_type
 
-    question_type.short_description = "тип единицы задачи"
-    task_name.short_description = "наименование задачи"
+    #
+    # question_type.short_description = "тип единицы задачи"
+    # task_name.short_description = "наименование задачи"
