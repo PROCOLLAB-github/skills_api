@@ -33,6 +33,12 @@ class Skill(models.Model):
 
 
 class Task(models.Model):
+    ordinal_number = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Порядковый номер",
+        help_text="Если не указать, то автоматически станет последним в порядке показа",
+    )
     name = models.CharField(max_length=50, verbose_name="Название")
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE, related_name="tasks", verbose_name="Навык")
     level = models.IntegerField(default=1, verbose_name="Уровень")

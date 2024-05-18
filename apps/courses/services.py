@@ -64,7 +64,7 @@ def get_skills_details(skill_id: int, user_profile_id: int) -> dict:
     levels_of_skill = tasks.values_list("level", flat=True).distinct()
     for level in levels_of_skill:
         if "level" not in skill_data[skill.id].keys():
-            skill_data[skill.id]["level"] = 1
+            skill_data[skill.id]["level"] = 0
 
         task_statistics = tasks.filter(level=level, skill=skill).aggregate(
             quantity_tasks_of_skill=Count("id"),
@@ -85,6 +85,7 @@ def get_skills_details(skill_id: int, user_profile_id: int) -> dict:
         level=skill_data[skill_id]["level"],
         skill__id=skill_id,
     )
+    # raise ValueError(tasks, undone_tasks, skill_data[skill_id]["level"])
     if skill_id in user_skills_ids:
         quantity_tasks_undone = undone_tasks.count()
         if quantity_tasks_undone:
