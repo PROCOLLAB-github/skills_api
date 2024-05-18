@@ -211,8 +211,6 @@ class QuestionWriteAnswer(generics.ListAPIView):
 
         write_question = QuestionWriteSerializerData(
             id=question.id,
-            # Вероятно ожидается id TaskObject, если нет - удалить, если да - расскоментировать и удалить строку выше
-            # id=self.task_object_id,
             text=question.text,
             description=question.description,
             files=[file.link for file in question.files.all()],

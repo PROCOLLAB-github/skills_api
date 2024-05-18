@@ -28,13 +28,16 @@ def daily_resub_users() -> str:
     # для платежей. если у юзера в настройках разрешена отмена периодических платежей, то повторяет их
     with transaction.atomic():
         for payment in payments.items:
-            if not payment.metadata["user_profile_id"] in autopay_on_profiles_ids:
+            if payment.metadata.get("user_profile_id", None) is None:  # если данных нет почему-то
+                continue
+            user_id = int(payment.metadata["user_profile_id"])
+            if user_id not in autopay_on_profiles_ids:  # включено ли у юзера авто-продление
                 continue
 
             payload = CreateRecurrentPaymentData(
                 amount=AmountData(value=payment.amount.value),
                 payment_method_id=payment.id,
-                metadata={"user_profile_id": payment.metadata["user_profile_id"]},
+                metadata={"user_profile_id": user_id},
             )
 
             create_payment(payload)

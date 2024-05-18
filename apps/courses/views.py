@@ -1,14 +1,15 @@
-from django.db.models import Case, When, BooleanField, Sum
+from django.db.models import Case, When, BooleanField
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework import permissions
 
-from .mapping import TYPE_TASK_OBJECT
+from .mapping import TYPE_TASK_OBJECT, check_if_task_correct
 from .models import Task, Skill, TaskObject
 from .serializers import TaskSerializer, SkillsBasicSerializer, TasksOfSkillSerializer
 from .services import get_stats, get_skills_details
-from .utils.get_skill_level import get_skill_level
+
 
 from procollab_skills.decorators import (
     exclude_auth_perm,
@@ -111,7 +112,7 @@ class TasksOfSkill(generics.ListAPIView):
     # responses={200: TasksOfSkillSerializer(many=True)},
     tags=["Навыки и задачи"],
 )
-class NewLevel(generics.ListAPIView):
+class TaskStatsGet(generics.ListAPIView):
     serializer_class = ...
 
     def list(self, request, *args, **kwargs):
@@ -119,22 +120,42 @@ class NewLevel(generics.ListAPIView):
         user_profile_id = 1
 
         task_id = self.kwargs.get("task_id")
-        task = Task.objects.get(id=task_id)
-        skill_level = get_skill_level(
-            skill_id=task.skill.id,
+
+        task = get_object_or_404(Task.objects.values("skill_id", "id", "ordinal_number"), id=task_id)
+
+        next_task = (
+            Task.objects.filter(skill_id=task["skill_id"], ordinal_number=task["ordinal_number"] + 1)
+            .values("id")
+            .first()
+        )
+        task["next_task_id"] = next_task["id"] if next_task else None
+
+        skill_data = get_skills_details(
+            skill_id=task["skill_id"],
             user_profile_id=user_profile_id,
         )
+        needed_skill_data = {"level": skill_data["level"], "progress": skill_data["progress"]}
 
-        points = (
-            TaskObjUserResult.objects.filter(
-                user_profile_id=user_profile_id,
-                task_object_id__in=TaskObject.objects.filter(task=task).values_list("id", flat=True),
-            )
-            .only("points_gained")
-            .aggregate(points_sum=Sum("points_gained"))
+        task_objs = TaskObject.objects.filter(task_id=task["id"]).values_list("id", flat=True)
+        task_results = TaskObjUserResult.objects.select_related("task_object", "task_object__content_type").filter(
+            user_profile_id=user_profile_id,
+            task_object_id__in=task_objs,
         )
 
-        data = {"points_for_task": points["points_sum"], **skill_level[list(skill_level.keys())[0]]}
+        done_correct_tasks = 0
+        total_points = 0
+        for result in task_results:
+            if points := check_if_task_correct(result):
+                total_points += points
+                done_correct_tasks += 1
+        # data = {"points_for_task": points["points_sum"], **skill_level[list(skill_level.keys())[0]]}
+        data = {
+            "points_gained": total_points,
+            "quantity_done_correct": done_correct_tasks,
+            "quantity_all": task_objs.count(),
+            **needed_skill_data,
+            "next_task_id": task["next_task_id"],
+        }
         return Response(data, status=200)
 
 
