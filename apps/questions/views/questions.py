@@ -39,6 +39,7 @@ class QuestionSingleAnswerGet(generics.ListAPIView):
     serializer_class = SingleQuestionAnswerSerializer
     permission_classes = [CheckQuestionTypePermission]
     expected_question_model = QuestionSingleAnswer
+    view_request_type = "get"
 
     @extend_schema(
         summary="Выводит данные для трёх видов вопросов (см. описание)",
@@ -78,6 +79,7 @@ class QuestionConnectGet(generics.ListAPIView):
     serializer_class = ConnectQuestionSerializer
     permission_classes = [CheckQuestionTypePermission]
     expected_question_model = QuestionConnect
+    view_request_type = "get"
 
     @extend_schema(
         summary="Получить данные для вопроса на соотношение",
@@ -130,6 +132,7 @@ class QuestionExcludeAnswerGet(generics.ListAPIView):
     serializer_class = SingleQuestionAnswerSerializer
     permission_classes = [CheckQuestionTypePermission]
     expected_question_model = QuestionSingleAnswer
+    view_request_type = "get"
 
     @extend_schema(
         summary="Выводит данные для трёх видов вопросов (см. описание)",
@@ -171,6 +174,7 @@ class InfoSlideDetails(generics.ListAPIView):
     serializer_class = InfoSlideSerializer
     permission_classes = [CheckQuestionTypePermission]
     expected_question_model = InfoSlide
+    view_request_type = "get"
 
     @extend_schema(
         summary="Выводит информацию для информационного слайда",
@@ -200,6 +204,7 @@ class QuestionWriteAnswer(generics.ListAPIView):
     serializer_class = WriteQuestionSerializer
     permission_classes = [CheckQuestionTypePermission]
     expected_question_model = QuestionWrite
+    view_request_type = "get"
 
     @extend_schema(
         summary="Выводит информацию для слайда с вопросом, для которого надо будет написать ответ",
