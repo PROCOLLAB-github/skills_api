@@ -47,7 +47,6 @@ class SingleCorrectPost(generics.CreateAPIView):
     serializer_class = SingleCorrectPostSerializer
     permission_classes = [CheckQuestionTypePermission]
     expected_question_model = QuestionSingleAnswer
-    view_request_type = "post"
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
@@ -85,7 +84,6 @@ class ConnectQuestionPost(generics.CreateAPIView):
     serializer_class = ConnectQuestionPostResponseSerializer
     permission_classes = [CheckQuestionTypePermission]
     expected_question_model = QuestionConnect
-    view_request_type = "post"
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
@@ -144,7 +142,6 @@ class QuestionExcludePost(generics.CreateAPIView):
     serializer_class = SimpleNumberListSerializer
     permission_classes = [CheckQuestionTypePermission]
     expected_question_model = QuestionSingleAnswer
-    view_request_type = "post"
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
