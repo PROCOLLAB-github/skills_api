@@ -148,18 +148,27 @@ class QuestionExcludePost(generics.CreateAPIView):
             # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
             profile_id = UserProfile.objects.get(user_id=1).id
             given_answer_ids: list[int] = request.data
-            answers_of_question: QuerySet[AnswerSingle] = self.request_question.single_answers.all()
-            given_answers: QuerySet[AnswerSingle] = answers_of_question.filter(id__in=given_answer_ids)
-            quantity_needed_answers: int = answers_of_question.filter(is_correct=False).count()
-            data = given_answers.filter(id__in=given_answer_ids, is_correct=True).values_list("id", flat=True)
 
-            if len(data):
-                return Response({"is_correct": False, "wrong_answers": data}, status=status.HTTP_400_BAD_REQUEST)
-            elif quantity_needed_answers != given_answers.count():
-                return Response({"text": "need more..."}, status=status.HTTP_400_BAD_REQUEST)
-            else:
+            # Все праивльные ответы (в рамках исключения).
+            set_correct_answer_ids: set[int] = set(
+                self.request_question.single_answers
+                .filter(is_correct=False)
+                .values_list("id", flat=True)
+            )
+            set_given_answer_ids: set[int] = set(given_answer_ids)
+
+            # Проверка - все правильные ответы были даны.
+            if set_given_answer_ids == set_correct_answer_ids:
                 create_user_result(self.task_object_id, profile_id, TypeQuestionPoints.QUESTION_EXCLUDE)
                 return Response({"text": "success"}, status=status.HTTP_201_CREATED)
+            # Проверка - даны правильные ответы, но часть правильных отсутствует.
+            elif set_given_answer_ids.issubset(set_correct_answer_ids):
+                return Response({"text": "need more..."}, status=status.HTTP_400_BAD_REQUEST)
+            # Иначе, если есть неправильные ответы/сторонние id.
+            else:
+                wrong_answers: list[int] = list(set_given_answer_ids - set_correct_answer_ids)
+                return Response({"is_correct": False, "wrong_answers": wrong_answers},
+                                status=status.HTTP_400_BAD_REQUEST)
         except UserAlreadyAnsweredException as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
