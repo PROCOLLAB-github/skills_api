@@ -5,7 +5,12 @@ from rest_framework_dataclasses.serializers import DataclassSerializer
 
 from progress.models import TaskObjUserResult
 from questions.models import InfoSlide
-from questions.typing import QuestionExcludeSerializerData, SingleAnswerData, QuestionWriteSerializerData
+from questions.typing import (
+    QuestionSerializerData,
+    SingleAnswerData,
+    QuestionWriteSerializerData,
+    QuestionСonnectSerializerData,
+)
 
 
 class IsAnsweredSerializer(serializers.Serializer):
@@ -19,10 +24,11 @@ class FileSerializer(serializers.ListSerializer, ABC):
 class InfoSlideSerializer(serializers.Serializer):
     text = serializers.CharField()
     files = serializers.ListSerializer(child=serializers.CharField())
+    is_done = serializers.BooleanField()
 
     class Meta:
         model = InfoSlide
-        fields = ["text", "files"]
+        fields = ["text", "files", "is_done"]
 
 
 class SingleAnswerSerializer(DataclassSerializer):
@@ -32,7 +38,7 @@ class SingleAnswerSerializer(DataclassSerializer):
 
 class SingleQuestionAnswerSerializer(DataclassSerializer):
     class Meta:
-        dataclass = QuestionExcludeSerializerData
+        dataclass = QuestionSerializerData
 
 
 class SingleCorrectPostSerializer(serializers.Serializer):
@@ -44,18 +50,26 @@ class StrSerializer(serializers.Serializer):
     string = serializers.CharField(required=False)
 
 
-class ConnectQuestionSerializer(IsAnsweredSerializer):
+class ConnectionSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    question_text = serializers.CharField(required=False)
-    description = serializers.CharField()
-    files = serializers.ListSerializer(child=serializers.CharField())
-    connect_left = SingleAnswerSerializer(many=True)
-    connect_right = StrSerializer(many=True)
+    answer_text = serializers.CharField()
+
+
+class ConnectQuestionSerializer(DataclassSerializer):
+    class Meta:
+        dataclass = QuestionСonnectSerializerData
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Удаляет "лишние" null поля: если вопрос содержит картинку, но не содержит "text" поля, "text" убирается.
+        data["connect_left"] = [{k: v for k, v in item.items() if v is not None} for item in data["connect_left"]]
+        data["connect_right"] = [{k: v for k, v in item.items() if v is not None} for item in data["connect_right"]]
+        return data
 
 
 class ScoredConnectAnswerSerializer(serializers.Serializer):
     left_id = serializers.IntegerField()
-    right_text = serializers.CharField(max_length=255)
+    right_id = serializers.IntegerField()
     is_correct = serializers.BooleanField()
 
 
@@ -65,7 +79,7 @@ class ConnectQuestionPostResponseSerializer(serializers.ListSerializer):
 
 class ConnectAnswerSerializer(serializers.Serializer):
     left_id = serializers.IntegerField()
-    right_text = serializers.CharField()
+    right_id = serializers.IntegerField()
 
 
 class ConnectQuestionPostRequestSerializer(serializers.Serializer):
@@ -105,3 +119,7 @@ class WriteAnswerTextSerializer(serializers.ModelSerializer):
         fields = [
             "text",
         ]
+
+
+class QuestionTextSerializer(serializers.Serializer):
+    answer_id = serializers.IntegerField()

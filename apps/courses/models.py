@@ -33,13 +33,19 @@ class Skill(models.Model):
 
 
 class Task(models.Model):
+    ordinal_number = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Порядковый номер",
+        help_text="Если не указать, то автоматически станет последним в порядке показа",
+    )
     name = models.CharField(max_length=50, verbose_name="Название")
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE, related_name="tasks", verbose_name="Навык")
     level = models.IntegerField(default=1, verbose_name="Уровень")
     # TODO добавить порядковый номер для показа
 
     def __str__(self):
-        return f"{self.name} {self.skill.name} {self.level}"
+        return f"name:<{self.name}> skill:<{self.skill.name}> level:<{self.level}>"
 
     class Meta:
         verbose_name = "Задача"
@@ -59,12 +65,8 @@ class TaskObject(models.Model):
         related_name="task_objects",
         verbose_name="Задача",
     )
-
     content_type = models.ForeignKey(
-        ContentType,
-        on_delete=models.CASCADE,
-        related_name="task_objects_content",
-        verbose_name="Тип единицы задачи",
+        ContentType, on_delete=models.CASCADE, related_name="task_objects_content", verbose_name="Тип единицы задачи"
     )
     object_id = models.PositiveIntegerField(verbose_name="ID единицы задачи")
     content_object = GenericForeignKey("content_type", "object_id")

@@ -35,7 +35,7 @@ def get_skill_level(skill_id: int, user_profile_id: int) -> dict:
     levels_of_skill = tasks.values_list("level", flat=True).distinct()
     for level in levels_of_skill:
         if "level" not in skill_data[skill.id].keys():
-            skill_data[skill.id]["level"] = 1
+            skill_data[skill.id]["level"] = 0
 
         task_statistics = tasks.filter(level=level, skill=skill).aggregate(
             quantity_tasks_of_skill=Count("id"),

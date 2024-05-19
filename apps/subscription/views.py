@@ -9,7 +9,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.response import Response
 
-from procollab_skills.decorators import exclude_auth_perm, exclude_sub_check_perm
+from procollab_skills.decorators import exclude_auth_perm  # , exclude_sub_check_perm
 from progress.models import UserProfile
 from subscription.mapping import (
     CreatePaymentData,
@@ -31,12 +31,12 @@ from subscription.utils.create_payment import create_payment
     parameters=[OpenApiParameter(name="subscription_id", description="ID типа подписки", type=int)],
     responses={201: CreatePaymentResponseSerializer},
 )
-@exclude_sub_check_perm
+# @exclude_sub_check_perm
 class CreatePayment(CreateAPIView):
     @staticmethod
     def check_subscription(user_sub_date):
-        thirty_days_ago = datetime.now() - timedelta(days=30)
-        if user_sub_date <= thirty_days_ago:
+        thirty_days_ago = datetime.now().date() - timedelta(days=30)
+        if user_sub_date >= thirty_days_ago:
             raise PermissionDenied("Подписка уже оформлена.")
 
     def get_request_data(self, user_profile_id: int) -> CreatePaymentViewRequestData:
@@ -63,7 +63,6 @@ class CreatePayment(CreateAPIView):
             confirmation=request_data.confirmation,
             metadata={"user_profile_id": request_data.user_profile_id},
         )
-
         payment: CreatePaymentResponseData = create_payment(payload)
         return Response(asdict(payment), status=200)
 

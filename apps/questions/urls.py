@@ -10,7 +10,7 @@ from questions.views import (
     QuestionExcludePost,
     QuestionExcludeAnswerGet,
 )
-from questions.views.answers import QuestionWritePost
+from questions.views.answers import QuestionWritePost, InfoSlidePost
 from questions.views.questions import QuestionWriteAnswer
 
 urlpatterns = [
@@ -19,11 +19,15 @@ urlpatterns = [
         InfoSlideDetails.as_view(),
     ),
     path(
+        "info-slide/check/<int:task_obj_id>",
+        InfoSlidePost.as_view(),
+    ),
+    path(
         "single-correct/<int:task_obj_id>",
         QuestionSingleAnswerGet.as_view(),
     ),
     path(
-        "single-correct/check/<int:answer_id>",
+        "single-correct/check/<int:task_obj_id>",
         SingleCorrectPost.as_view(),
     ),
     path(
@@ -35,7 +39,7 @@ urlpatterns = [
         ConnectQuestionPost.as_view(),
     ),
     path(
-        "exclude-correct/<int:task_obj_id>",
+        "exclude/<int:task_obj_id>",
         QuestionExcludeAnswerGet.as_view(),
     ),
     path(

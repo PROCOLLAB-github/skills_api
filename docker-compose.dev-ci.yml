@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    restart: unless-stopped
+    restart: always
     command:  bash ./scripts/startup.sh
     env_file:
       - .env

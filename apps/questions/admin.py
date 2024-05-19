@@ -10,9 +10,15 @@ from questions.models import (
 )
 
 
-class ConnectAnswersInline(admin.TabularInline):  # Или StackedInline для другого стиля отображения
+class ConnectAnswersInline(admin.StackedInline):  # Или TabularInline для другого стиля отображения
     model = AnswerConnect
     extra = 0
+    fieldsets = (
+        (None, {
+            "fields": (("connect_left", "file_left"), ("connect_right", "file_right")),
+            "classes": ("wide",),
+        }),
+    )
 
 
 @admin.register(QuestionConnect)

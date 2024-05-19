@@ -18,7 +18,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SubscriptionType
-        fields = ["name", "price", "features_list"]
+        fields = ["id", "name", "price", "features_list"]
 
 
 class RenewSubDateSerializer(DataclassSerializer):
