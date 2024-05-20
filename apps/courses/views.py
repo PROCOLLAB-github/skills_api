@@ -149,7 +149,6 @@ class TaskStatsGet(generics.ListAPIView):
             if points := check_if_task_correct(result):
                 total_points += points
                 done_correct_tasks += 1
-        # data = {"points_for_task": points["points_sum"], **skill_level[list(skill_level.keys())[0]]}
         data = {
             "points_gained": total_points,
             "quantity_done_correct": done_correct_tasks,
