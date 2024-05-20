@@ -1,4 +1,5 @@
 from django.db.models import Case, When, BooleanField
+
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
@@ -31,7 +32,6 @@ class TaskList(generics.ListAPIView):
 
         # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
         profile_id = 1
-
         task = Task.objects.prefetch_related("task_objects", "task_objects__content_object").get(id=int(task_id))
 
         task_objects = task.task_objects.annotate(
@@ -128,13 +128,14 @@ class TaskStatsGet(generics.ListAPIView):
             .values("id")
             .first()
         )
+
         task["next_task_id"] = next_task["id"] if next_task else None
 
         skill_data = get_skills_details(
             skill_id=task["skill_id"],
             user_profile_id=user_profile_id,
         )
-        needed_skill_data = {"level": skill_data["level"], "progress": skill_data["progress"]}
+        needed_skill_data = {"level": skill_data["level"], "progress": skill_data.get("progress", 0)}
 
         task_objs = TaskObject.objects.filter(task_id=task["id"]).values_list("id", flat=True)
         task_results = TaskObjUserResult.objects.select_related("task_object", "task_object__content_type").filter(
