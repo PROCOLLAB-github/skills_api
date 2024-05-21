@@ -2,7 +2,7 @@ from datetime import datetime
 from rest_framework import serializers
 
 from progress.models import UserProfile
-
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from progress.models import CustomUser
 
 
@@ -81,3 +81,17 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ("id", "email", "password", "first_name", "last_name")
+
+
+class UserCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = "__all__"
+
+
+class CustomObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token["email"] = user.email
+        return token

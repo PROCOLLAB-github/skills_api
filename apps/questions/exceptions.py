@@ -1,7 +1,4 @@
 from django.db import IntegrityError
-from rest_framework.exceptions import PermissionDenied
-
-PermissionDenied
 
 
 class UserAlreadyAnsweredException(IntegrityError):

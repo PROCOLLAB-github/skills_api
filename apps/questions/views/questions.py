@@ -7,6 +7,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
 
+from procollab_skills.permissions import AuthCheck
 from progress.models import UserProfile
 from questions.mapping import TypeQuestionPoints
 from questions.serializers import (
@@ -169,7 +170,7 @@ class QuestionExcludeAnswerGet(generics.ListAPIView):
 
 class InfoSlideDetails(generics.ListAPIView):
     serializer_class = InfoSlideSerializer
-    permission_classes = [CheckQuestionTypePermission]
+    permission_classes = [AuthCheck, CheckQuestionTypePermission]
     expected_question_model = InfoSlide
 
     @extend_schema(
