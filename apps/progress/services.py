@@ -1,7 +1,7 @@
 import datetime
 
 from django.db import IntegrityError
-from django.db.models import Q, Count, F, Case, When, BooleanField
+from django.db.models import Q, Count, F, Case, When, BooleanField, QuerySet
 
 from courses.models import Skill, Task
 from progress.mapping import MonthMapping
@@ -44,66 +44,50 @@ def months_passed_data() -> tuple[datetime.date, datetime.date]:
     return last_last_month, last_month
 
 
-def get_current_level(user_profile_id: int) -> dict:
+def get_current_level(user_profile_id: int) -> dict[int:dict[str, object]]:
     """Выдаёт наиболее маленький непройденный уровень у всех скиллов пользователя"""
-    user_skills = (  # получаем все скиллы у юзера. те, которые он выбрал, и те, которые он пытался решать
-        Skill.objects.prefetch_related("profile_skills")
-        .filter(
+
+    # Получение всех навыков пользователя (из профиля) | (там где принимал участие).
+    user_skills: QuerySet[Skill] = (
+        Skill.objects.filter(
             Q(profile_skills__id=user_profile_id)
             | Q(tasks__task_objects__user_results__user_profile__id=user_profile_id)
-        )
-        .annotate(total_tasks=Count("tasks"))
-        .distinct()
+        ).distinct()
     )
 
-    tasks = (  # получаем все задачи у скиллов с количеством вопросов и ответов
-        Task.objects.select_related("skill")
-        .filter(skill__in=user_skills)
+    # Получение id навыков пользователя из user_skills.
+    user_skills_ids: QuerySet = user_skills.values_list("id", flat=True)
+
+    # Получение значений для всех задач, связанных с навыками пользователя.
+    tasks: QuerySet = (
+        Task.objects.filter(skill__in=user_skills_ids)
         .annotate(
             num_questions=Count("task_objects"),
             num_answers=Count(
-                "task_objects__user_results", filter=Q(task_objects__user_results__user_profile__id=user_profile_id)
-            ),
-            is_done=Case(When(num_questions=F("num_answers"), then=True), default=False, output_field=BooleanField()),
+                "task_objects__user_results",
+                filter=Q(task_objects__user_results__user_profile__id=user_profile_id)
+            )
         )
-        .distinct()
+        .values("skill_id", "level", "num_questions", "num_answers")
     )
 
-    skills_data = {skill.id: {"skill_name": skill.name} for skill in user_skills}
+    # Подготовительный словарь для хранения данных о навыках.
+    skills_data: dict[int:dict[str:object]] = {
+        skill.id: {"skill_name": skill.name, "level": 1} for skill in user_skills
+    }
 
-    # скилла, для каждого уровня, для каждого уровня, если все задачи решены, то накидываем уровень для скилла
-    for skill in user_skills:
-        levels_of_skill = tasks.values_list("level", flat=True).distinct()
-        for level in levels_of_skill:
-            if "level" not in skills_data[skill.id].keys():
-                skills_data[skill.id]["level"] = 1
+    # Определение текущего уровня навыка на основе задач.
+    for task in tasks:
+        skill_id = task["skill_id"]
+        level = task["level"]
+        num_questions = task["num_questions"]
+        num_answers = task["num_answers"]
 
-            task_statistics = tasks.filter(level=level, skill=skill).aggregate(
-                quantity_tasks_of_skill=Count("id"),
-                quantity_of_done_tasks=Count("id", filter=Q(is_done=True)),
-            )
-
-            # Извлекаем значение quantity_tasks_of_skill и quantity_of_done_tasks из результата
-            total_tasks = task_statistics.get("quantity_tasks_of_skill", 0)
-            total_done_tasks = task_statistics.get("quantity_of_done_tasks", 0)
-
-            if total_tasks == total_done_tasks:
-                skills_data[skill.id]["level"] += 1
-
-    user_skills_ids = user_skills.filter(profile_skills__id=user_profile_id).values_list("id", flat=True)
-
-    # проверка прогресса недопройденных навыков
-    for skill_id, value in skills_data.items():
-        undone_tasks = tasks.filter(~Q(num_questions=F("num_answers")), level=value["level"], skill__id=skill_id)
-        if skill_id in user_skills_ids:
-            quantity_tasks_undone = undone_tasks.count()
-            if quantity_tasks_undone:
-                progress = (
-                    sum(undone_task.num_answers / undone_task.num_questions for undone_task in undone_tasks)
-                    / quantity_tasks_undone
-                )
-                skills_data[skill_id]["progress"] = progress * 100
-
+        if skills_data[skill_id]["level"] == level:
+            if num_questions == num_answers:
+                skills_data[skill_id]["level"] += 1
+            else:
+                skills_data[skill_id]["progress"] = round((num_answers / num_questions) * 100)
     return skills_data
 
 

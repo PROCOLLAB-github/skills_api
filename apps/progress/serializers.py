@@ -17,7 +17,7 @@ class UserDataSerializer(serializers.Serializer):
 class SkillSerializer(serializers.Serializer):
     skill_name = serializers.CharField(max_length=100)
     level = serializers.IntegerField(help_text="""Выводится как 'количество пройденный уровней' + 1'""")
-    progress = serializers.FloatField(required=False, help_text="""Выводится только выбран юзером""")
+    progress = serializers.IntegerField(required=False, help_text="""Выводится только выбран юзером""")
 
 
 class MonthSerializer(serializers.Serializer):
