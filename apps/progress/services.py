@@ -6,6 +6,7 @@ from django.db.models import Q, Count, F, Case, When, BooleanField, QuerySet
 from courses.models import Skill, Task
 from progress.mapping import MonthMapping
 from progress.models import UserProfile, TaskObjUserResult
+from progress.typing import SkillIdType, SkillProgressType
 from questions.exceptions import UserAlreadyAnsweredException
 from questions.mapping import TaskObjs
 
@@ -44,16 +45,13 @@ def months_passed_data() -> tuple[datetime.date, datetime.date]:
     return last_last_month, last_month
 
 
-def get_current_level(user_profile_id: int) -> dict[int:dict[str, object]]:
+def get_current_level(user_profile_id: int) -> dict[SkillIdType:SkillProgressType]:
     """Выдаёт наиболее маленький непройденный уровень у всех скиллов пользователя"""
 
     # Получение всех навыков пользователя (из профиля) | (там где принимал участие).
-    user_skills: QuerySet[Skill] = (
-        Skill.objects.filter(
-            Q(profile_skills__id=user_profile_id)
-            | Q(tasks__task_objects__user_results__user_profile__id=user_profile_id)
-        ).distinct()
-    )
+    user_skills: QuerySet[Skill] = Skill.objects.filter(
+        Q(profile_skills__id=user_profile_id) | Q(tasks__task_objects__user_results__user_profile__id=user_profile_id)
+    ).distinct()
 
     # Получение id навыков пользователя из user_skills.
     user_skills_ids: QuerySet = user_skills.values_list("id", flat=True)
@@ -64,15 +62,14 @@ def get_current_level(user_profile_id: int) -> dict[int:dict[str, object]]:
         .annotate(
             num_questions=Count("task_objects"),
             num_answers=Count(
-                "task_objects__user_results",
-                filter=Q(task_objects__user_results__user_profile__id=user_profile_id)
-            )
+                "task_objects__user_results", filter=Q(task_objects__user_results__user_profile__id=user_profile_id)
+            ),
         )
         .values("skill_id", "level", "num_questions", "num_answers")
     )
 
     # Подготовительный словарь для хранения данных о навыках.
-    skills_data: dict[int:dict[str:object]] = {
+    skills_data: dict[SkillIdType:SkillProgressType] = {
         skill.id: {"skill_name": skill.name, "level": 1} for skill in user_skills
     }
 
@@ -149,7 +146,6 @@ def last_two_months_stats(user_profile_id: int) -> list[dict]:
                     months_counter += 1
 
         months_data.append({"month": MonthMapping[month.month], "is_passed": months_counter == user_skills.count()})
-
     return months_data
 
 
