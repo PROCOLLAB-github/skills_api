@@ -99,8 +99,6 @@ class QuestionConnectGet(generics.ListAPIView):
             for answer in all_connect_answers
         ]
 
-        # TODO переписать с датаклассами
-
         question_data = QuestionСonnectSerializerData(
             id=question.id,
             text=question.text,
