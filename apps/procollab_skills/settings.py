@@ -101,7 +101,7 @@ WSGI_APPLICATION = "procollab_skills.wsgi.application"
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        # "procollab_skills.middleware.CustomJWTAuthentication",
+        "procollab_skills.middleware.CustomJWTAuthentication",
         "rest_framework.authentication.BasicAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": ["procollab_skills.permissions.AuthCheck"],
@@ -131,7 +131,7 @@ SELECTEL_NEW_AUTH_TOKEN = "https://cloud.api.selcloud.ru/identity/v3/auth/tokens
 SELECTEL_UPLOAD_URL = f"https://swift.ru-1.storage.selcloud.ru/v1/{SELECTEL_PROJECT_ID}/{SELECTEL_CONTAINER_NAME}/"
 
 
-if True:
+if 0:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",

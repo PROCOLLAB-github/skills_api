@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 import jwt
 import requests
+from jwt import ExpiredSignatureError
 
 from rest_framework import permissions, status
 from rest_framework.exceptions import PermissionDenied
@@ -49,6 +50,7 @@ class AuthCheck(permissions.BasePermission):
     Проверка JWT юзера через основной Procollab
     """
 
+    # TODO переписать, и сделать так, чтобы в jwt хранился только email, а не id и email
     @staticmethod
     def _check_exists_skills(view, email: str) -> bool:
         if user := CustomUser.objects.filter(email=email).first():
@@ -82,7 +84,10 @@ class AuthCheck(permissions.BasePermission):
         if not token:
             raise PermissionDenied({"error": "User credentials are not given"})
 
-        decoded_token: dict = jwt.decode(token[7:], settings.SECRET_KEY, algorithms=["HS256"])
+        try:
+            decoded_token: dict = jwt.decode(token[7:], settings.SECRET_KEY, algorithms=["HS256"])
+        except ExpiredSignatureError:
+            raise PermissionDenied("Token is expired")
         email = decoded_token.get("email")
 
         return self._check_exists_skills(view, email) or self._check_exists_procollab(view, email)
