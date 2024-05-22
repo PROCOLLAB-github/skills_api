@@ -53,6 +53,8 @@ class AuthCheck(permissions.BasePermission):
     def _check_exists_skills(view, email: str) -> bool:
         if user := CustomUser.objects.filter(email=email).first():
             view.user = user
+            view.user_profile = UserProfile.objects.get(user=user)
+            view.profile_id = view.user_profile.id
             return True
         return False
 
