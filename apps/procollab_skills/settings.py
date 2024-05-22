@@ -101,7 +101,7 @@ WSGI_APPLICATION = "procollab_skills.wsgi.application"
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "procollab_skills.middleware.CustomJWTAuthentication",
+        # "procollab_skills.middleware.CustomJWTAuthentication",
         "rest_framework.authentication.BasicAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": ["procollab_skills.permissions.AuthCheck"],
