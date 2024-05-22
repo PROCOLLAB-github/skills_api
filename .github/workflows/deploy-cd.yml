@@ -43,5 +43,5 @@ jobs:
           echo "YOOKASSA_API_KEY=${{ secrets.DEV_YOOKASSA_API_KEY }}" >> .env &&
           echo "YOOKASSA_SHOP_ID=${{ secrets.DEV_YOOKASSA_SHOP_ID }}" >> .env &&
 
-          docker-compose -f docker-compose.dev-ci.yml stop &&
-          docker-compose -f docker-compose.dev-ci.yml up --build -d
+          docker compose -f docker-compose.dev-ci.yml stop &&
+          docker compose -f docker-compose.dev-ci.yml up --build -d
