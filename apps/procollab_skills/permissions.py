@@ -59,7 +59,6 @@ class AuthCheck(permissions.BasePermission):
     @staticmethod
     def _check_exists_procollab(view, email: str) -> bool:
         user_procollab_response = requests.get("https://dev.procollab.ru/auth/users/clone-data", data={"email": email})
-
         if user_procollab_response.status_code == status.HTTP_200_OK:
             data = json.loads(user_procollab_response.content)[0]
             user = CustomUser.objects.create(
@@ -70,11 +69,16 @@ class AuthCheck(permissions.BasePermission):
                 password=data["password"],
             )
             view.user = user
+            view.user_profile = UserProfile.objects.get(user=user)
+            view.profile_id = view.user_profile.id
             return True
         raise UserDoesNotExistException()
 
     def has_permission(self, request, view):
         token: str = request.META.get("HTTP_AUTHORIZATION")
+
+        if not token:
+            raise PermissionDenied({"error": "User credentials are not given"})
 
         decoded_token: dict = jwt.decode(token[7:], settings.SECRET_KEY, algorithms=["HS256"])
         email = decoded_token.get("email")

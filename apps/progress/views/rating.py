@@ -60,8 +60,8 @@ class UserSkillsRating(generics.ListAPIView):
     )
     def get(self, request, *args, **kwargs):
         # TODO добавить отображение уровней у навыков
-        # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
-        profile_id = 1
+        profile_id = UserProfile.objects.get(user_id=self.user.id).id
+        # profile_id = 1
 
         user_skills = (
             Skill.objects.prefetch_related("profile_skills")

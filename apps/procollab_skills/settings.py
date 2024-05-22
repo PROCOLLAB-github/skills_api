@@ -75,6 +75,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # "procollab_skills.middleware.AuthCheckMiddleware"
 ]
 
 ROOT_URLCONF = "procollab_skills.urls"
@@ -100,12 +101,10 @@ WSGI_APPLICATION = "procollab_skills.wsgi.application"
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        # "procollab_skills.middleware.CustomJWTAuthentication",
         "rest_framework.authentication.BasicAuthentication",
     ],
-    # 'DEFAULT_PERMISSION_CLASSES': [
-    #     'procollab_skills.permissions.IfSubscriptionOutdatedAndAuthenticated'
-    # ],
+    "DEFAULT_PERMISSION_CLASSES": ["procollab_skills.permissions.AuthCheck"],
 }
 
 CACHES = {
@@ -132,7 +131,7 @@ SELECTEL_NEW_AUTH_TOKEN = "https://cloud.api.selcloud.ru/identity/v3/auth/tokens
 SELECTEL_UPLOAD_URL = f"https://swift.ru-1.storage.selcloud.ru/v1/{SELECTEL_PROJECT_ID}/{SELECTEL_CONTAINER_NAME}/"
 
 
-if DEBUG:
+if 0:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -200,8 +199,10 @@ SPECTACULAR_SETTINGS = {
     "REDOC_DIST": "SIDECAR",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
+    "SERVE_AUTHENTICATION": ["rest_framework.authentication.SessionAuthentication"]
     # OTHER SETTINGS
 }
+
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),

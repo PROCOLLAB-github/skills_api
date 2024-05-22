@@ -30,13 +30,11 @@ class TaskList(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         task_id = self.kwargs.get("task_id")
 
-        # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
-        profile_id = 1
         task = Task.objects.prefetch_related("task_objects", "task_objects__content_object").get(id=int(task_id))
 
         task_objects = task.task_objects.annotate(
             has_user_results=Case(
-                When(user_results__user_profile__id=profile_id, then=True),
+                When(user_results__user_profile__id=self.profile_id, then=True),
                 default=False,
                 output_field=BooleanField(),
             )
@@ -75,7 +73,7 @@ class SkillsList(generics.ListAPIView):
     serializer_class = SkillsBasicSerializer
     pagination_class = DefaultPagination
     queryset = Skill.objects.all()
-    # permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.AllowAny]
 
 
 @extend_schema(
@@ -88,8 +86,7 @@ class SkillDetails(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, *args, **kwargs):
-        user_profile_id = 1
-        return Response(get_skills_details(self.kwargs.get("skill_id"), user_profile_id), status=200)
+        return Response(get_skills_details(self.kwargs.get("skill_id"), self.profile_id), status=200)
 
 
 @extend_schema(
@@ -102,8 +99,7 @@ class TasksOfSkill(generics.ListAPIView):
     serializer_class = TasksOfSkillSerializer
 
     def get(self, request, *args, **kwargs):
-        user_profile_id = 1
-        return Response(get_stats(self.kwargs.get("skill_id"), user_profile_id), status=200)
+        return Response(get_stats(self.kwargs.get("skill_id"), self.profile_id), status=200)
 
 
 @extend_schema(
@@ -116,9 +112,6 @@ class TaskStatsGet(generics.ListAPIView):
     serializer_class = ...
 
     def list(self, request, *args, **kwargs):
-        # user_profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
-        user_profile_id = 1
-
         task_id = self.kwargs.get("task_id")
 
         task = get_object_or_404(Task.objects.values("skill_id", "id", "ordinal_number"), id=task_id)
@@ -133,13 +126,13 @@ class TaskStatsGet(generics.ListAPIView):
 
         skill_data = get_skills_details(
             skill_id=task["skill_id"],
-            user_profile_id=user_profile_id,
+            user_profile_id=self.profile_id,
         )
         needed_skill_data = {"level": skill_data["level"], "progress": skill_data.get("progress", 0)}
 
         task_objs = TaskObject.objects.filter(task_id=task["id"]).values_list("id", flat=True)
         task_results = TaskObjUserResult.objects.select_related("task_object", "task_object__content_type").filter(
-            user_profile_id=user_profile_id,
+            user_profile_id=self.profile_id,
             task_object_id__in=task_objs,
         )
 

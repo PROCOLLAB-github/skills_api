@@ -7,6 +7,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import CreateAPIView, ListAPIView
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from procollab_skills.decorators import exclude_auth_perm  # , exclude_sub_check_perm
@@ -74,6 +75,7 @@ class CreatePayment(CreateAPIView):
 @exclude_auth_perm
 class ViewSubscriptions(ListAPIView):
     queryset = SubscriptionType.objects.all()
+    permission_classes = [AllowAny]
     serializer_class = SubscriptionSerializer
 
     def list(self, request, *args, **kwargs) -> Response:
@@ -85,6 +87,7 @@ class ViewSubscriptions(ListAPIView):
 @extend_schema(summary="Обновление дат подписки для юзеров", tags=["Подписка"])
 class ServeWebHook(CreateAPIView):
     serializer_class = RenewSubDateSerializer
+    permission_classes = [AllowAny]
 
     def get_request_data(self) -> WebHookRequest:
         return WebHookRequest(event=self.request.data["event"], object=self.request.data["object"])
