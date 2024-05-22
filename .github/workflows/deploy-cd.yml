@@ -1,8 +1,10 @@
 name: Deploy to dev
 
 on:
-  release:
-    types: [ published ]
+ push:
+   branches:
+     - dev
+
 
 jobs:
   deploy:
@@ -11,12 +13,12 @@ jobs:
     - name: commands on server
       uses: garygrossgarten/github-action-ssh@release
       with:
-        host: ${{ secrets.SERVER_HOST }}
-        username: ${{ secrets.SERVER_USER }}
-        password: ${{ secrets.SERVER_PASSWORD }}
+        host: ${{ secrets.DEV_SERVER_HOST }}
+        username: ${{ secrets.DEV_SERVER_USER }}
+        password: ${{ secrets.DEV_SERVER_PASSWORD }}
         command: |
           cd ~/skills_api-dev-new &&
-          git pull origin main &&
+          git pull origin dev &&
 
           rm -f .env &&
           touch .env &&
@@ -30,15 +32,16 @@ jobs:
           echo "DATABASE_HOST=${{ secrets.DEV_DATABASE_HOST }}" >> .env &&
           echo "DATABASE_PORT=${{ secrets.DEV_DATABASE_PORT }}" >> .env &&
         
-          echo "SELECTEL_ACCOUNT_ID=${{ secrets.SELECTEL_ACCOUNT_ID }}" >> .env &&
-          echo "SELECTEL_CONTAINER_NAME=${{ secrets.SELECTEL_CONTAINER_NAME }}" >> .env &&
-          echo "SELECTEL_SERVICE_USERNAME=${{ secrets.SELECTEL_SERVICE_USERNAME }}" >> .env &&
-          echo "SELECTEL_SERVICE_PASSWORD=${{ secrets.SELECTEL_SERVICE_PASSWORD }}" >> .env &&
-          echo "SELECTEL_PROJECT_ID=${{ secrets.SELECTEL_PROJECT_ID }}" >> .env &&
-          echo "SELECTEL_PROJECT_NAME=${{ secrets.SELECTEL_PROJECT_NAME }}" >> .env &&
-          echo "SELECTEL_READ_FILES_DOMAIN=${{ secrets.SELECTEL_READ_FILES_DOMAIN }}" >> .env &&
+          echo "SELECTEL_ACCOUNT_ID=${{ secrets.DEV_SELECTEL_ACCOUNT_ID }}" >> .env &&
+          echo "SELECTEL_CONTAINER_NAME=${{ secrets.DEV_SELECTEL_CONTAINER_NAME }}" >> .env &&
+          echo "SELECTEL_SERVICE_USERNAME=${{ secrets.DEV_SELECTEL_SERVICE_USERNAME }}" >> .env &&
+          echo "SELECTEL_SERVICE_PASSWORD=${{ secrets.DEV_SELECTEL_SERVICE_PASSWORD }}" >> .env &&
+          echo "SELECTEL_PROJECT_ID=${{ secrets.DEV_SELECTEL_PROJECT_ID }}" >> .env &&
+          echo "SELECTEL_PROJECT_NAME=${{ secrets.DEV_SELECTEL_PROJECT_NAME }}" >> .env &&
+          echo "SELECTEL_READ_FILES_DOMAIN=${{ secrets.DEV_SELECTEL_READ_FILES_DOMAIN }}" >> .env &&
 
-          echo "YOOKASSA_API_KEY=${{ secrets.YOOKASSA_API_KEY }}" >> .env &&
-          echo "YOOKASSA_SHOP_ID=${{ secrets.YOOKASSA_SHOP_ID }}" >> .env &&
+          echo "YOOKASSA_API_KEY=${{ secrets.DEV_YOOKASSA_API_KEY }}" >> .env &&
+          echo "YOOKASSA_SHOP_ID=${{ secrets.DEV_YOOKASSA_SHOP_ID }}" >> .env &&
 
-          docker compose -f docker-compose.dev-ci.yml up -d --build --force-recreate
+          docker-compose -f docker-compose.dev-ci.yml stop &&
+          docker-compose -f docker-compose.dev-ci.yml up --build -d
