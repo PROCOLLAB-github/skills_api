@@ -83,7 +83,6 @@ class SkillsList(generics.ListAPIView):
 )
 class SkillDetails(generics.ListAPIView):
     serializer_class = ResponseSerializer
-    permission_classes = [permissions.AllowAny]
 
     def get(self, request, *args, **kwargs):
         return Response(get_skills_details(self.kwargs.get("skill_id"), self.profile_id), status=200)
