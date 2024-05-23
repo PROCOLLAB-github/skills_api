@@ -10,6 +10,5 @@ class ProgressConfig(AppConfig):
         from progress.signals import skills_changed
         from progress.models import UserProfile
         from django.db.models.signals import m2m_changed
-        from procollab_skills.schema import MyAuthenticationScheme  # noqa: F401
 
         m2m_changed.connect(skills_changed, sender=UserProfile.chosen_skills.through)
