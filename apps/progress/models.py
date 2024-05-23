@@ -79,7 +79,7 @@ class UserProfile(models.Model):
 
 
 class TaskObjUserResult(models.Model):
-    task_object = models.OneToOneField(
+    task_object = models.ForeignKey(
         "courses.TaskObject",
         on_delete=models.CASCADE,
         related_name="user_results",
