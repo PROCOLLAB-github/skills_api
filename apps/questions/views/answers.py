@@ -202,7 +202,7 @@ class QuestionWritePost(generics.CreateAPIView):
     tags=["Вопросы и инфо-слайд"],
 )
 class InfoSlidePost(generics.CreateAPIView):
-    permission_classes = [SimpleCheckQuestionTypePermission]
+    permission_classes = [AuthCheck, SimpleCheckQuestionTypePermission]
     expected_question_model = InfoSlide
 
     def create(self, request, *args, **kwargs) -> Response:
