@@ -6,7 +6,7 @@ import requests
 from jwt import ExpiredSignatureError
 
 from rest_framework import permissions, status
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, NotAuthenticated
 
 from procollab_skills import settings
 from progress.exceptions import UserDoesNotExistException
@@ -87,7 +87,7 @@ class AuthCheck(permissions.BasePermission):
         try:
             decoded_token: dict = jwt.decode(token[7:], settings.SECRET_KEY, algorithms=["HS256"])
         except ExpiredSignatureError:
-            raise PermissionDenied("Token is expired")
+            raise NotAuthenticated({"error": "Token is expired"})
         email = decoded_token.get("email")
 
         return self._check_exists_skills(view, email) or self._check_exists_procollab(view, email)
