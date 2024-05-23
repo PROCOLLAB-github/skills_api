@@ -75,7 +75,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # "procollab_skills.middleware.AuthCheckMiddleware"
 ]
 
 ROOT_URLCONF = "procollab_skills.urls"
@@ -101,11 +100,9 @@ WSGI_APPLICATION = "procollab_skills.wsgi.application"
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        # "procollab_skills.middleware.CustomJWTAuthentication",
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "procollab_skills.auth.CustomAuth",
         "rest_framework.authentication.BasicAuthentication",
     ],
-    "DEFAULT_PERMISSION_CLASSES": ["procollab_skills.permissions.AuthCheck"],
 }
 
 CACHES = {
@@ -200,10 +197,7 @@ SPECTACULAR_SETTINGS = {
     "REDOC_DIST": "SIDECAR",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
-    "SERVE_AUTHENTICATION": [
-        "rest_framework.authentication.SessionAuthentication",
-        "rest_framework_simplejwt.authentication.JWTAuthentication"
-    ],
+    "SERVE_AUTHENTICATION": ["rest_framework.authentication.SessionAuthentication", "procollab_skills.auth.CustomAuth"],
     # OTHER SETTINGS
     "SECURITY_DEFINITIONS": {
         "Bearer": {

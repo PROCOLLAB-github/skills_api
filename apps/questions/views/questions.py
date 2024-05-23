@@ -7,7 +7,6 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
 
-from procollab_skills.permissions import AuthCheck
 from questions.mapping import TypeQuestionPoints
 from questions.serializers import (
     SingleQuestionAnswerSerializer,
@@ -37,7 +36,7 @@ from questions.typing import (
 
 class QuestionSingleAnswerGet(generics.ListAPIView):
     serializer_class = SingleQuestionAnswerSerializer
-    permission_classes = [AuthCheck, CheckQuestionTypePermission]
+    permission_classes = [CheckQuestionTypePermission]
     expected_question_model = QuestionSingleAnswer
 
     @extend_schema(
@@ -75,7 +74,7 @@ class QuestionSingleAnswerGet(generics.ListAPIView):
 
 class QuestionConnectGet(generics.ListAPIView):
     serializer_class = ConnectQuestionSerializer
-    permission_classes = [AuthCheck, CheckQuestionTypePermission]
+    permission_classes = [CheckQuestionTypePermission]
     expected_question_model = QuestionConnect
 
     @extend_schema(
@@ -119,7 +118,7 @@ class QuestionConnectGet(generics.ListAPIView):
 
 class QuestionExcludeAnswerGet(generics.ListAPIView):
     serializer_class = SingleQuestionAnswerSerializer
-    permission_classes = [AuthCheck, CheckQuestionTypePermission]
+    permission_classes = [CheckQuestionTypePermission]
     expected_question_model = QuestionSingleAnswer
 
     @extend_schema(
@@ -157,7 +156,7 @@ class QuestionExcludeAnswerGet(generics.ListAPIView):
 
 class InfoSlideDetails(generics.ListAPIView):
     serializer_class = InfoSlideSerializer
-    permission_classes = [AuthCheck, CheckQuestionTypePermission]
+    permission_classes = [CheckQuestionTypePermission]
     expected_question_model = InfoSlide
 
     @extend_schema(
@@ -185,7 +184,7 @@ class InfoSlideDetails(generics.ListAPIView):
 # GET вопрос для текста
 class QuestionWriteAnswer(generics.ListAPIView):
     serializer_class = WriteQuestionSerializer
-    permission_classes = [AuthCheck, CheckQuestionTypePermission]
+    permission_classes = [CheckQuestionTypePermission]
     expected_question_model = QuestionWrite
 
     @extend_schema(

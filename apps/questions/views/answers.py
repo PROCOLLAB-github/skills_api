@@ -4,7 +4,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import generics, serializers, status
 from rest_framework.response import Response
 
-from procollab_skills.permissions import AuthCheck
+
 from progress.services import create_user_result
 from questions.exceptions import UserAlreadyAnsweredException
 from questions.mapping import TypeQuestionPoints
@@ -45,7 +45,7 @@ from questions.serializers import (
 )
 class SingleCorrectPost(generics.CreateAPIView):
     serializer_class = SingleCorrectPostSerializer
-    permission_classes = [AuthCheck, CheckQuestionTypePermission]
+    permission_classes = [CheckQuestionTypePermission]
     expected_question_model = QuestionSingleAnswer
 
     def create(self, request, *args, **kwargs) -> Response:
@@ -79,7 +79,7 @@ class SingleCorrectPost(generics.CreateAPIView):
 )
 class ConnectQuestionPost(generics.CreateAPIView):
     serializer_class = ConnectQuestionPostResponseSerializer
-    permission_classes = [AuthCheck, CheckQuestionTypePermission]
+    permission_classes = [CheckQuestionTypePermission]
     expected_question_model = QuestionConnect
 
     def create(self, request, *args, **kwargs) -> Response:
@@ -136,7 +136,7 @@ class ConnectQuestionPost(generics.CreateAPIView):
 )
 class QuestionExcludePost(generics.CreateAPIView):
     serializer_class = SimpleNumberListSerializer
-    permission_classes = [AuthCheck, CheckQuestionTypePermission]
+    permission_classes = [CheckQuestionTypePermission]
     expected_question_model = QuestionSingleAnswer
 
     def create(self, request, *args, **kwargs) -> Response:
@@ -181,7 +181,7 @@ class QuestionExcludePost(generics.CreateAPIView):
 )
 class QuestionWritePost(generics.CreateAPIView):
     serializer_class = WriteAnswerSerializer
-    permission_classes = [AuthCheck, SimpleCheckQuestionTypePermission]
+    permission_classes = [SimpleCheckQuestionTypePermission]
     expected_question_model = QuestionWrite
 
     def create(self, request, *args, **kwargs) -> Response:
@@ -202,7 +202,7 @@ class QuestionWritePost(generics.CreateAPIView):
     tags=["Вопросы и инфо-слайд"],
 )
 class InfoSlidePost(generics.CreateAPIView):
-    permission_classes = [AuthCheck, SimpleCheckQuestionTypePermission]
+    permission_classes = [SimpleCheckQuestionTypePermission]
     expected_question_model = InfoSlide
 
     def create(self, request, *args, **kwargs) -> Response:
