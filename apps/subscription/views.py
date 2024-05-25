@@ -94,6 +94,7 @@ class ViewSubscriptions(ListAPIView):
 class ServeWebHook(CreateAPIView):
     serializer_class = RenewSubDateSerializer
     permission_classes = [AllowAny]
+    authentication_classes = []
 
     def get_request_data(self) -> WebHookRequest:
         return WebHookRequest(event=self.request.data["event"], object=self.request.data["object"])
