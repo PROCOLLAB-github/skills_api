@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework_dataclasses.serializers import DataclassSerializer
 
-from subscription.mapping import CreatePaymentResponseData, WebHookRequest
+from subscription.typing import CreatePaymentResponseData, WebHookRequest, SubIdSerializer
 from subscription.models import SubscriptionType
 
 
@@ -24,3 +24,8 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 class RenewSubDateSerializer(DataclassSerializer):
     class Meta:
         dataclass = WebHookRequest
+
+
+class SubIdSerialier(DataclassSerializer):
+    class Meta:
+        dataclass = SubIdSerializer

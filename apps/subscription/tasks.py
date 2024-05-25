@@ -6,7 +6,7 @@ from datetime import timedelta
 from django.utils import timezone
 from yookassa import Payment
 
-from subscription.mapping import AmountData, CreateRecurrentPaymentData
+from subscription.typing import AmountData, CreateRecurrentPaymentData
 from subscription.utils.create_payment import create_payment
 
 

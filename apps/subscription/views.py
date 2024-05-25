@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import extend_schema
 
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import CreateAPIView, ListAPIView
@@ -12,7 +12,7 @@ from rest_framework.response import Response
 
 from procollab_skills.decorators import exclude_auth_perm  # , exclude_sub_check_perm
 from progress.models import UserProfile
-from subscription.mapping import (
+from subscription.typing import (
     CreatePaymentData,
     AmountData,
     ConfirmationRequestData,
@@ -21,7 +21,12 @@ from subscription.mapping import (
     WebHookRequest,
 )
 from subscription.models import SubscriptionType
-from subscription.serializers import CreatePaymentResponseSerializer, SubscriptionSerializer, RenewSubDateSerializer
+from subscription.serializers import (
+    CreatePaymentResponseSerializer,
+    SubscriptionSerializer,
+    RenewSubDateSerializer,
+    SubIdSerialier,
+)
 from subscription.utils.create_payment import create_payment
 
 
@@ -29,7 +34,7 @@ from subscription.utils.create_payment import create_payment
     summary="Создаёт объект оплаты в ЮКассе",
     description="""Выводит только тот уровень, который юзер может пройти. Остальные для прохождения закрыты""",
     tags=["Подписка"],
-    parameters=[OpenApiParameter(name="subscription_id", description="ID типа подписки", type=int)],
+    request=SubIdSerialier,
     responses={201: CreatePaymentResponseSerializer},
 )
 # @exclude_sub_check_perm
@@ -41,28 +46,26 @@ class CreatePayment(CreateAPIView):
             raise PermissionDenied("Подписка уже оформлена.")
 
     def get_request_data(self, user_profile_id: int) -> CreatePaymentViewRequestData:
+        self.subscription_id = self.request.data.get("subscription_id")
         return CreatePaymentViewRequestData(
-            subscription_id=int(self.request.query_params.get("subscription_id")),
+            subscription_id=self.subscription_id,
             confirmation=ConfirmationRequestData(type="redirect"),  # на будущее, при добавлении новых способов оплаты
             user_profile_id=user_profile_id,
         )
 
     def create(self, request, *args, **kwargs) -> Response:
-        # user_profile = UserProfile.objects.select_related("user").get(user_id=self.request.user.id)
-        user_profile = UserProfile.objects.select_related("user").get(user_id=1)
-
         try:
-            self.check_subscription(user_profile.last_subscription_date)
+            self.check_subscription(self.user_profile.last_subscription_date)
         except PermissionDenied as e:
             return Response({"error": str(e)}, status=403)
 
-        request_data = self.get_request_data(user_profile.id)
-        subscription = get_object_or_404(SubscriptionType, id=self.request.query_params.get("subscription_id"))
+        request_data = self.get_request_data(self.profile_id)
+        subscription = get_object_or_404(SubscriptionType, id=self.subscription_id)
 
         payload = CreatePaymentData(
             amount=AmountData(value=subscription.price),
             confirmation=request_data.confirmation,
-            metadata={"user_profile_id": request_data.user_profile_id},
+            metadata={"user_profile_id": self.profile_id},
         )
         payment: CreatePaymentResponseData = create_payment(payload)
         return Response(asdict(payment), status=200)

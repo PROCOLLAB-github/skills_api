@@ -2,7 +2,7 @@ from dataclasses import asdict
 
 import requests
 from yookassa import Payment
-from subscription.mapping import CreatePaymentData, CreatePaymentResponseData, CreateRecurrentPaymentData
+from subscription.typing import CreatePaymentData, CreatePaymentResponseData, CreateRecurrentPaymentData
 
 
 def create_payment(payload: CreatePaymentData | CreateRecurrentPaymentData) -> CreatePaymentResponseData:
