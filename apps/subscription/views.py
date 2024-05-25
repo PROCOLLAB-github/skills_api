@@ -10,7 +10,7 @@ from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from procollab_skills.decorators import exclude_auth_perm  # , exclude_sub_check_perm
+# from procollab_skills.decorators import exclude_auth_perm  # , exclude_sub_check_perm
 from progress.models import UserProfile
 from subscription.typing import (
     CreatePaymentData,
@@ -25,7 +25,7 @@ from subscription.serializers import (
     CreatePaymentResponseSerializer,
     SubscriptionSerializer,
     RenewSubDateSerializer,
-    SubIdSerialier,
+    BuySubSerializer,
 )
 from subscription.utils.create_payment import create_payment
 
@@ -34,7 +34,8 @@ from subscription.utils.create_payment import create_payment
     summary="Создаёт объект оплаты в ЮКассе",
     description="""Выводит только тот уровень, который юзер может пройти. Остальные для прохождения закрыты""",
     tags=["Подписка"],
-    request=SubIdSerialier,
+    request=BuySubSerializer,
+    parameters=[],
     responses={201: CreatePaymentResponseSerializer},
 )
 # @exclude_sub_check_perm
@@ -49,7 +50,9 @@ class CreatePayment(CreateAPIView):
         self.subscription_id = self.request.data.get("subscription_id")
         return CreatePaymentViewRequestData(
             subscription_id=self.subscription_id,
-            confirmation=ConfirmationRequestData(type="redirect"),  # на будущее, при добавлении новых способов оплаты
+            confirmation=ConfirmationRequestData(
+                type="redirect", return_url=self.request.data.get("redirect_url")
+            ),  # на будущее, при добавлении новых способов оплаты
             user_profile_id=user_profile_id,
         )
 
@@ -75,7 +78,7 @@ class CreatePayment(CreateAPIView):
     summary="Вывод доступных подписок",
     tags=["Подписка"],
 )
-@exclude_auth_perm
+# @exclude_auth_perm
 class ViewSubscriptions(ListAPIView):
     queryset = SubscriptionType.objects.all()
     permission_classes = [AllowAny]

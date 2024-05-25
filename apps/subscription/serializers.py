@@ -26,6 +26,6 @@ class RenewSubDateSerializer(DataclassSerializer):
         dataclass = WebHookRequest
 
 
-class SubIdSerialier(DataclassSerializer):
+class BuySubSerializer(DataclassSerializer):
     class Meta:
         dataclass = SubIdSerializer

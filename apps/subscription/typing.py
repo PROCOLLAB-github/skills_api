@@ -84,3 +84,4 @@ class WebHookRequest:
 @dataclass
 class SubIdSerializer:
     subscription_id: int
+    redirect_url: str | None = None
