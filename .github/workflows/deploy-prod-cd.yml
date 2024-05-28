@@ -13,9 +13,9 @@ jobs:
     - name: commands on server
       uses: garygrossgarten/github-action-ssh@release
       with:
-        host: ${{ secrets.DEV_SERVER_HOST }}
-        username: ${{ secrets.DEV_SERVER_USER }}
-        password: ${{ secrets.DEV_SERVER_PASSWORD }}
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        password: ${{ secrets.SERVER_PASSWORD }}
         command: |
           cd ~/app/skills_api-prod-new &&
           git pull origin main &&
