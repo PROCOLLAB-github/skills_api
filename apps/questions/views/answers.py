@@ -1,7 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import QuerySet
 from drf_spectacular.utils import extend_schema
-from rest_framework import generics, serializers, status
+from rest_framework import generics, status
 from rest_framework.response import Response
 
 
@@ -19,16 +19,28 @@ from questions.models import (
 )
 from questions.serializers import (
     ConnectQuestionPostResponseSerializer,
-    CustomTextSerializer,
     CustomTextSucessSerializer,
     SimpleNumberListSerializer,
-    SingleCorrectPostSerializer,
-    WriteAnswerSerializer,
     WriteAnswerTextSerializer,
     QuestionTextSerializer,
-    ConnectAnswerSerializer,
+    ConnectQuestionPostRequestSerializer,
+    CustomTextErrorSerializer,
+    IntegerListSerializer,
+    QuestionExcludePostResponseSerializer,
+    SingleCorrectPostSerializer,
+    SingleCorrectPostErrorResponseSerializer,
+    SingleCorrectPostSuccessResponseSerializer,
 )
-
+from questions.api_examples import (
+    WRONG_TASKOBJECT,
+    USER_ALREADY_DONE_TASK,
+    SUCCESS_RESPONSE,
+    NEED_MORE_QUESTION_EXCLUDE_RESPONSE,
+    WRONG_ANSWERS_QUESTION_EXCLUDE_RESPONSE,
+    QUERY_DOES_NOT_EXISTS,
+    WRONG_ANSWERS_QUESTION_CONNECT_RESPONSE,
+    WRONG_SINGLE_CORECT_QUESTION_RESPONSE,
+)
 
 # TODO сделать, чтобы если юзер прошёл задание идеально правильно ранее (есть сохраненный результат),
 #  то выводился ещё и он,
@@ -41,7 +53,17 @@ from questions.serializers import (
     tags=["Вопросы и инфо-слайд"],
     description="""Помимо этого создаёт результат прохождения пользователем вопроса.""",
     request=QuestionTextSerializer(),
-    responses={201: SingleCorrectPostSerializer},
+    responses={
+        201: SingleCorrectPostSuccessResponseSerializer,
+        400: SingleCorrectPostErrorResponseSerializer,
+        403: CustomTextErrorSerializer,
+    },
+    examples=[
+        WRONG_SINGLE_CORECT_QUESTION_RESPONSE,
+        QUERY_DOES_NOT_EXISTS,
+        WRONG_TASKOBJECT,
+        USER_ALREADY_DONE_TASK,
+    ],
 )
 class SingleCorrectPost(generics.CreateAPIView):
     serializer_class = SingleCorrectPostSerializer
@@ -74,8 +96,19 @@ class SingleCorrectPost(generics.CreateAPIView):
 @extend_schema(
     summary="Проверить вопрос на соотношение",
     tags=["Вопросы и инфо-слайд"],
-    request=serializers.ListSerializer(child=ConnectAnswerSerializer()),
-    responses={201: ConnectQuestionPostResponseSerializer},
+    request=ConnectQuestionPostRequestSerializer,
+    responses={
+        201: CustomTextSucessSerializer,
+        400: ConnectQuestionPostResponseSerializer,
+        403: CustomTextErrorSerializer,
+    },
+    examples=[
+        SUCCESS_RESPONSE,
+        WRONG_ANSWERS_QUESTION_CONNECT_RESPONSE,
+        QUERY_DOES_NOT_EXISTS,
+        WRONG_TASKOBJECT,
+        USER_ALREADY_DONE_TASK,
+    ],
 )
 class ConnectQuestionPost(generics.CreateAPIView):
     serializer_class = ConnectQuestionPostResponseSerializer
@@ -127,12 +160,20 @@ class ConnectQuestionPost(generics.CreateAPIView):
     summary="Проверка вопроса на исключение",
     tags=["Вопросы и инфо-слайд"],
     description="В request - список ответов, которые пользователь исключает\n В response - количество отв",
-    request=serializers.ListSerializer(child=serializers.IntegerField()),
+    request=IntegerListSerializer,
     responses={
-        200: CustomTextSucessSerializer,
-        204: CustomTextSerializer,
-        400: serializers.ListSerializer(child=serializers.IntegerField()),
+        201: CustomTextSucessSerializer,
+        400: QuestionExcludePostResponseSerializer,
+        403: CustomTextErrorSerializer,
     },
+    examples=[
+        SUCCESS_RESPONSE,
+        WRONG_ANSWERS_QUESTION_EXCLUDE_RESPONSE,
+        NEED_MORE_QUESTION_EXCLUDE_RESPONSE,
+        QUERY_DOES_NOT_EXISTS,
+        WRONG_TASKOBJECT,
+        USER_ALREADY_DONE_TASK,
+    ],
 )
 class QuestionExcludePost(generics.CreateAPIView):
     serializer_class = SimpleNumberListSerializer
@@ -174,13 +215,14 @@ class QuestionExcludePost(generics.CreateAPIView):
     tags=["Вопросы и инфо-слайд"],
     request=WriteAnswerTextSerializer(),
     responses={
-        200: WriteAnswerSerializer,
-        201: WriteAnswerSerializer,
-        400: {"error": "You can't save an empty answer!"},
+        201: CustomTextSucessSerializer,
+        400: CustomTextErrorSerializer,
+        403: CustomTextErrorSerializer,
     },
+    examples=[SUCCESS_RESPONSE, USER_ALREADY_DONE_TASK, WRONG_TASKOBJECT],
 )
 class QuestionWritePost(generics.CreateAPIView):
-    serializer_class = WriteAnswerSerializer
+    serializer_class = WriteAnswerTextSerializer
     permission_classes = [SimpleCheckQuestionTypePermission]
     expected_question_model = QuestionWrite
 
@@ -200,6 +242,12 @@ class QuestionWritePost(generics.CreateAPIView):
 @extend_schema(
     summary="Пометить InfoSlide как сделанный",
     tags=["Вопросы и инфо-слайд"],
+    responses={
+        204: None,
+        400: CustomTextErrorSerializer,
+        403: CustomTextErrorSerializer,
+    },
+    examples=[USER_ALREADY_DONE_TASK, WRONG_TASKOBJECT],
 )
 class InfoSlidePost(generics.CreateAPIView):
     permission_classes = [SimpleCheckQuestionTypePermission]
