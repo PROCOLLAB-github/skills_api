@@ -17,7 +17,7 @@ jobs:
         username: ${{ secrets.PROD_SERVER_USER }}
         password: ${{ secrets.PROD_SERVER_PASSWORD }}
         command: |
-          cd ~/app/skills_api-prod-new &&
+          cd ~/skills_api-prod-new &&
           git pull origin main &&
 
           rm -f .env &&
