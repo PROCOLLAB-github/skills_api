@@ -16,20 +16,24 @@ SECRET_KEY = config("DJANGO_SECRET_KEY", cast=str)
 
 DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = [
-    "127.0.0.1:8001",
-    "127.0.0.1:8000",
-    "127.0.0.1",
-    "localhost",
-    "0.0.0.0",
-    "api.skills.procollab.ru",
-    "skills.procollab.ru",
-    "app.procollab.ru",
-    "procollab.ru",
-    "skills.dev.procollab.ru",
-    "web",  # From Docker
-]
-
+# ALLOWED_HOSTS = [
+#     "127.0.0.1:8001",
+#     "127.0.0.1:8000",
+#     "127.0.0.1",
+#     "localhost",
+#     "0.0.0.0",
+#     "api.skills.procollab.ru",
+#     "skills.procollab.ru",
+#     "app.procollab.ru",
+#     "procollab.ru",
+#     "skills.dev.procollab.ru",
+#     "skills.prod.procollab.ru",
+#     "web",  # From Docker
+#     "5.188.81.217",
+#     "5.188.81.217:8001"
+#     "skills_web"
+# ]
+ALLOWED_HOSTS = ["*"]
 CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = [
@@ -42,6 +46,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://app.procollab.ru",
     "https://dev.procollab.ru",
     "https://skills.dev.procollab.ru",
+    "http://45.131.98.58:8001",
+    "https://api.skills.procollab.ru",
 ]
 
 INSTALLED_APPS = [

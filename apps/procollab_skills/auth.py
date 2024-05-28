@@ -25,7 +25,10 @@ class CustomAuth(TokenAuthentication):
 
     @staticmethod
     def _check_exists_procollab(view, email: str) -> CustomUser | None:
-        user_procollab_response = requests.get("https://dev.procollab.ru/auth/users/clone-data", data={"email": email})
+        url_name = "dev" if settings.DEBUG else "prod"
+        user_procollab_response = requests.get(
+            f"https://{url_name}.procollab.ru/auth/users/clone-data", data={"email": email}
+        )
         if user_procollab_response.status_code == status.HTTP_200_OK:
             data = json.loads(user_procollab_response.content)[0]
             user = CustomUser.objects.create(

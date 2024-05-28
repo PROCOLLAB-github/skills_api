@@ -48,7 +48,7 @@ class UserScoreSerializer(serializers.ModelSerializer):
     specialization = serializers.CharField(source="user.specialization", read_only=True)
     geo_position = serializers.CharField(source="user.geo_position", read_only=True)
     score_count = serializers.IntegerField(read_only=True)
-    file = serializers.CharField(source="file.link", read_only=True)
+    file = serializers.CharField(source="file.link", read_only=True, default=None)
 
     class Meta:
         model = UserProfile

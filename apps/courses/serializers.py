@@ -1,12 +1,8 @@
-from django.contrib.auth import authenticate, login
 from rest_framework import serializers
 
 from courses.mapping import SWAGGER_API_HINTS
 from courses.models import Skill, Task
 from files.models import FileModel
-
-authenticate
-login
 
 
 class StepSerializer(serializers.Serializer):
