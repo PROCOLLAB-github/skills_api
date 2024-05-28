@@ -1,12 +1,16 @@
 from django.urls import path
 
-from progress.views.profile import UserProfileList, UserChooseSkills, CreateUserView
+from progress.views.profile import UserProfileList, UserChooseSkills, CreateUserView, SubscriptionUserData
 from progress.views.rating import UserScoreRating, UserSkillsRating
 
 urlpatterns = [
     path(
         "profile/",
         UserProfileList.as_view(),
+    ),
+    path(
+        "subscription-data/",
+        SubscriptionUserData.as_view(),
     ),
     path(
         "add-skills/",
