@@ -14,7 +14,7 @@ services:
       HOST: 0.0.0.0
     volumes:
       - static-volume:/procollab/static
-#      - .:/procollab
+      - .:/procollab
 
   nginx:
     container_name: skills_nginx
