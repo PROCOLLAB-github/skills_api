@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: ./Dockerfile
     restart: always
-    command:  bash ./scripts/startup.sh
+    command:  bash ./scripts/startup_prod.sh
     env_file:
       - .env
     environment:
