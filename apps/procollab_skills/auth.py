@@ -12,7 +12,6 @@ from progress.exceptions import UserDoesNotExistException
 from progress.models import UserProfile, CustomUser
 
 
-# class CustomAuth(BaseAuthentication):
 class CustomAuth(TokenAuthentication):
     # TODO переписать, и сделать так, чтобы в jwt хранился только email, а не id и email
     @staticmethod

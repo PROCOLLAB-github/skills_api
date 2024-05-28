@@ -68,7 +68,7 @@ class CreatePayment(CreateAPIView):
         payload = CreatePaymentData(
             amount=AmountData(value=subscription.price),
             confirmation=request_data.confirmation,
-            metadata={"user_profile_id": self.profile_id},
+            metadata={"user_profile_id": self.profile_id, "subscription_id": subscription.id},
         )
         payment: CreatePaymentResponseData = create_payment(payload)
         return Response(asdict(payment), status=200)
@@ -108,6 +108,7 @@ class ServeWebHook(CreateAPIView):
             )
 
             profile_to_update.last_subscription_date = timezone.now()
+            profile_to_update.last_subscription_type_id = notification_data.object["metadata"]["subscription_id"]
             profile_to_update.save()
 
             return Response(

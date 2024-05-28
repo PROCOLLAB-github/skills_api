@@ -6,6 +6,7 @@ from django.utils import timezone
 from progress.manager import CustomUserManager
 
 from progress.validators import user_name_validator
+from subscription.models import SubscriptionType
 
 
 class CustomUser(AbstractUser):
@@ -64,6 +65,7 @@ class UserProfile(models.Model):
     )
 
     is_autopay_allowed = models.BooleanField(default=True)
+    last_subscription_type = models.ForeignKey(SubscriptionType, on_delete=models.SET_NULL, null=True, blank=True)
     last_subscription_date = models.DateField(
         default=timezone.now, verbose_name="Последний раз когда юзер оформилял подписку"
     )
