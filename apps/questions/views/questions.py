@@ -7,7 +7,6 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
 
-from progress.models import UserProfile
 from questions.mapping import TypeQuestionPoints
 from questions.serializers import (
     SingleQuestionAnswerSerializer,
@@ -48,14 +47,13 @@ class QuestionSingleAnswerGet(generics.ListAPIView):
         ответов (возможно пока его нет, но в будущем может появится).""",
     )
     def get(self, request, *args, **kwargs) -> Response:
-        # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
-        profile_id = UserProfile.objects.get(user_id=1).id
-
         question: QuestionSingleAnswer = self.request_question
         all_answers = question.single_answers.all()
         answers = [SingleAnswerData(id=answer.id, text=answer.text) for answer in all_answers]
 
-        user_result = check_if_answered_get(self.task_object_id, profile_id, TypeQuestionPoints.QUESTION_SINGLE_ANSWER)
+        user_result = check_if_answered_get(
+            self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_SINGLE_ANSWER
+        )
         correct_answer = [
             SingleAnswerData(id=all_answers.get(is_correct=True).id, text=all_answers.get(is_correct=True).text)
         ]
@@ -84,10 +82,6 @@ class QuestionConnectGet(generics.ListAPIView):
         tags=["Вопросы и инфо-слайд"],
     )
     def get(self, request, *args, **kwargs):
-        # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
-        profile_id = UserProfile.objects.get(user_id=1).id
-        # TODO добавить возможность размещения файлов вместо текста справа. сделать тип вопроса
-
         question: QuestionConnect = self.request_question
         all_connect_answers: QuerySet[AnswerConnect] = question.connect_answers.all()
 
@@ -104,19 +98,15 @@ class QuestionConnectGet(generics.ListAPIView):
             for answer in all_connect_answers
         ]
 
-        # TODO переписать с датаклассами
-
         question_data = QuestionСonnectSerializerData(
             id=question.id,
-            # Вероятно ожидается id TaskObject, если нет - удалить, если да - расскоментировать и удалить строку выше
-            # id=self.task_object_id,
             text=question.text,
             description=question.description,
             files=[file.link for file in question.files.all()],
             connect_left=target_left,
             connect_right=target_right,
         )
-        if check_if_answered_get(self.task_object_id, profile_id, TypeQuestionPoints.QUESTION_CONNECT):
+        if check_if_answered_get(self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_CONNECT):
             question_data.is_answered = True
         else:
             random.shuffle(target_right)
@@ -139,9 +129,6 @@ class QuestionExcludeAnswerGet(generics.ListAPIView):
         ответов (возможно пока его нет, но в будущем может появится).""",
     )
     def get(self, request, *args, **kwargs):
-        # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
-        profile_id = UserProfile.objects.get(user_id=1).id
-
         question: QuestionSingleAnswer = self.request_question
 
         all_answers = question.single_answers.all()
@@ -157,7 +144,7 @@ class QuestionExcludeAnswerGet(generics.ListAPIView):
             files=[file.link for file in question.files.all()],
             answers=answers,
         )
-        if check_if_answered_get(self.task_object_id, profile_id, TypeQuestionPoints.QUESTION_EXCLUDE):
+        if check_if_answered_get(self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_EXCLUDE):
             data_to_serialize.is_answered = True
             data_to_serialize.answers = answers_to_exclude
 
@@ -177,7 +164,6 @@ class InfoSlideDetails(generics.ListAPIView):
         tags=["Вопросы и инфо-слайд"],
     )
     def get(self, request, *args, **kwargs):
-        user_profile_id = 1
         info_slide: InfoSlide = self.request_question
 
         serializer = self.serializer_class(
@@ -185,7 +171,7 @@ class InfoSlideDetails(generics.ListAPIView):
                 "text": info_slide.text,
                 "files": [file.link for file in info_slide.files.all()],
                 "is_done": bool(
-                    check_if_answered_get(self.task_object_id, user_profile_id, TypeQuestionPoints.INFO_SLIDE)
+                    check_if_answered_get(self.task_object_id, self.profile_id, TypeQuestionPoints.INFO_SLIDE)
                 ),
             }
         )
@@ -206,7 +192,6 @@ class QuestionWriteAnswer(generics.ListAPIView):
         tags=["Вопросы и инфо-слайд"],
     )
     def get(self, request, *args, **kwargs):
-        user_profile_id = 1
         question: QuestionWrite = self.request_question
 
         write_question = QuestionWriteSerializerData(
@@ -217,7 +202,7 @@ class QuestionWriteAnswer(generics.ListAPIView):
         )
 
         if user_answer := check_if_answered_get(
-            self.task_object_id, user_profile_id, TypeQuestionPoints.QUESTION_WRITE
+            self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_WRITE
         ):
             write_question.answer = AnswerUserWriteData(id=user_answer.id, text=user_answer.text)
 

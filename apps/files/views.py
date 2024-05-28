@@ -1,6 +1,6 @@
 from django.db import transaction
 from rest_framework import generics
-from rest_framework import permissions, status
+from rest_framework import status
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
@@ -10,7 +10,6 @@ from files.serializers import UserFileSerializer
 
 
 class FileView(generics.GenericAPIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = UserFileSerializer
     queryset = FileModel.objects.all()
 
@@ -22,7 +21,7 @@ class FileView(generics.GenericAPIView):
         Creates a UserFile object and uploads the file to Selectel
         """
 
-        info = self.cdn.upload(request.FILES["file"], request.user)
+        info = self.cdn.upload(request.FILES["file"], self.user)
         FileModel.objects.create(
             user=request.user,
             link=info.url,

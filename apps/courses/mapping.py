@@ -34,6 +34,7 @@ SWAGGER_API_HINTS: dict[str, str] = {
     "question_connect": "вопрос на сопоставление",
     "question_single_answer": "вопрос где надо выбрать 1 ответ",
     "exclude_question": "вопрос, где надо исключить неправильные ответы",
+    "question_write": "вопрос, где надо написать ответ",
 }
 
 

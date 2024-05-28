@@ -2,7 +2,7 @@ from datetime import datetime
 from rest_framework import serializers
 
 from progress.models import UserProfile
-
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from progress.models import CustomUser
 
 
@@ -17,7 +17,7 @@ class UserDataSerializer(serializers.Serializer):
 class SkillSerializer(serializers.Serializer):
     skill_name = serializers.CharField(max_length=100)
     level = serializers.IntegerField(help_text="""Выводится как 'количество пройденный уровней' + 1'""")
-    progress = serializers.FloatField(required=False, help_text="""Выводится только выбран юзером""")
+    progress = serializers.IntegerField(required=False, help_text="""Выводится только выбран юзером""")
 
 
 class MonthSerializer(serializers.Serializer):
@@ -48,7 +48,7 @@ class UserScoreSerializer(serializers.ModelSerializer):
     specialization = serializers.CharField(source="user.specialization", read_only=True)
     geo_position = serializers.CharField(source="user.geo_position", read_only=True)
     score_count = serializers.IntegerField(read_only=True)
-    file = serializers.CharField(source="file.link", read_only=True)
+    file = serializers.CharField(source="file.link", read_only=True, default=None)
 
     class Meta:
         model = UserProfile
@@ -81,3 +81,17 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ("id", "email", "password", "first_name", "last_name")
+
+
+class UserCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = "__all__"
+
+
+class CustomObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token["email"] = user.email
+        return token

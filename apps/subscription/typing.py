@@ -79,3 +79,9 @@ class WebHookRequest:
     event: str
     object: dict
     type: str = "notification"
+
+
+@dataclass
+class SubIdSerializer:
+    subscription_id: int
+    redirect_url: str | None = None

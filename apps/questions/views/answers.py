@@ -4,7 +4,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import generics, serializers, status
 from rest_framework.response import Response
 
-from progress.models import UserProfile
+
 from progress.services import create_user_result
 from questions.exceptions import UserAlreadyAnsweredException
 from questions.mapping import TypeQuestionPoints
@@ -50,16 +50,13 @@ class SingleCorrectPost(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
-            # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
-            profile_id = UserProfile.objects.get(user_id=1).id
-
             question_answers: QuerySet[AnswerSingle] = self.request_question.single_answers.all()
             given_answer: AnswerSingle = question_answers.get(id=request.data.get("answer_id"))
             is_correct_answer: bool = given_answer.is_correct
             data = {"is_correct": is_correct_answer}
 
             if is_correct_answer:
-                create_user_result(self.task_object_id, profile_id, TypeQuestionPoints.QUESTION_SINGLE_ANSWER)
+                create_user_result(self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_SINGLE_ANSWER)
             else:
                 correct_answer: AnswerSingle = question_answers.get(is_correct=True)
                 data["correct_answer"] = correct_answer.id
@@ -88,8 +85,7 @@ class ConnectQuestionPost(generics.CreateAPIView):
     def create(self, request, *args, **kwargs) -> Response:
         try:
             user_answers = request.data
-            # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
-            profile_id = UserProfile.objects.get(user_id=1).id
+
             question: QuestionConnect = self.request_question
             all_answer_options: QuerySet[AnswerConnect] = question.connect_answers.all()
             answers_left_to_check: list[int] = list(all_answer_options.values_list("id", flat=True))
@@ -114,7 +110,7 @@ class ConnectQuestionPost(generics.CreateAPIView):
             serializer = self.serializer_class(data=scored_answers)
 
             if serializer.is_valid() and not if_false_answers and not if_unchecked_answers:
-                create_user_result(self.task_object_id, profile_id, TypeQuestionPoints.QUESTION_CONNECT)
+                create_user_result(self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_CONNECT)
                 return Response({"text": "success"}, status=status.HTTP_201_CREATED)
             elif not serializer.is_valid():
                 return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -145,21 +141,27 @@ class QuestionExcludePost(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
-            # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
-            profile_id = UserProfile.objects.get(user_id=1).id
             given_answer_ids: list[int] = request.data
-            answers_of_question: QuerySet[AnswerSingle] = self.request_question.single_answers.all()
-            given_answers: QuerySet[AnswerSingle] = answers_of_question.filter(id__in=given_answer_ids)
-            quantity_needed_answers: int = answers_of_question.filter(is_correct=False).count()
-            data = given_answers.filter(id__in=given_answer_ids, is_correct=True).values_list("id", flat=True)
 
-            if len(data):
-                return Response({"is_correct": False, "wrong_answers": data}, status=status.HTTP_400_BAD_REQUEST)
-            elif quantity_needed_answers != given_answers.count():
-                return Response({"text": "need more..."}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                create_user_result(self.task_object_id, profile_id, TypeQuestionPoints.QUESTION_EXCLUDE)
+            # Все праивльные ответы (в рамках исключения).
+            set_correct_answer_ids: set[int] = set(
+                self.request_question.single_answers.filter(is_correct=False).values_list("id", flat=True)
+            )
+            set_given_answer_ids: set[int] = set(given_answer_ids)
+
+            # Проверка - все правильные ответы были даны.
+            if set_given_answer_ids == set_correct_answer_ids:
+                create_user_result(self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_EXCLUDE)
                 return Response({"text": "success"}, status=status.HTTP_201_CREATED)
+            # Проверка - даны правильные ответы, но часть правильных отсутствует.
+            elif set_given_answer_ids.issubset(set_correct_answer_ids):
+                return Response({"text": "need more..."}, status=status.HTTP_400_BAD_REQUEST)
+            # Иначе, если есть неправильные ответы/сторонние id.
+            else:
+                wrong_answers: list[int] = list(set_given_answer_ids - set_correct_answer_ids)
+                return Response(
+                    {"is_correct": False, "wrong_answers": wrong_answers}, status=status.HTTP_400_BAD_REQUEST
+                )
         except UserAlreadyAnsweredException as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -184,12 +186,9 @@ class QuestionWritePost(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
-            # profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
-            profile_id = 1
-
             user_answer: str = request.data["text"]
             if len(user_answer):
-                create_user_result(self.task_object_id, profile_id, TypeQuestionPoints.QUESTION_WRITE)
+                create_user_result(self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_WRITE)
                 # serializer = self.serializer_class(query)
                 return Response({"text": "success"}, status=status.HTTP_201_CREATED)
 
@@ -208,8 +207,7 @@ class InfoSlidePost(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
-            user_profile_id = 1
-            create_user_result(self.task_object_id, user_profile_id, TypeQuestionPoints.INFO_SLIDE)
+            create_user_result(self.task_object_id, self.profile_id, TypeQuestionPoints.INFO_SLIDE)
             return Response("successful", status=status.HTTP_204_NO_CONTENT)
         except UserAlreadyAnsweredException as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

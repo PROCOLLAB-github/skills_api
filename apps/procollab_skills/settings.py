@@ -16,20 +16,24 @@ SECRET_KEY = config("DJANGO_SECRET_KEY", cast=str)
 
 DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = [
-    "127.0.0.1:8001",
-    "127.0.0.1:8000",
-    "127.0.0.1",
-    "localhost",
-    "0.0.0.0",
-    "api.skills.procollab.ru",
-    "skills.procollab.ru",
-    "app.procollab.ru",
-    "procollab.ru",
-    "skills.dev.procollab.ru",
-    "web",  # From Docker
-]
-
+# ALLOWED_HOSTS = [
+#     "127.0.0.1:8001",
+#     "127.0.0.1:8000",
+#     "127.0.0.1",
+#     "localhost",
+#     "0.0.0.0",
+#     "api.skills.procollab.ru",
+#     "skills.procollab.ru",
+#     "app.procollab.ru",
+#     "procollab.ru",
+#     "skills.dev.procollab.ru",
+#     "skills.prod.procollab.ru",
+#     "web",  # From Docker
+#     "5.188.81.217",
+#     "5.188.81.217:8001"
+#     "skills_web"
+# ]
+ALLOWED_HOSTS = ["*"]
 CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = [
@@ -42,6 +46,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://app.procollab.ru",
     "https://dev.procollab.ru",
     "https://skills.dev.procollab.ru",
+    "http://45.131.98.58:8001",
+    "https://api.skills.procollab.ru",
 ]
 
 INSTALLED_APPS = [
@@ -100,12 +106,9 @@ WSGI_APPLICATION = "procollab_skills.wsgi.application"
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "procollab_skills.auth.CustomAuth",
         "rest_framework.authentication.BasicAuthentication",
     ],
-    # 'DEFAULT_PERMISSION_CLASSES': [
-    #     'procollab_skills.permissions.IfSubscriptionOutdatedAndAuthenticated'
-    # ],
 }
 
 CACHES = {
@@ -132,7 +135,7 @@ SELECTEL_NEW_AUTH_TOKEN = "https://cloud.api.selcloud.ru/identity/v3/auth/tokens
 SELECTEL_UPLOAD_URL = f"https://swift.ru-1.storage.selcloud.ru/v1/{SELECTEL_PROJECT_ID}/{SELECTEL_CONTAINER_NAME}/"
 
 
-if DEBUG:
+if 0:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -151,6 +154,16 @@ else:
         }
     }
 
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+    "django.contrib.auth.hashers.BCryptPasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.ScryptPasswordHasher",
+]
+
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -165,6 +178,7 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
 
 LANGUAGE_CODE = "ru-ru"
 
@@ -189,8 +203,20 @@ SPECTACULAR_SETTINGS = {
     "REDOC_DIST": "SIDECAR",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
+    "SERVE_AUTHENTICATION": ["rest_framework.authentication.SessionAuthentication", "procollab_skills.auth.CustomAuth"],
     # OTHER SETTINGS
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        }
+    },
+    "SWAGGER_UI_SETTINGS": {
+        "persistAuthorization": True,
+    },
 }
+
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
@@ -218,6 +244,7 @@ default_user_authentication_rule",
     "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
     "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
+    "TOKEN_OBTAIN_SERIALIZER": "progress.serializers.CustomObtainPairSerializer",
 }
 
 if DEBUG:
