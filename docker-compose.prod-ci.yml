@@ -7,14 +7,14 @@ services:
       context: .
       dockerfile: ./Dockerfile
     restart: always
-    command:  bash ./scripts/startup.sh
+    command:  bash ./scripts/startup_prod.sh
     env_file:
       - .env
     environment:
       HOST: 0.0.0.0
     volumes:
       - static-volume:/procollab/static
-#      - .:/procollab
+      - .:/procollab
 
   nginx:
     container_name: skills_nginx
