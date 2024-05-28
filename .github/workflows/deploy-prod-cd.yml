@@ -1,4 +1,4 @@
-name: Deploy to dev
+name: Deploy to prod skills
 
 on:
   release:
