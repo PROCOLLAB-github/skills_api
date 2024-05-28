@@ -55,6 +55,8 @@ class UserScoreSerializer(serializers.ModelSerializer):
         fields = ["user_name", "age", "specialization", "geo_position", "score_count", "file"]
 
     def get_age(self, obj) -> int:
+        if not obj.user.age:
+            return 0
         current_date = datetime.now()
         time_difference = current_date - obj.user.age.replace(tzinfo=None)
         years_passed = time_difference.days // 365
