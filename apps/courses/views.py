@@ -32,13 +32,17 @@ class TaskList(generics.ListAPIView):
 
         task = Task.objects.prefetch_related("task_objects", "task_objects__content_object").get(id=int(task_id))
 
-        task_objects = task.task_objects.annotate(
-            has_user_results=Case(
-                When(user_results__user_profile__id=self.profile_id, then=True),
-                default=False,
-                output_field=BooleanField(),
+        task_objects = (
+            task.task_objects.annotate(
+                has_user_results=Case(
+                    When(user_results__user_profile__id=self.profile_id, then=True),
+                    default=False,
+                    output_field=BooleanField(),
+                )
             )
-        ).order_by("ordinal_number")
+            .distinct()
+            .order_by("ordinal_number")
+        )
 
         data = {"count": task_objects.count(), "step_data": []}
         for task_object in task_objects:

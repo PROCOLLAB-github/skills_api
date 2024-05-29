@@ -55,10 +55,10 @@ class CustomAuth(TokenAuthentication):
         except ExpiredSignatureError:
             raise NotAuthenticated({"error": "Token is expired"})
 
-        email: str = decoded_token.get("email")
+        email = decoded_token.get("email")
 
         user = self._check_exists_skills(view, email) or self._check_exists_procollab(view, email)
         if user is None:
             raise UserDoesNotExistException()
 
-        return (user, None)
+        return user, None
