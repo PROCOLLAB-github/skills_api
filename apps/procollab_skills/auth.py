@@ -61,4 +61,4 @@ class CustomAuth(TokenAuthentication):
         if user is None:
             raise UserDoesNotExistException()
 
-        return (user, None)
+        return user, None
