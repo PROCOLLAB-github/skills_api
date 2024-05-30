@@ -2,7 +2,7 @@ import json
 
 import jwt
 import requests
-from jwt import ExpiredSignatureError
+from jwt import ExpiredSignatureError, InvalidSignatureError
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import PermissionDenied, NotAuthenticated
@@ -24,7 +24,7 @@ class CustomAuth(TokenAuthentication):
 
     @staticmethod
     def _check_exists_procollab(view, email: str) -> CustomUser | None:
-        url_name = "dev" if settings.DEBUG else "prod"
+        url_name = "dev" if settings.DEBUG else "api"
         user_procollab_response = requests.get(
             f"https://{url_name}.procollab.ru/auth/users/clone-data", data={"email": email}
         )
@@ -54,6 +54,8 @@ class CustomAuth(TokenAuthentication):
             decoded_token: dict = jwt.decode(token[7:], settings.SECRET_KEY, algorithms=["HS256"])
         except ExpiredSignatureError:
             raise NotAuthenticated({"error": "Token is expired"})
+        except InvalidSignatureError:
+            raise PermissionDenied({"error": "Couldn't decode JWT. Check secret key variable"})
 
         email = decoded_token.get("email")
 
