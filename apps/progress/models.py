@@ -53,7 +53,10 @@ class UserProfile(models.Model):
         verbose_name="Пользователь",
     )
     chosen_skills = models.ManyToManyField(
-        "courses.Skill", related_name="profile_skills", verbose_name="Выбранные навыки"
+        "courses.Skill",
+        related_name="profile_skills",
+        verbose_name="Выбранные навыки",
+        through="IntermediateUserSkills",
     )
     file = models.ForeignKey(
         "files.FileModel",
@@ -76,6 +79,18 @@ class UserProfile(models.Model):
     class Meta:
         verbose_name = "Профиль пользователя"
         verbose_name_plural = "Профили пользователей"
+
+
+class IntermediateUserSkills(models.Model):
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    skill = models.ForeignKey("courses.Skill", on_delete=models.CASCADE)
+    date_chosen = models.DateField(default=timezone.now)
+
+    def __str__(self):
+        return (
+            f"<SkillUserRelation> "
+            f"<User:{self.user_profile.user.first_name + self.user_profile.user.last_name}> <Skill:{self.skill.name}>"
+        )
 
 
 class TaskObjUserResult(models.Model):
