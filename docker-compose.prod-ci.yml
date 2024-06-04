@@ -1,26 +1,32 @@
 version: '3.9'
 
 services:
-  web:
+  skills_web:
     container_name: skills_web
-    image: ghcr.io/procollab-github/skills_api:latest
+    build:
+      context: .
+      dockerfile: ./Dockerfile
     restart: always
+    command:  bash ./scripts/startup_prod.sh
     env_file:
       - .env
     environment:
       HOST: 0.0.0.0
-    expose:
-      - 8000
-  
+    volumes:
+      - static-volume:/procollab/static
+      - .:/procollab
 
   nginx:
     container_name: skills_nginx
-    build: ./nginx
+    build:
+      context: ./nginx
+      dockerfile: ./Dockerfile_prod
     depends_on:
-      - web
+      - skills_web
     ports:
       - 8001:80
-    
+
+
   redis:
     container_name: skills_redis
     image: redis:latest
@@ -28,8 +34,38 @@ services:
       - 6379
     volumes:
       - redis-data:/data
+    depends_on:
+      - skills_web
+
+  celerys:
+    restart: always
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    env_file:
+      - .env
+    command: bash ./scripts/celery.sh
+    depends_on:
+      - redis
+      - skills_web
+#    volumes:
+ #      - .:/procollab
+
+ # db:
+#    container_name: skills_db
+#    image: postgres
+#    environment:
+#      POSTGRES_DB: postgres
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: postgres
+#    ports:
+#      - 5432:5432
+#    restart: always
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data/
+
 
 volumes:
   redis-data:
-
-
+  static-volume:
+  #postgres_data:

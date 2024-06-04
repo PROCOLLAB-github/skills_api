@@ -29,7 +29,7 @@ from progress.filters import UserScoreRatingFilter
         OpenApiParameter(
             name="time_frame",
             description="Фильтр по временным рамкам (last_day, last_month, last_year)",
-            required=False,
+            required=True,
             type=OpenApiTypes.STR,
             style="form",
             explode=True,
@@ -60,13 +60,12 @@ class UserSkillsRating(generics.ListAPIView):
     )
     def get(self, request, *args, **kwargs):
         # TODO добавить отображение уровней у навыков
-        profile_id = UserProfile.objects.get(user_id=self.user.id).id
-        # profile_id = 1
 
         user_skills = (
             Skill.objects.prefetch_related("profile_skills")
             .filter(
-                Q(profile_skills__id=profile_id) | Q(tasks__task_objects__user_results__user_profile__id=profile_id)
+                Q(profile_skills__id=self.profile_id)
+                | Q(tasks__task_objects__user_results__user_profile__id=self.profile_id)
             )
             .annotate(score_count=Sum("tasks__task_objects__user_results__points_gained"))
             .order_by("-score_count")

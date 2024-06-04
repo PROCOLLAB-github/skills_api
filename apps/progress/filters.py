@@ -17,7 +17,7 @@ class UserScoreRatingFilter(filters.FilterSet):
 
     def filter_by_time_frame(self, queryset, name, value):
         """Фильтрует пользователей на основе временного промежутка."""
-        values = {
+        values: dict = {
             "last_day": timezone.now() - datetime.timedelta(days=1),
             "last_month": timezone.now() - datetime.timedelta(days=30),
             "last_year": timezone.now() - datetime.timedelta(days=365),

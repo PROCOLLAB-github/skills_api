@@ -45,16 +45,18 @@ class UserScoreSerializer(serializers.ModelSerializer):
 
     user_name = serializers.CharField(source="user.get_full_name", read_only=True)
     age = serializers.SerializerMethodField()
-    specialization = serializers.CharField(source="user.specialization", read_only=True)
-    geo_position = serializers.CharField(source="user.geo_position", read_only=True)
+    specialization = serializers.CharField(source="user.specialization", read_only=True)  # TODO убрать
+    geo_position = serializers.CharField(source="user.geo_position", read_only=True)  # TODO убрать
     score_count = serializers.IntegerField(read_only=True)
-    file = serializers.CharField(source="file.link", read_only=True)
+    file = serializers.CharField(source="file.link", read_only=True, default=None)
 
     class Meta:
         model = UserProfile
         fields = ["user_name", "age", "specialization", "geo_position", "score_count", "file"]
 
     def get_age(self, obj) -> int:
+        if not obj.user.age:
+            return 0
         current_date = datetime.now()
         time_difference = current_date - obj.user.age.replace(tzinfo=None)
         years_passed = time_difference.days // 365

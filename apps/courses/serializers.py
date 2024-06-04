@@ -1,12 +1,8 @@
-from django.contrib.auth import authenticate, login
 from rest_framework import serializers
 
 from courses.mapping import SWAGGER_API_HINTS
 from courses.models import Skill, Task
 from files.models import FileModel
-
-authenticate
-login
 
 
 class StepSerializer(serializers.Serializer):
@@ -47,3 +43,6 @@ class SkillsBasicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
         fields = ("id", "name", "who_created", "file_link", "quantity_of_levels")
+
+
+IntegerListSerializer = serializers.ListSerializer(child=serializers.IntegerField(), allow_empty=False)

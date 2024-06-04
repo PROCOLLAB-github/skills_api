@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: ./Dockerfile
     restart: always
-    command:  bash ./scripts/startup.sh
+    command:  bash ./scripts/startup_dev.sh
     env_file:
       - .env
     environment:
@@ -50,7 +50,7 @@ services:
     volumes:
        - .:/procollab
 
- # db:
+ # db: # не удалять нужно для тестов celery
 #    container_name: skills_db
 #    image: postgres
 #    environment:
@@ -67,4 +67,4 @@ services:
 volumes:
   redis-data:
   static-volume:
-  #postgres_data:
+  #postgres_data: # не удалять нужно для тестов celery

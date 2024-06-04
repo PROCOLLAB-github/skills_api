@@ -1,27 +1,13 @@
-from abc import ABC
-
 from rest_framework import serializers
 from rest_framework_dataclasses.serializers import DataclassSerializer
 
-from progress.models import TaskObjUserResult
 from questions.models import InfoSlide
-from questions.typing import (
-    QuestionSerializerData,
-    SingleAnswerData,
-    QuestionWriteSerializerData,
-    QuestionСonnectSerializerData,
-)
-
-
-class IsAnsweredSerializer(serializers.Serializer):
-    is_answered = serializers.BooleanField(default=False)
-
-
-class FileSerializer(serializers.ListSerializer, ABC):
-    child = serializers.FileField()
+from questions import typing
 
 
 class InfoSlideSerializer(serializers.Serializer):
+    """GET: Инфо-слайд (response)."""
+
     text = serializers.CharField()
     files = serializers.ListSerializer(child=serializers.CharField())
     is_done = serializers.BooleanField()
@@ -31,33 +17,25 @@ class InfoSlideSerializer(serializers.Serializer):
         fields = ["text", "files", "is_done"]
 
 
-class SingleAnswerSerializer(DataclassSerializer):
-    class Meta:
-        dataclass = SingleAnswerData
-
-
 class SingleQuestionAnswerSerializer(DataclassSerializer):
+    """GET: Вопрос с 1 правильным ответом/на исключение (response)."""
+
     class Meta:
-        dataclass = QuestionSerializerData
+        dataclass = typing.QuestionSerializerData
 
 
-class SingleCorrectPostSerializer(serializers.Serializer):
-    is_correct = serializers.BooleanField(allow_null=False)
-    correct_answer = serializers.IntegerField(required=False)
+class WriteQuestionSerializer(DataclassSerializer):
+    """GET: Вопрос на ввод ответа (response)."""
 
-
-class StrSerializer(serializers.Serializer):
-    string = serializers.CharField(required=False)
-
-
-class ConnectionSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    answer_text = serializers.CharField()
+    class Meta:
+        dataclass = typing.QuestionWriteSerializerData
 
 
 class ConnectQuestionSerializer(DataclassSerializer):
+    """GET: Вопрос на соотношение (response)."""
+
     class Meta:
-        dataclass = QuestionСonnectSerializerData
+        dataclass = typing.QuestionСonnectSerializerData
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -67,59 +45,88 @@ class ConnectQuestionSerializer(DataclassSerializer):
         return data
 
 
-class ScoredConnectAnswerSerializer(serializers.Serializer):
-    left_id = serializers.IntegerField()
-    right_id = serializers.IntegerField()
-    is_correct = serializers.BooleanField()
+class QuestionTextSerializer(serializers.Serializer):
+    """POST: Вопрос с 1 правильным ответом - ответ пользователя (request)."""
+
+    answer_id = serializers.IntegerField()
+
+
+class SingleCorrectPostSerializer(serializers.Serializer):
+    """POST: Вопрос с 1 правильным ответом - ответ пользователя (response)."""
+
+    is_correct = serializers.BooleanField(allow_null=False)
+    correct_answer = serializers.IntegerField(required=False)
+
+
+class SingleCorrectPostErrorResponseSerializer(DataclassSerializer):
+    """POST: Вопрос с 1 правильным ответом если пользователь ошибся (response)."""
+
+    class Meta:
+        dataclass = typing.SingleCorrectPostErrorResponseSerializerData
+
+
+class SingleCorrectPostSuccessResponseSerializer(DataclassSerializer):
+    """POST: Вопрос с 1 правильным ответом если пользователь прав (response)."""
+
+    class Meta:
+        dataclass = typing.SingleCorrectPostSuccessResponseSerializerData
+
+
+class ConnectAnswerSerializer(DataclassSerializer):
+    """Вопрос на соотношение: 1 ответ пользователя."""
+
+    class Meta:
+        dataclass = typing.ConnectAnswerSerializerData
+
+
+class ConnectQuestionPostRequestSerializer(serializers.ListSerializer):
+    """POST: Вопрос на соотношение - список ответов пользователя (request)."""
+
+    child = ConnectAnswerSerializer()
+
+
+class ScoredConnectAnswerSerializer(DataclassSerializer):
+    """Вопрос на соотношение: 1 ответ с результатом если пользователь ошибся."""
+
+    class Meta:
+        dataclass = typing.ScoredConnectAnswerSerializerData
 
 
 class ConnectQuestionPostResponseSerializer(serializers.ListSerializer):
+    """POST: Вопрос на соотношение - список из ответов с результатом если пользователь ошибся (response)."""
+
     child = ScoredConnectAnswerSerializer()
 
 
-class ConnectAnswerSerializer(serializers.Serializer):
-    left_id = serializers.IntegerField()
-    right_id = serializers.IntegerField()
+class WriteAnswerTextSerializer(DataclassSerializer):
+    """POST: Вопрос на ввод ответа - ответ пользователя (request)."""
+
+    class Meta:
+        dataclass = typing.WriteAnswerTextSerializerData
 
 
-class ConnectQuestionPostRequestSerializer(serializers.Serializer):
-    answer = ConnectAnswerSerializer(many=True)
+class QuestionExcludePostResponseSerializer(DataclassSerializer):
+    """POST: Вопрос на исключение - ответ если пользователь ошибся (response)."""
 
-
-class IntegerListSerializer(serializers.ListSerializer):
-    child = serializers.IntegerField()
+    class Meta:
+        dataclass = typing.QuestionExcludePostResponseSerializer
 
 
 class SimpleNumberListSerializer(serializers.Serializer):
-    numbers = IntegerListSerializer(child=serializers.IntegerField(), allow_empty=False)
+    """Словарь 'numbers' со списком int чисел."""
+
+    numbers = serializers.ListSerializer(child=serializers.IntegerField(), allow_empty=False)
 
 
-class CustomTextSerializer(serializers.Serializer):
-    text = serializers.CharField(default="need more...")
+class CustomTextSucessSerializer(DataclassSerializer):
+    """Словарь 'text' с str описанием."""
 
-
-class CustomTextSucessSerializer(serializers.Serializer):
-    text = serializers.CharField(default="success")
-
-
-class WriteQuestionSerializer(DataclassSerializer):
     class Meta:
-        dataclass = QuestionWriteSerializerData
+        dataclass = typing.CustomTextSucessSerializerData
 
 
-class WriteAnswerSerializer(serializers.ModelSerializer):
+class CustomTextErrorSerializer(DataclassSerializer):
+    """Словарь 'error' с str описанием."""
+
     class Meta:
-        model = TaskObjUserResult
-        fields = ["id", "text"]
-
-
-class WriteAnswerTextSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TaskObjUserResult
-        fields = [
-            "text",
-        ]
-
-
-class QuestionTextSerializer(serializers.Serializer):
-    answer_id = serializers.IntegerField()
+        dataclass = typing.CustomTextErrorSerializerData

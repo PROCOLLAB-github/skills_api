@@ -2,9 +2,8 @@ from django.core.exceptions import ValidationError
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework import permissions
-
 
 from courses.models import Skill
 from procollab_skills.decorators import exclude_auth_perm, exclude_sub_check_perm
@@ -16,6 +15,7 @@ from progress.serializers import (
     IntegerListSerializer,
     UserSerializer,
 )
+from subscription.serializers import UserSubscriptionDataSerializer
 from progress.services import get_user_data, get_current_level, last_two_months_stats
 
 
@@ -74,3 +74,15 @@ class CreateUserView(CreateAPIView):
     model = CustomUser
     permission_classes = [permissions.AllowAny]
     serializer_class = UserSerializer
+
+
+@extend_schema(
+    summary="""Данные о статусе подписки залогиненного пользователя""",
+    tags=["Профиль"],
+)
+class SubscriptionUserData(ListAPIView):
+    serializer_class = UserSubscriptionDataSerializer
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.serializer_class(self.user_profile)
+        return Response(serializer.data, status=status.HTTP_200_OK)
