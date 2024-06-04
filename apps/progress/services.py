@@ -1,14 +1,11 @@
 import datetime
 
-from django.db import IntegrityError
 from django.db.models import Q, Count, QuerySet
 
 from courses.models import Skill, Task
 from progress.mapping import MonthMapping
-from progress.models import UserProfile, TaskObjUserResult, IntermediateUserSkills
+from progress.models import UserProfile, IntermediateUserSkills
 from progress.typing import SkillIdType, SkillProgressType, SkillMonthProgressType
-from questions.exceptions import UserAlreadyAnsweredException
-from questions.mapping import TaskObjs
 
 
 def get_user_data(profile_id: int) -> dict:
@@ -141,28 +138,6 @@ def last_two_months_stats(user_profile_id: int) -> list[SkillMonthProgressType]:
         },
     ]
     return months_data
-
-
-def check_if_answered_get(task_obj_id: int, user_profile_id: int, type_task_obj: TaskObjs) -> TaskObjUserResult | None:
-    return TaskObjUserResult.objects.filter(
-        task_object_id=task_obj_id,
-        user_profile_id=user_profile_id,
-        points_gained=type_task_obj.value,
-    ).first()
-
-
-def create_user_result(task_obj_id: int, user_profile_id: int, type_task_obj: TaskObjs):
-    try:
-        TaskObjUserResult.objects.create(
-            task_object_id=task_obj_id,
-            user_profile_id=user_profile_id,
-            points_gained=type_task_obj.value,
-        )
-    except IntegrityError as e:
-        if "unique constraint" in str(e.args).lower():
-            raise UserAlreadyAnsweredException
-        else:
-            raise IntegrityError(str(e))
 
 
 def get_user_tasks(user_profile_id: int) -> tuple[QuerySet[Skill], QuerySet]:

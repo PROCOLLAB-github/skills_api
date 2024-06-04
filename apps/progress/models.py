@@ -4,6 +4,7 @@ from django.db import models
 from django.utils import timezone
 
 from progress.manager import CustomUserManager
+from progress.managers import TaskObjUserResultManager
 
 from progress.validators import user_name_validator
 from subscription.models import SubscriptionType
@@ -111,6 +112,8 @@ class TaskObjUserResult(models.Model):
     points_gained = models.PositiveIntegerField(verbose_name="Набранные баллы")
 
     datetime_created = models.DateTimeField(verbose_name="Дата создания", null=False, default=timezone.now)
+
+    objects = TaskObjUserResultManager()
 
     def __str__(self):
         return f"{self.task_object.task.name} {self.task_object.ordinal_number} {self.user_profile.user.first_name}"

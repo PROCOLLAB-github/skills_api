@@ -5,7 +5,8 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 
 from courses.serializers import IntegerListSerializer
-from progress.services import create_user_result
+from progress.models import TaskObjUserResult
+
 from questions.exceptions import UserAlreadyAnsweredException
 from questions.mapping import TypeQuestionPoints
 from questions.permissions import CheckQuestionTypePermission, SimpleCheckQuestionTypePermission
@@ -51,7 +52,9 @@ class SingleCorrectPost(generics.CreateAPIView):
             data = {"is_correct": is_correct_answer}
 
             if is_correct_answer:
-                create_user_result(self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_SINGLE_ANSWER)
+                TaskObjUserResult.objects.create_user_result(
+                    self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_SINGLE_ANSWER
+                )
             else:
                 correct_answer: AnswerSingle = question_answers.get(is_correct=True)
                 data["correct_answer"] = correct_answer.id
@@ -116,7 +119,9 @@ class ConnectQuestionPost(generics.CreateAPIView):
             serializer = self.serializer_class(data=scored_answers)
 
             if serializer.is_valid() and not if_false_answers and not if_unchecked_answers:
-                create_user_result(self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_CONNECT)
+                TaskObjUserResult.objects.create_user_result(
+                    self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_CONNECT
+                )
                 return Response({"text": "success"}, status=status.HTTP_201_CREATED)
             elif not serializer.is_valid():
                 return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -165,7 +170,9 @@ class QuestionExcludePost(generics.CreateAPIView):
 
             # Проверка - все правильные ответы были даны.
             if set_given_answer_ids == set_correct_answer_ids:
-                create_user_result(self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_EXCLUDE)
+                TaskObjUserResult.objects.create_user_result(
+                    self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_EXCLUDE
+                )
                 return Response({"text": "success"}, status=status.HTTP_201_CREATED)
             # Проверка - даны правильные ответы, но часть правильных отсутствует.
             elif set_given_answer_ids.issubset(set_correct_answer_ids):
@@ -203,8 +210,9 @@ class QuestionWritePost(generics.CreateAPIView):
         try:
             user_answer: str = request.data["text"]
             if len(user_answer):
-                create_user_result(self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_WRITE)
-                # serializer = self.serializer_class(query)
+                TaskObjUserResult.objects.create_user_result(
+                    self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_WRITE
+                )
                 return Response({"text": "success"}, status=status.HTTP_201_CREATED)
 
             return Response({"error": "You can't save an empty answer!"}, status=status.HTTP_400_BAD_REQUEST)
@@ -228,7 +236,9 @@ class InfoSlidePost(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
-            create_user_result(self.task_object_id, self.profile_id, TypeQuestionPoints.INFO_SLIDE)
+            TaskObjUserResult.objects.create_user_result(
+                self.task_object_id, self.profile_id, TypeQuestionPoints.INFO_SLIDE
+            )
             return Response("successful", status=status.HTTP_204_NO_CONTENT)
         except UserAlreadyAnsweredException as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
