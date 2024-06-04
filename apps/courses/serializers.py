@@ -43,3 +43,6 @@ class SkillsBasicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
         fields = ("id", "name", "who_created", "file_link", "quantity_of_levels")
+
+
+IntegerListSerializer = serializers.ListSerializer(child=serializers.IntegerField(), allow_empty=False)
