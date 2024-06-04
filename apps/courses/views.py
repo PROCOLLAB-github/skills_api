@@ -20,7 +20,7 @@ from procollab_skills.decorators import (
 from progress.models import TaskObjUserResult
 from progress.pagination import DefaultPagination
 from progress.serializers import ResponseSerializer
-from questions.serializers import IntegerListSerializer
+from .serializers import IntegerListSerializer
 
 
 class TaskList(generics.ListAPIView):
