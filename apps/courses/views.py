@@ -1,4 +1,4 @@
-from django.db.models import OuterRef, Exists
+from django.db.models import Case, When, BooleanField
 
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
@@ -28,40 +28,43 @@ class TaskList(generics.ListAPIView):
 
     @extend_schema(summary="Выводит информацию о задаче", tags=["Навыки и задачи"], responses={200: TaskSerializer})
     def get(self, request, *args, **kwargs):
-        try:
-            task_id = self.kwargs.get("task_id")
+        task_id = self.kwargs.get("task_id")
 
-            task = Task.objects.prefetch_related("task_objects", "task_objects__content_object").get(id=int(task_id))
+        task = Task.objects.prefetch_related("task_objects", "task_objects__content_object").get(id=int(task_id))
 
-            task_objects = task.task_objects.annotate(
-                has_user_results=Exists(
-                    TaskObjUserResult.objects.filter(task_object=OuterRef("pk"), user_profile_id=self.profile_id)
+        task_objects = (
+            task.task_objects.annotate(
+                has_user_results=Case(
+                    When(user_results__user_profile__id=self.profile_id, then=True),
+                    default=False,
+                    output_field=BooleanField(),
                 )
-            ).order_by("ordinal_number")
+            )
+            .distinct()
+            .order_by("ordinal_number")
+        )
 
-            data = {"count": task_objects.count(), "step_data": []}
-            for task_object in task_objects:
-                type_task = TYPE_TASK_OBJECT[task_object.content_type.model]
-                # TODO вместо словаря сделать Enum
-                if type_task == "question_single_answer" and task_object.content_object.is_exclude:
-                    type_task = "exclude_question"
-                data["step_data"].append(
-                    {
-                        "id": task_object.id,
-                        "type": type_task,
-                        "is_done": task_object.has_user_results,
-                        "ordinal_number": task_object.ordinal_number,
-                    }
-                )
+        data = {"count": task_objects.count(), "step_data": []}
+        for task_object in task_objects:
+            type_task = TYPE_TASK_OBJECT[task_object.content_type.model]
+            # TODO вместо словаря сделать Enum
+            if type_task == "question_single_answer" and task_object.content_object.is_exclude:
+                type_task = "exclude_question"
+            data["step_data"].append(
+                {
+                    "id": task_object.id,
+                    "type": type_task,
+                    "is_done": task_object.has_user_results,
+                    "ordinal_number": task_object.ordinal_number,
+                }
+            )
 
-            serializer = self.serializer_class(data=data)
-            if serializer.is_valid():
-                skill_data = get_skills_details(task.skill.id, user_profile_id=1)
-                return Response(skill_data | data, status=status.HTTP_200_OK)
-            else:
-                return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_200_OK)
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid():
+            skill_data = get_skills_details(task.skill.id, user_profile_id=1)
+            return Response(skill_data | data, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # TODO добавить поля для количества навыков
@@ -112,10 +115,10 @@ class TaskStatsGet(generics.ListAPIView):
     serializer_class = ...
 
     def list(self, request, *args, **kwargs):
-        # TODO переписать эндпоинт, какой-то то непонятный
         task_id = self.kwargs.get("task_id")
 
         task = get_object_or_404(Task.objects.values("skill_id", "id", "ordinal_number"), id=task_id)
+
         next_task = (
             Task.objects.filter(skill_id=task["skill_id"], ordinal_number=task["ordinal_number"] + 1)
             .values("id")
@@ -142,7 +145,6 @@ class TaskStatsGet(generics.ListAPIView):
             if points := check_if_task_correct(result):
                 total_points += points
                 done_correct_tasks += 1
-
         data = {
             "points_gained": total_points,
             "quantity_done_correct": done_correct_tasks,
