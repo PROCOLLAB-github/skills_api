@@ -9,6 +9,7 @@ from rest_framework import permissions
 from courses.models import Skill
 
 # from procollab_skills.decorators import exclude_sub_check_perm
+from procollab_skills.permissions import IfSubscriptionOutdatedPermission
 
 from progress.models import CustomUser
 from progress.serializers import (
@@ -55,7 +56,7 @@ class UserProfileList(generics.ListAPIView):
 )
 class UserChooseSkills(generics.UpdateAPIView):
     serializer_class = ...
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IfSubscriptionOutdatedPermission, permissions.AllowAny]
 
     def update(self, request, *args, **kwargs):
         try:
@@ -85,6 +86,7 @@ class CreateUserView(CreateAPIView):
 )
 class SubscriptionUserData(ListAPIView):
     serializer_class = UserSubscriptionDataSerializer
+    permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
         serializer = self.serializer_class(self.user_profile)

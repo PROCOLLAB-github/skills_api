@@ -11,7 +11,6 @@ class IfSubscriptionOutdatedPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
         skip_middleware = getattr(view, "_skip_check_sub", False)
-        print(skip_middleware)
         if skip_middleware:
             return True
 
