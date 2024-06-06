@@ -78,11 +78,11 @@ class CreatePayment(CreateAPIView):
     summary="Вывод доступных подписок",
     tags=["Подписка"],
 )
-# @exclude_auth_perm
 class ViewSubscriptions(ListAPIView):
     queryset = SubscriptionType.objects.all()
     permission_classes = [AllowAny]
     serializer_class = SubscriptionSerializer
+    authentication_classes = []
 
     def list(self, request, *args, **kwargs) -> Response:
         queryset = self.get_queryset()

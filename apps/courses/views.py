@@ -12,10 +12,9 @@ from .serializers import TaskSerializer, SkillsBasicSerializer, TasksOfSkillSeri
 from .services import get_stats, get_skills_details
 
 
-from procollab_skills.decorators import (
-    exclude_auth_perm,
-    #  exclude_sub_check_perm
-)
+# from procollab_skills.decorators import (
+#  exclude_sub_check_perm
+# )
 
 from progress.models import TaskObjUserResult
 from progress.pagination import DefaultPagination
@@ -72,12 +71,12 @@ class TaskList(generics.ListAPIView):
     summary="Выводит все навыки на платформе",
     tags=["Навыки и задачи"],
 )
-@exclude_auth_perm
 class SkillsList(generics.ListAPIView):
     serializer_class = SkillsBasicSerializer
     pagination_class = DefaultPagination
-    queryset = Skill.objects.all()
+    queryset = Skill.objects.filter(status="published")
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []
 
 
 @extend_schema(
