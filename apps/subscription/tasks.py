@@ -17,10 +17,6 @@ def daily_resub_users() -> str:
     autopay_on_profiles = user_profiles.filter(is_autopay_allowed=True)
     autopay_on_profiles_ids = list(autopay_on_profiles.values_list("id", flat=True))
 
-    # TODO адаптировать под новую логику
-    user_profile_chosen_skills = UserProfile.chosen_skills.through
-    user_profile_chosen_skills.objects.filter(userprofile__in=user_profiles).delete()
-
     # для них же ищет данные о платежах
     payments = Payment.list({"created_at.lte": one_month_ago.isoformat()})
 

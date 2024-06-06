@@ -53,7 +53,7 @@ class Task(models.Model):
 
     def save(self, *args, **kwargs):
         if self.ordinal_number is None:  # если порядковый номер слайда не введен
-            last_task_obj = self.task.aggregate(Max("ordinal_number"))
+            last_task_obj = Task.objects.aggregate(Max("ordinal_number"))
             if not last_task_obj.get("ordinal_number__max", 0):
                 last_task_obj["ordinal_number__max"] = 0
             self.ordinal_number = last_task_obj.get("ordinal_number__max", 0) + 1

@@ -5,13 +5,6 @@ from progress.services import last_two_months_stats
 from django.core.cache import cache
 
 
-# @app.task
-# def nullify_skills_for_all_users():
-#     all_instances = UserProfile.objects.all()
-#     for instance in all_instances:
-#         instance.chosen_skills.clear()
-
-
 @app.task
 def profile_month_recache():
     user_profiles = UserProfile.objects.values_list("id", flat=True)

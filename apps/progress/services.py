@@ -8,10 +8,20 @@ from progress.models import UserProfile, IntermediateUserSkills
 from progress.typing import SkillIdType, SkillProgressType, SkillMonthProgressType
 
 
+def months_passed_data() -> tuple[datetime.date, datetime.date]:
+    """Последние 2 месяца не включая текущий."""
+    today = datetime.date.today()
+    first = today.replace(day=1)
+    last_month = first - datetime.timedelta(days=1)
+
+    sec = last_month.replace(day=1)
+    last_last_month = sec - datetime.timedelta(days=1)
+
+    return last_last_month, last_month
+
+
 def get_user_data(profile_id: int) -> dict:
-    user_profile = (
-        UserProfile.objects.select_related("user", "file").prefetch_related("chosen_skills").get(id=profile_id)
-    )
+    user_profile = UserProfile.objects.select_related("user", "file").get(id=profile_id)
     # TODO добавить сериалайзер
     user = user_profile.user
 
@@ -29,18 +39,6 @@ def get_user_data(profile_id: int) -> dict:
         "age": years_passed,
         "geo_position": user.geo_position,
     }
-
-
-def months_passed_data() -> tuple[datetime.date, datetime.date]:
-    """Последние 2 месяца не включая текущий."""
-    today = datetime.date.today()
-    first = today.replace(day=1)
-    last_month = first - datetime.timedelta(days=1)
-
-    sec = last_month.replace(day=1)
-    last_last_month = sec - datetime.timedelta(days=1)
-
-    return last_last_month, last_month
 
 
 def get_current_level(user_profile_id: int) -> dict[SkillIdType, SkillProgressType]:
@@ -143,7 +141,8 @@ def last_two_months_stats(user_profile_id: int) -> list[SkillMonthProgressType]:
 def get_user_tasks(user_profile_id: int) -> tuple[QuerySet[Skill], QuerySet]:
     """Получение всех навыков и их id для конкретного пользователя."""
     user_skills: QuerySet[Skill] = Skill.objects.filter(
-        Q(profile_skills__id=user_profile_id) | Q(tasks__task_objects__user_results__user_profile__id=user_profile_id)
+        Q(intermediateuserskills__user_profile__id=user_profile_id)
+        | Q(tasks__task_objects__user_results__user_profile__id=user_profile_id)
     ).distinct()
     user_skills_ids: QuerySet = user_skills.values_list("id", flat=True)
     return user_skills, user_skills_ids

@@ -4,7 +4,7 @@ from django.db import models
 from django.utils import timezone
 
 from progress.manager import CustomUserManager
-from progress.managers import TaskObjUserResultManager
+from progress.managers import TaskObjUserResultManager, UserProfileManager
 
 from progress.validators import user_name_validator
 from subscription.models import SubscriptionType
@@ -48,7 +48,7 @@ class CustomUser(AbstractUser):
 
 class UserProfile(models.Model):
     user = models.OneToOneField(
-        CustomUser,
+        "progress.CustomUser",
         on_delete=models.CASCADE,
         related_name="profiles",
         verbose_name="Пользователь",
@@ -72,6 +72,8 @@ class UserProfile(models.Model):
     last_subscription_type = models.ForeignKey(SubscriptionType, on_delete=models.SET_NULL, null=True, blank=True)
     last_subscription_date = models.DateField(null=True, verbose_name="Последний раз когда юзер оформилял подписку")
 
+    objects = UserProfileManager()
+
     # TODO перенести некоторую логику оценок в профиль пользователя, чтобы уменьшить нагрузку на БД
 
     def __str__(self):
@@ -83,9 +85,12 @@ class UserProfile(models.Model):
 
 
 class IntermediateUserSkills(models.Model):
-    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    user_profile = models.ForeignKey("progress.UserProfile", on_delete=models.CASCADE)
     skill = models.ForeignKey("courses.Skill", on_delete=models.CASCADE)
     date_chosen = models.DateField(default=timezone.now)
+
+    class Meta:
+        unique_together = ("user_profile", "date_chosen")
 
     def __str__(self):
         return (
@@ -102,7 +107,7 @@ class TaskObjUserResult(models.Model):
         verbose_name="Объект задачи",
     )
     user_profile = models.ForeignKey(
-        UserProfile,
+        "progress.UserProfile",
         on_delete=models.CASCADE,
         related_name="task_obj_results",
         verbose_name="Профиль пользователя",
