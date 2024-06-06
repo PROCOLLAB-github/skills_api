@@ -6,7 +6,6 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 
 from courses.models import Skill
-from procollab_skills.decorators import exclude_auth_perm
 from progress.models import UserProfile
 from progress.pagination import DefaultPagination
 from progress.serializers import SkillScoreSerializer, UserScoreSerializer
@@ -45,7 +44,6 @@ class UserScoreRating(generics.ListAPIView):
         return UserProfile.objects.select_related("user", "file")
 
 
-@exclude_auth_perm
 class UserSkillsRating(generics.ListAPIView):
     serializer_class = SkillScoreSerializer
     pagination_class = DefaultPagination
@@ -71,9 +69,9 @@ class UserSkillsRating(generics.ListAPIView):
             .distinct()
         )
 
+        print(user_skills.query)
         paginated_data = self.pagination_class().paginate_queryset(user_skills, self.request)
 
-        print()
         data = [
             {
                 "skill_name": skill.name,

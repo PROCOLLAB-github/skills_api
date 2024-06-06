@@ -1,12 +1,14 @@
 from django.core.exceptions import ValidationError
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework import permissions
 
 from courses.models import Skill
-from procollab_skills.decorators import exclude_auth_perm, exclude_sub_check_perm
+
+# from procollab_skills.decorators import exclude_sub_check_perm
 
 from progress.models import CustomUser
 from progress.serializers import (
@@ -22,9 +24,10 @@ from progress.services import get_user_data, get_current_level, last_two_months_
 # TODO разобраться с выводом очков
 
 
-@exclude_sub_check_perm
+# @exclude_sub_check_perm
 class UserProfileList(generics.ListAPIView):
     serializer_class = ResponseSerializer
+    permission_classes = [AllowAny]
 
     @extend_schema(
         summary="""Выводит все данные для страницы профиля пользователя""",
@@ -69,11 +72,11 @@ class UserChooseSkills(generics.UpdateAPIView):
     tags=["api"],
     request=UserSerializer,
 )
-@exclude_auth_perm
 class CreateUserView(CreateAPIView):
     model = CustomUser
     permission_classes = [permissions.AllowAny]
     serializer_class = UserSerializer
+    authentication_classes = []
 
 
 @extend_schema(
