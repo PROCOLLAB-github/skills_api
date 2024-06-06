@@ -8,7 +8,8 @@ def get_skill_level(skill_id: int, user_profile_id: int) -> dict:
         Skill.objects.filter(
             Q(intermediateuserskills__user_profile__id=user_profile_id)
             | Q(tasks__task_objects__user_results__user_profile__id=user_profile_id)
-            | Q(id=skill_id)
+            | Q(id=skill_id),
+            status="published",
         )
         .annotate(total_tasks=Count("tasks"))
         .distinct()
