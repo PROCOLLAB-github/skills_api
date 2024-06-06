@@ -142,7 +142,8 @@ def get_user_tasks(user_profile_id: int) -> tuple[QuerySet[Skill], QuerySet]:
     """Получение всех навыков и их id для конкретного пользователя."""
     user_skills: QuerySet[Skill] = Skill.objects.filter(
         Q(intermediateuserskills__user_profile__id=user_profile_id)
-        | Q(tasks__task_objects__user_results__user_profile__id=user_profile_id)
+        | Q(tasks__task_objects__user_results__user_profile__id=user_profile_id),
+        status="published",
     ).distinct()
     user_skills_ids: QuerySet = user_skills.values_list("id", flat=True)
     return user_skills, user_skills_ids

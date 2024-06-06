@@ -26,6 +26,7 @@ class CheckQuestionTypePermission(permissions.BasePermission):
             request_task_object: TaskObject = get_object_or_404(
                 TaskObject.objects.prefetch_related(*prefetch_fields_list),
                 id=task_object_id,
+                task__skill__status='published',
             )
         except AttributeError as e:
             error_message = str(e.args).lower()
@@ -61,6 +62,7 @@ class SimpleCheckQuestionTypePermission(permissions.BasePermission):
         request_task_object: TaskObject = get_object_or_404(
             TaskObject.objects.prefetch_related("content_object"),
             id=task_object_id,
+            task__skill__status='published',
         )
         request_question = request_task_object.content_object
         needed_model_class, gotten_model_class = wrong_endpoint_text(request_question, view)

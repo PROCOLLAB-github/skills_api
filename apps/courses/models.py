@@ -7,6 +7,12 @@ from files.models import FileModel
 
 
 class Skill(models.Model):
+
+    STATUS_CHOICES = [
+        ("draft", "Черновик"),
+        ("published", "Опубликован"),
+    ]
+
     name = models.CharField(max_length=50, verbose_name="Название навыка")
     description = models.TextField(null=True)
     who_created = models.CharField(max_length=50, verbose_name="Кто создал")
@@ -14,6 +20,7 @@ class Skill(models.Model):
         FileModel, on_delete=models.SET_NULL, related_name="skill", verbose_name="Картинка", null=True, blank=True
     )
     quantity_of_levels = models.IntegerField(default=0)
+    status = models.CharField(choices=STATUS_CHOICES, max_length=15, default="draft", verbose_name="Статус")
 
     def __str__(self):
         return f"{self.name}"

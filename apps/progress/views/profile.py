@@ -59,7 +59,7 @@ class UserChooseSkills(generics.UpdateAPIView):
 
     def update(self, request, *args, **kwargs):
         try:
-            skills = Skill.objects.filter(id__in=request.data)
+            skills = Skill.objects.filter(id__in=request.data, status="published")
 
             self.user_profile.chosen_skills.add(*skills)
             return Response("success", status=status.HTTP_204_NO_CONTENT)

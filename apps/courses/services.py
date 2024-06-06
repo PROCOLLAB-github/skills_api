@@ -1,4 +1,5 @@
 from django.db.models import Prefetch, Count, F, Q
+from django.shortcuts import get_object_or_404
 
 from courses.models import Task, Skill
 from progress.models import TaskObjUserResult
@@ -38,8 +39,11 @@ def get_stats(skill_id: int, profile_id: int) -> dict:
 def get_skills_details(skill_id: int, user_profile_id: int) -> dict:
     # user_profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
 
-    skill = (  # получаем все скиллы у юзера. те, которые он выбрал, и те, которые он пытался решать
-        Skill.objects.select_related("file").filter(id=skill_id).annotate(total_tasks=Count("tasks")).distinct().first()
+    skill = get_object_or_404(  # получаем все скиллы у юзера. те, которые он выбрал, и те, которые он пытался решать
+        Skill.objects.select_related("file")
+        .annotate(total_tasks=Count("tasks"))
+        .distinct()
+        .filter(id=skill_id, status="published")
     )
 
     tasks = (  # получаем все задачи у скиллов с количеством вопросов и ответов
