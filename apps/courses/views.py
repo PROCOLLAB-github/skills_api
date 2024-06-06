@@ -71,7 +71,7 @@ class TaskList(generics.ListAPIView):
 class SkillsList(generics.ListAPIView):
     serializer_class = SkillsBasicSerializer
     pagination_class = DefaultPagination
-    queryset = Skill.objects.all()
+    queryset = Skill.objects.filter(status="published")
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
 

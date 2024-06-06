@@ -57,7 +57,7 @@ class UserSkillsRating(generics.ListAPIView):
         # TODO добавить отображение уровней у навыков
 
         user_skills = (
-            Skill.objects.filter(intermediateuserskills__user_profile__id=self.profile_id)
+            Skill.objects.filter(intermediateuserskills__user_profile__id=self.profile_id, status="published")
             .annotate(
                 score_count=Sum(
                     "tasks__task_objects__user_results__points_gained",
