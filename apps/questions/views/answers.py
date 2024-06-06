@@ -5,6 +5,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 
 from courses.serializers import IntegerListSerializer
+from procollab_skills.permissions import IfSubscriptionOutdatedPermission
 from progress.models import TaskObjUserResult
 
 from questions.exceptions import UserAlreadyAnsweredException
@@ -41,7 +42,7 @@ from questions import api_examples
 )
 class SingleCorrectPost(generics.CreateAPIView):
     serializer_class = serializers.SingleCorrectPostSerializer
-    permission_classes = [CheckQuestionTypePermission]
+    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
     expected_question_model = QuestionSingleAnswer
 
     def create(self, request, *args, **kwargs) -> Response:
@@ -88,7 +89,7 @@ class SingleCorrectPost(generics.CreateAPIView):
 )
 class ConnectQuestionPost(generics.CreateAPIView):
     serializer_class = serializers.ConnectQuestionPostResponseSerializer
-    permission_classes = [CheckQuestionTypePermission]
+    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
     expected_question_model = QuestionConnect
 
     def create(self, request, *args, **kwargs) -> Response:
@@ -155,7 +156,7 @@ class ConnectQuestionPost(generics.CreateAPIView):
 )
 class QuestionExcludePost(generics.CreateAPIView):
     serializer_class = serializers.SimpleNumberListSerializer
-    permission_classes = [CheckQuestionTypePermission]
+    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
     expected_question_model = QuestionSingleAnswer
 
     def create(self, request, *args, **kwargs) -> Response:
@@ -203,7 +204,7 @@ class QuestionExcludePost(generics.CreateAPIView):
 )
 class QuestionWritePost(generics.CreateAPIView):
     serializer_class = serializers.WriteAnswerTextSerializer
-    permission_classes = [SimpleCheckQuestionTypePermission]
+    permission_classes = [IfSubscriptionOutdatedPermission, SimpleCheckQuestionTypePermission]
     expected_question_model = QuestionWrite
 
     def create(self, request, *args, **kwargs) -> Response:
@@ -231,7 +232,7 @@ class QuestionWritePost(generics.CreateAPIView):
     examples=[api_examples.USER_ALREADY_DONE_TASK, api_examples.WRONG_TASKOBJECT],
 )
 class InfoSlidePost(generics.CreateAPIView):
-    permission_classes = [SimpleCheckQuestionTypePermission]
+    permission_classes = [IfSubscriptionOutdatedPermission, SimpleCheckQuestionTypePermission]
     expected_question_model = InfoSlide
 
     def create(self, request, *args, **kwargs) -> Response:
