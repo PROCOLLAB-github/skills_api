@@ -20,7 +20,7 @@ from procollab_skills.decorators import (
 from progress.models import TaskObjUserResult
 from progress.pagination import DefaultPagination
 from progress.serializers import ResponseSerializer
-from questions.serializers import IntegerListSerializer
+from .serializers import IntegerListSerializer
 
 
 class TaskList(generics.ListAPIView):
@@ -131,8 +131,11 @@ class TaskStatsGet(generics.ListAPIView):
             skill_id=task["skill_id"],
             user_profile_id=self.profile_id,
         )
-        needed_skill_data = {"level": skill_data["level"], "progress": skill_data.get("progress", 0)}
-
+        needed_skill_data = {
+            "level": skill_data["level"],
+            "progress": skill_data.get("progress", 0),
+            "skill_name": skill_data.get("skill_name"),
+        }
         task_objs = TaskObject.objects.filter(task_id=task["id"]).values_list("id", flat=True)
         task_results = TaskObjUserResult.objects.select_related("task_object", "task_object__content_type").filter(
             user_profile_id=self.profile_id,
@@ -153,44 +156,3 @@ class TaskStatsGet(generics.ListAPIView):
             "next_task_id": task["next_task_id"],
         }
         return Response(data, status=200)
-
-
-# @extend_schema(
-#     summary="""Статус задач для навыка""",
-#     request=IntegerListSerializer,
-#     # responses={200: TasksOfSkillSerializer(many=True)},
-#     tags=["Навыки и задачи"],
-# )
-# class SkillTaskStatus(generics.ListAPIView):
-#
-#     def get(self, request, *args, **kwargs):
-#         skill_id = self.kwargs.get("skill_id")
-#         profile_id = 1
-#
-#         tasks_of_skill = (
-#             Task.objects
-#             .prefetch_related(
-#                 Prefetch(
-#                     'task_objects__user_results',
-#                     queryset=TaskObjUserResult.objects.filter(user_profile_id=profile_id),
-#                     to_attr='filtered_user_results'  # этот атрибут будет недоступен напрямую через объект Task
-#                 )
-#             )
-#             .prefetch_related("task_objects")
-#             .filter(skill_id=skill_id)
-#         )
-#
-#
-#         data = []
-#
-#         for task in tasks_of_skill:
-#             user_results_count = sum(1 for obj in task.task_objects.all() if obj.filtered_user_results)
-#             data.append({
-#                 "task_id": task.id,
-#                 "status": user_results_count == task.task_objects.all().count()
-#             })
-#
-#         statuses = (sum(1 for obj in data if obj["status"]) / tasks_of_skill.count()) * 100
-#         new_data = [{"progress": int(statuses)}] + data
-#
-#         return Response(new_data, status=200)

@@ -39,12 +39,7 @@ def get_skills_details(skill_id: int, user_profile_id: int) -> dict:
     # user_profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
 
     skill = (  # получаем все скиллы у юзера. те, которые он выбрал, и те, которые он пытался решать
-        Skill.objects.select_related("file")
-        .prefetch_related("profile_skills")
-        .filter(id=skill_id)
-        .annotate(total_tasks=Count("tasks"))
-        .distinct()
-        .first()
+        Skill.objects.select_related("file").filter(id=skill_id).annotate(total_tasks=Count("tasks")).distinct().first()
     )
 
     tasks = (  # получаем все задачи у скиллов с количеством вопросов и ответов

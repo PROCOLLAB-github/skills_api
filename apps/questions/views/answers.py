@@ -1,11 +1,12 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import QuerySet
 from drf_spectacular.utils import extend_schema
-from rest_framework import generics, serializers, status
+from rest_framework import generics, status
 from rest_framework.response import Response
 
+from courses.serializers import IntegerListSerializer
+from progress.models import TaskObjUserResult
 
-from progress.services import create_user_result
 from questions.exceptions import UserAlreadyAnsweredException
 from questions.mapping import TypeQuestionPoints
 from questions.permissions import CheckQuestionTypePermission, SimpleCheckQuestionTypePermission
@@ -17,34 +18,29 @@ from questions.models import (
     AnswerSingle,
     AnswerConnect,
 )
-from questions.serializers import (
-    ConnectQuestionPostResponseSerializer,
-    CustomTextSerializer,
-    CustomTextSucessSerializer,
-    SimpleNumberListSerializer,
-    SingleCorrectPostSerializer,
-    WriteAnswerSerializer,
-    WriteAnswerTextSerializer,
-    QuestionTextSerializer,
-    ConnectAnswerSerializer,
-)
-
-
-# TODO сделать, чтобы если юзер прошёл задание идеально правильно ранее (есть сохраненный результат),
-#  то выводился ещё и он,
-# а не только вопрос
-# https://www.figma.com/file/cZKZgA3ZywZykhZuHn1OQk/ProCollab?type=design&node-id=377-634&mode=design&t=Pxo1vEpfsWDnicoF-0
+from questions import serializers
+from questions import api_examples
 
 
 @extend_schema(
     summary="Проверяет прохождение вопроса c одним правильным ответом.",
     tags=["Вопросы и инфо-слайд"],
     description="""Помимо этого создаёт результат прохождения пользователем вопроса.""",
-    request=QuestionTextSerializer(),
-    responses={201: SingleCorrectPostSerializer},
+    request=serializers.QuestionTextSerializer(),
+    responses={
+        201: serializers.SingleCorrectPostSuccessResponseSerializer,
+        400: serializers.SingleCorrectPostErrorResponseSerializer,
+        403: serializers.CustomTextErrorSerializer,
+    },
+    examples=[
+        api_examples.WRONG_SINGLE_CORECT_QUESTION_RESPONSE,
+        api_examples.QUERY_DOES_NOT_EXISTS,
+        api_examples.WRONG_TASKOBJECT,
+        api_examples.USER_ALREADY_DONE_TASK,
+    ],
 )
 class SingleCorrectPost(generics.CreateAPIView):
-    serializer_class = SingleCorrectPostSerializer
+    serializer_class = serializers.SingleCorrectPostSerializer
     permission_classes = [CheckQuestionTypePermission]
     expected_question_model = QuestionSingleAnswer
 
@@ -56,7 +52,9 @@ class SingleCorrectPost(generics.CreateAPIView):
             data = {"is_correct": is_correct_answer}
 
             if is_correct_answer:
-                create_user_result(self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_SINGLE_ANSWER)
+                TaskObjUserResult.objects.create_user_result(
+                    self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_SINGLE_ANSWER
+                )
             else:
                 correct_answer: AnswerSingle = question_answers.get(is_correct=True)
                 data["correct_answer"] = correct_answer.id
@@ -74,11 +72,22 @@ class SingleCorrectPost(generics.CreateAPIView):
 @extend_schema(
     summary="Проверить вопрос на соотношение",
     tags=["Вопросы и инфо-слайд"],
-    request=serializers.ListSerializer(child=ConnectAnswerSerializer()),
-    responses={201: ConnectQuestionPostResponseSerializer},
+    request=serializers.ConnectQuestionPostRequestSerializer,
+    responses={
+        201: serializers.CustomTextSucessSerializer,
+        400: serializers.ConnectQuestionPostResponseSerializer,
+        403: serializers.CustomTextErrorSerializer,
+    },
+    examples=[
+        api_examples.SUCCESS_RESPONSE,
+        api_examples.WRONG_ANSWERS_QUESTION_CONNECT_RESPONSE,
+        api_examples.QUERY_DOES_NOT_EXISTS,
+        api_examples.WRONG_TASKOBJECT,
+        api_examples.USER_ALREADY_DONE_TASK,
+    ],
 )
 class ConnectQuestionPost(generics.CreateAPIView):
-    serializer_class = ConnectQuestionPostResponseSerializer
+    serializer_class = serializers.ConnectQuestionPostResponseSerializer
     permission_classes = [CheckQuestionTypePermission]
     expected_question_model = QuestionConnect
 
@@ -110,7 +119,9 @@ class ConnectQuestionPost(generics.CreateAPIView):
             serializer = self.serializer_class(data=scored_answers)
 
             if serializer.is_valid() and not if_false_answers and not if_unchecked_answers:
-                create_user_result(self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_CONNECT)
+                TaskObjUserResult.objects.create_user_result(
+                    self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_CONNECT
+                )
                 return Response({"text": "success"}, status=status.HTTP_201_CREATED)
             elif not serializer.is_valid():
                 return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -127,15 +138,23 @@ class ConnectQuestionPost(generics.CreateAPIView):
     summary="Проверка вопроса на исключение",
     tags=["Вопросы и инфо-слайд"],
     description="В request - список ответов, которые пользователь исключает\n В response - количество отв",
-    request=serializers.ListSerializer(child=serializers.IntegerField()),
+    request=IntegerListSerializer,
     responses={
-        200: CustomTextSucessSerializer,
-        204: CustomTextSerializer,
-        400: serializers.ListSerializer(child=serializers.IntegerField()),
+        201: serializers.CustomTextSucessSerializer,
+        400: serializers.QuestionExcludePostResponseSerializer,
+        403: serializers.CustomTextErrorSerializer,
     },
+    examples=[
+        api_examples.SUCCESS_RESPONSE,
+        api_examples.WRONG_ANSWERS_QUESTION_EXCLUDE_RESPONSE,
+        api_examples.NEED_MORE_QUESTION_EXCLUDE_RESPONSE,
+        api_examples.QUERY_DOES_NOT_EXISTS,
+        api_examples.WRONG_TASKOBJECT,
+        api_examples.USER_ALREADY_DONE_TASK,
+    ],
 )
 class QuestionExcludePost(generics.CreateAPIView):
-    serializer_class = SimpleNumberListSerializer
+    serializer_class = serializers.SimpleNumberListSerializer
     permission_classes = [CheckQuestionTypePermission]
     expected_question_model = QuestionSingleAnswer
 
@@ -143,7 +162,7 @@ class QuestionExcludePost(generics.CreateAPIView):
         try:
             given_answer_ids: list[int] = request.data
 
-            # Все праивльные ответы (в рамках исключения).
+            # Все правильные ответы (в рамках исключения).
             set_correct_answer_ids: set[int] = set(
                 self.request_question.single_answers.filter(is_correct=False).values_list("id", flat=True)
             )
@@ -151,7 +170,9 @@ class QuestionExcludePost(generics.CreateAPIView):
 
             # Проверка - все правильные ответы были даны.
             if set_given_answer_ids == set_correct_answer_ids:
-                create_user_result(self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_EXCLUDE)
+                TaskObjUserResult.objects.create_user_result(
+                    self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_EXCLUDE
+                )
                 return Response({"text": "success"}, status=status.HTTP_201_CREATED)
             # Проверка - даны правильные ответы, но часть правильных отсутствует.
             elif set_given_answer_ids.issubset(set_correct_answer_ids):
@@ -172,15 +193,16 @@ class QuestionExcludePost(generics.CreateAPIView):
 @extend_schema(
     summary="Сохранение ответа пользователя на ответ, требующий ввод текста",
     tags=["Вопросы и инфо-слайд"],
-    request=WriteAnswerTextSerializer(),
+    request=serializers.WriteAnswerTextSerializer(),
     responses={
-        200: WriteAnswerSerializer,
-        201: WriteAnswerSerializer,
-        400: {"error": "You can't save an empty answer!"},
+        201: serializers.CustomTextSucessSerializer,
+        400: serializers.CustomTextErrorSerializer,
+        403: serializers.CustomTextErrorSerializer,
     },
+    examples=[api_examples.SUCCESS_RESPONSE, api_examples.USER_ALREADY_DONE_TASK, api_examples.WRONG_TASKOBJECT],
 )
 class QuestionWritePost(generics.CreateAPIView):
-    serializer_class = WriteAnswerSerializer
+    serializer_class = serializers.WriteAnswerTextSerializer
     permission_classes = [SimpleCheckQuestionTypePermission]
     expected_question_model = QuestionWrite
 
@@ -188,8 +210,9 @@ class QuestionWritePost(generics.CreateAPIView):
         try:
             user_answer: str = request.data["text"]
             if len(user_answer):
-                create_user_result(self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_WRITE)
-                # serializer = self.serializer_class(query)
+                TaskObjUserResult.objects.create_user_result(
+                    self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_WRITE
+                )
                 return Response({"text": "success"}, status=status.HTTP_201_CREATED)
 
             return Response({"error": "You can't save an empty answer!"}, status=status.HTTP_400_BAD_REQUEST)
@@ -200,6 +223,12 @@ class QuestionWritePost(generics.CreateAPIView):
 @extend_schema(
     summary="Пометить InfoSlide как сделанный",
     tags=["Вопросы и инфо-слайд"],
+    responses={
+        204: None,
+        400: serializers.CustomTextErrorSerializer,
+        403: serializers.CustomTextErrorSerializer,
+    },
+    examples=[api_examples.USER_ALREADY_DONE_TASK, api_examples.WRONG_TASKOBJECT],
 )
 class InfoSlidePost(generics.CreateAPIView):
     permission_classes = [SimpleCheckQuestionTypePermission]
@@ -207,7 +236,9 @@ class InfoSlidePost(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
-            create_user_result(self.task_object_id, self.profile_id, TypeQuestionPoints.INFO_SLIDE)
+            TaskObjUserResult.objects.create_user_result(
+                self.task_object_id, self.profile_id, TypeQuestionPoints.INFO_SLIDE
+            )
             return Response("successful", status=status.HTTP_204_NO_CONTENT)
         except UserAlreadyAnsweredException as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

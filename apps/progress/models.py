@@ -4,6 +4,7 @@ from django.db import models
 from django.utils import timezone
 
 from progress.manager import CustomUserManager
+from progress.managers import TaskObjUserResultManager, UserProfileManager
 
 from progress.validators import user_name_validator
 from subscription.models import SubscriptionType
@@ -47,13 +48,16 @@ class CustomUser(AbstractUser):
 
 class UserProfile(models.Model):
     user = models.OneToOneField(
-        CustomUser,
+        "progress.CustomUser",
         on_delete=models.CASCADE,
         related_name="profiles",
         verbose_name="Пользователь",
     )
     chosen_skills = models.ManyToManyField(
-        "courses.Skill", related_name="profile_skills", verbose_name="Выбранные навыки"
+        "courses.Skill",
+        related_name="profile_skills",
+        verbose_name="Выбранные навыки",
+        through="IntermediateUserSkills",
     )
     file = models.ForeignKey(
         "files.FileModel",
@@ -68,6 +72,8 @@ class UserProfile(models.Model):
     last_subscription_type = models.ForeignKey(SubscriptionType, on_delete=models.SET_NULL, null=True, blank=True)
     last_subscription_date = models.DateField(null=True, verbose_name="Последний раз когда юзер оформилял подписку")
 
+    objects = UserProfileManager()
+
     # TODO перенести некоторую логику оценок в профиль пользователя, чтобы уменьшить нагрузку на БД
 
     def __str__(self):
@@ -78,6 +84,21 @@ class UserProfile(models.Model):
         verbose_name_plural = "Профили пользователей"
 
 
+class IntermediateUserSkills(models.Model):
+    user_profile = models.ForeignKey("progress.UserProfile", on_delete=models.CASCADE)
+    skill = models.ForeignKey("courses.Skill", on_delete=models.CASCADE)
+    date_chosen = models.DateField(default=timezone.now)
+
+    class Meta:
+        unique_together = ("user_profile", "date_chosen")
+
+    def __str__(self):
+        return (
+            f"<SkillUserRelation> "
+            f"<User:{self.user_profile.user.first_name + self.user_profile.user.last_name}> <Skill:{self.skill.name}>"
+        )
+
+
 class TaskObjUserResult(models.Model):
     task_object = models.ForeignKey(
         "courses.TaskObject",
@@ -86,7 +107,7 @@ class TaskObjUserResult(models.Model):
         verbose_name="Объект задачи",
     )
     user_profile = models.ForeignKey(
-        UserProfile,
+        "progress.UserProfile",
         on_delete=models.CASCADE,
         related_name="task_obj_results",
         verbose_name="Профиль пользователя",
@@ -96,6 +117,8 @@ class TaskObjUserResult(models.Model):
     points_gained = models.PositiveIntegerField(verbose_name="Набранные баллы")
 
     datetime_created = models.DateTimeField(verbose_name="Дата создания", null=False, default=timezone.now)
+
+    objects = TaskObjUserResultManager()
 
     def __str__(self):
         return f"{self.task_object.task.name} {self.task_object.ordinal_number} {self.user_profile.user.first_name}"

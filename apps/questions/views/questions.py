@@ -7,13 +7,13 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
 
+from progress.models import TaskObjUserResult
 from questions.mapping import TypeQuestionPoints
 from questions.serializers import (
     SingleQuestionAnswerSerializer,
     ConnectQuestionSerializer,
     WriteQuestionSerializer,
 )
-from progress.services import check_if_answered_get
 
 from questions.models import (
     QuestionSingleAnswer,
@@ -51,9 +51,10 @@ class QuestionSingleAnswerGet(generics.ListAPIView):
         all_answers = question.single_answers.all()
         answers = [SingleAnswerData(id=answer.id, text=answer.text) for answer in all_answers]
 
-        user_result = check_if_answered_get(
+        user_result = TaskObjUserResult.objects.get_answered(
             self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_SINGLE_ANSWER
         )
+
         correct_answer = [
             SingleAnswerData(id=all_answers.get(is_correct=True).id, text=all_answers.get(is_correct=True).text)
         ]
@@ -106,7 +107,10 @@ class QuestionConnectGet(generics.ListAPIView):
             connect_left=target_left,
             connect_right=target_right,
         )
-        if check_if_answered_get(self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_CONNECT):
+
+        if TaskObjUserResult.objects.get_answered(
+            self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_CONNECT
+        ):
             question_data.is_answered = True
         else:
             random.shuffle(target_right)
@@ -144,7 +148,9 @@ class QuestionExcludeAnswerGet(generics.ListAPIView):
             files=[file.link for file in question.files.all()],
             answers=answers,
         )
-        if check_if_answered_get(self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_EXCLUDE):
+        if TaskObjUserResult.objects.get_answered(
+            self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_EXCLUDE
+        ):
             data_to_serialize.is_answered = True
             data_to_serialize.answers = answers_to_exclude
 
@@ -171,7 +177,9 @@ class InfoSlideDetails(generics.ListAPIView):
                 "text": info_slide.text,
                 "files": [file.link for file in info_slide.files.all()],
                 "is_done": bool(
-                    check_if_answered_get(self.task_object_id, self.profile_id, TypeQuestionPoints.INFO_SLIDE)
+                    TaskObjUserResult.objects.get_answered(
+                        self.task_object_id, self.profile_id, TypeQuestionPoints.INFO_SLIDE
+                    )
                 ),
             }
         )
@@ -201,7 +209,7 @@ class QuestionWriteAnswer(generics.ListAPIView):
             files=[file.link for file in question.files.all()],
         )
 
-        if user_answer := check_if_answered_get(
+        if user_answer := TaskObjUserResult.objects.get_answered(
             self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_WRITE
         ):
             write_question.answer = AnswerUserWriteData(id=user_answer.id, text=user_answer.text)

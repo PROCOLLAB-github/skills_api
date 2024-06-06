@@ -5,9 +5,8 @@ from courses.models import Skill, Task
 
 def get_skill_level(skill_id: int, user_profile_id: int) -> dict:
     skill = (  # получаем все скиллы у юзера. те, которые он выбрал, и те, которые он пытался решать
-        Skill.objects.prefetch_related("profile_skills")
-        .filter(
-            Q(profile_skills__id=user_profile_id)
+        Skill.objects.filter(
+            Q(intermediateuserskills__user_profile__id=user_profile_id)
             | Q(tasks__task_objects__user_results__user_profile__id=user_profile_id)
             | Q(id=skill_id)
         )
