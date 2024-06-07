@@ -26,19 +26,19 @@ jobs:
           echo "DEBUG=${{ secrets.DJANGO_DEBUG }}" >> .env && 
           echo "DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}" >> .env && 
           
-          echo "DATABASE_NAME=${{ secrets.DEV_DATABASE_NAME }}" >> .env &&
-          echo "DATABASE_PASSWORD=${{ secrets.DEV_DATABASE_PASSWORD }}" >> .env &&
-          echo "DATABASE_USER=${{ secrets.DEV_DATABASE_USER }}" >> .env &&
+          echo "DATABASE_NAME=${{ secrets.PROD_DATABASE_NAME }}" >> .env &&
+          echo "DATABASE_PASSWORD=${{ secrets.PROD_DATABASE_PASSWORD }}" >> .env &&
+          echo "DATABASE_USER=${{ secrets.PROD_DATABASE_USER }}" >> .env &&
           echo "DATABASE_HOST=${{ secrets.DEV_DATABASE_HOST }}" >> .env &&
           echo "DATABASE_PORT=${{ secrets.DEV_DATABASE_PORT }}" >> .env &&
         
           echo "SELECTEL_ACCOUNT_ID=${{ secrets.DEV_SELECTEL_ACCOUNT_ID }}" >> .env &&
-          echo "SELECTEL_CONTAINER_NAME=${{ secrets.DEV_SELECTEL_CONTAINER_NAME }}" >> .env &&
+          echo "SELECTEL_CONTAINER_NAME=${{ secrets.SELECTEL_CONTAINER_NAME }}" >> .env &&
           echo "SELECTEL_SERVICE_USERNAME=${{ secrets.DEV_SELECTEL_SERVICE_USERNAME }}" >> .env &&
-          echo "SELECTEL_SERVICE_PASSWORD=${{ secrets.DEV_SELECTEL_SERVICE_PASSWORD }}" >> .env &&
-          echo "SELECTEL_PROJECT_ID=${{ secrets.DEV_SELECTEL_PROJECT_ID }}" >> .env &&
-          echo "SELECTEL_PROJECT_NAME=${{ secrets.DEV_SELECTEL_PROJECT_NAME }}" >> .env &&
-          echo "SELECTEL_READ_FILES_DOMAIN=${{ secrets.DEV_SELECTEL_READ_FILES_DOMAIN }}" >> .env &&
+          echo "SELECTEL_SERVICE_PASSWORD=${{ secrets.SELECTEL_SERVICE_PASSWORD }}" >> .env &&
+          echo "SELECTEL_PROJECT_ID=${{ secrets.SELECTEL_PROJECT_ID }}" >> .env &&
+          echo "SELECTEL_PROJECT_NAME=${{ secrets.SELECTEL_PROJECT_NAME }}" >> .env &&
+          echo "SELECTEL_READ_FILES_DOMAIN=${{ secrets.SELECTEL_READ_FILES_DOMAIN }}" >> .env &&
 
           echo "YOOKASSA_API_KEY=${{ secrets.DEV_YOOKASSA_API_KEY }}" >> .env &&
           echo "YOOKASSA_SHOP_ID=${{ secrets.DEV_YOOKASSA_SHOP_ID }}" >> .env &&
