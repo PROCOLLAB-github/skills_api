@@ -26,7 +26,7 @@ jobs:
           echo "DEBUG=${{ secrets.DJANGO_DEBUG }}" >> .env && 
           echo "DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}" >> .env && 
           
-          echo "DATABASE_NAME=${{ secrets.DEV_DATABASE_NAME }}" >> .env &&
+          echo "DATABASE_NAME=${{ secrets.PROD_DATABASE_NAME }}" >> .env &&
           echo "DATABASE_PASSWORD=${{ secrets.DEV_DATABASE_PASSWORD }}" >> .env &&
           echo "DATABASE_USER=${{ secrets.DEV_DATABASE_USER }}" >> .env &&
           echo "DATABASE_HOST=${{ secrets.DEV_DATABASE_HOST }}" >> .env &&
