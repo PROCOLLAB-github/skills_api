@@ -17,7 +17,28 @@ class Skill(models.Model):
     description = models.TextField(null=True)
     who_created = models.CharField(max_length=50, verbose_name="Кто создал")
     file = models.ForeignKey(
-        FileModel, on_delete=models.SET_NULL, related_name="skill", verbose_name="Картинка", null=True, blank=True
+        FileModel,
+        on_delete=models.SET_NULL,
+        related_name="skill",
+        verbose_name="Основоное лого",
+        null=True,
+        blank=True,
+    )
+    skill_preview = models.ForeignKey(
+        FileModel,
+        on_delete=models.SET_NULL,
+        related_name="skill_preview",
+        verbose_name="Лого навыка в уровне",
+        null=True,
+        blank=True,
+    )
+    skill_point_logo = models.ForeignKey(
+        FileModel,
+        on_delete=models.SET_NULL,
+        related_name="skill_point_logo",
+        verbose_name="Лого навыка в строке прогресса",
+        null=True,
+        blank=True,
     )
     quantity_of_levels = models.IntegerField(default=0)
     status = models.CharField(choices=STATUS_CHOICES, max_length=15, default="draft", verbose_name="Статус")

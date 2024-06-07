@@ -45,4 +45,19 @@ class SkillsBasicSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "who_created", "file_link", "quantity_of_levels")
 
 
+class SkillSerializer(serializers.Serializer):
+    skill_name = serializers.CharField()
+    file = serializers.URLField()
+    skill_preview = serializers.URLField()
+    skill_point_logo = serializers.URLField()
+    description = serializers.CharField()
+    level = serializers.IntegerField()
+    progress = serializers.IntegerField()
+
+
+class TaskOnSkillResponseSerializer(SkillSerializer):
+    count = serializers.IntegerField()
+    step_data = StepSerializer(many=True)
+
+
 IntegerListSerializer = serializers.ListSerializer(child=serializers.IntegerField(), allow_empty=False)

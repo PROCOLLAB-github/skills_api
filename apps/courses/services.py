@@ -40,7 +40,7 @@ def get_skills_details(skill_id: int, user_profile_id: int) -> dict:
     # user_profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
 
     skill = get_object_or_404(  # получаем все скиллы у юзера. те, которые он выбрал, и те, которые он пытался решать
-        Skill.objects.select_related("file")
+        Skill.objects.select_related("file", "skill_preview", "skill_point_logo")
         .annotate(total_tasks=Count("tasks"))
         .distinct()
         .filter(id=skill_id, status="published")
@@ -56,7 +56,15 @@ def get_skills_details(skill_id: int, user_profile_id: int) -> dict:
         .distinct()
     )
 
-    skill_data = {skill.id: {"skill_name": skill.name, "file": skill.file.link, "description": skill.description}}
+    skill_data = {
+        skill.id: {
+            "skill_name": skill.name,
+            "file": skill.file.link if skill.file else None,
+            "skill_preview": skill.skill_preview.link if skill.skill_preview else None,
+            "skill_point_logo": skill.skill_point_logo.link if skill.skill_point_logo else None,
+            "description": skill.description
+        }
+    }
 
     # скилла, для каждого уровня, для каждого уровня, если все задачи решены, то накидываем уровень для скилла
 
