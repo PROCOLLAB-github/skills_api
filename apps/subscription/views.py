@@ -42,7 +42,7 @@ class CreatePayment(CreateAPIView):
     permission_classes = [AllowAny]
 
     @staticmethod
-    def check_subscription(user_sub_date) -> None:
+    def check_subscription(user_sub_date):
         try:
             thirty_days_ago = datetime.now().date() - timedelta(days=30)
             if user_sub_date and user_sub_date >= thirty_days_ago:
