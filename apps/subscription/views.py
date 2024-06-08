@@ -45,7 +45,7 @@ class CreatePayment(CreateAPIView):
     def check_subscription(user_sub_date):
         try:
             thirty_days_ago = datetime.now().date() - timedelta(days=30)
-            if user_sub_date >= thirty_days_ago:
+            if user_sub_date and user_sub_date >= thirty_days_ago:
                 raise PermissionDenied("Подписка уже оформлена.")
 
         except PermissionDenied as e:
