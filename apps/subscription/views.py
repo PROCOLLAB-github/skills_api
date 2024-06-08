@@ -43,9 +43,13 @@ class CreatePayment(CreateAPIView):
 
     @staticmethod
     def check_subscription(user_sub_date):
-        thirty_days_ago = datetime.now().date() - timedelta(days=30)
-        if user_sub_date >= thirty_days_ago:
-            raise PermissionDenied("Подписка уже оформлена.")
+        try:
+            thirty_days_ago = datetime.now().date() - timedelta(days=30)
+            if user_sub_date >= thirty_days_ago:
+                raise PermissionDenied("Подписка уже оформлена.")
+
+        except PermissionDenied as e:
+            return Response({"error": str(e)}, status=403)
 
     def get_request_data(self, user_profile_id: int) -> CreatePaymentViewRequestData:
         self.subscription_id = self.request.data.get("subscription_id")
@@ -60,19 +64,19 @@ class CreatePayment(CreateAPIView):
     def create(self, request, *args, **kwargs) -> Response:
         try:
             self.check_subscription(self.user_profile.last_subscription_date)
-        except PermissionDenied as e:
-            return Response({"error": str(e)}, status=403)
 
-        request_data = self.get_request_data(self.profile_id)
-        subscription = get_object_or_404(SubscriptionType, id=self.subscription_id)
+            request_data = self.get_request_data(self.profile_id)
+            subscription = get_object_or_404(SubscriptionType, id=self.subscription_id)
 
-        payload = CreatePaymentData(
-            amount=AmountData(value=subscription.price),
-            confirmation=request_data.confirmation,
-            metadata={"user_profile_id": self.profile_id, "subscription_id": subscription.id},
-        )
-        payment: CreatePaymentResponseData = create_payment(payload)
-        return Response(asdict(payment), status=200)
+            payload = CreatePaymentData(
+                amount=AmountData(value=subscription.price),
+                confirmation=request_data.confirmation,
+                metadata={"user_profile_id": self.profile_id, "subscription_id": subscription.id},
+            )
+            payment: CreatePaymentResponseData = create_payment(payload)
+            return Response(asdict(payment), status=200)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
 
 
 @extend_schema(
