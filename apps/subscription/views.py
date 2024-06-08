@@ -44,6 +44,7 @@ class CreatePayment(CreateAPIView):
     @staticmethod
     def check_subscription(user_sub_date):
         try:
+            raise Exception("Fix when get prod creds")
             thirty_days_ago = datetime.now().date() - timedelta(days=30)
             if user_sub_date and user_sub_date >= thirty_days_ago:
                 raise PermissionDenied("Подписка уже оформлена.")
