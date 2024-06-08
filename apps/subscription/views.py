@@ -38,8 +38,9 @@ from subscription.utils.create_payment import create_payment
     parameters=[],
     responses={201: CreatePaymentResponseSerializer},
 )
-# @exclude_sub_check_perm
 class CreatePayment(CreateAPIView):
+    permission_classes = [AllowAny]
+
     @staticmethod
     def check_subscription(user_sub_date):
         thirty_days_ago = datetime.now().date() - timedelta(days=30)
