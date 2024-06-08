@@ -8,8 +8,14 @@ from rest_framework import permissions
 
 from .mapping import TYPE_TASK_OBJECT, check_if_task_correct
 from .models import Task, Skill, TaskObject
-from .serializers import TaskSerializer, SkillsBasicSerializer, TasksOfSkillSerializer
 from .services import get_stats, get_skills_details
+from .serializers import (
+    TaskSerializer,
+    SkillSerializer,
+    SkillsBasicSerializer,
+    TasksOfSkillSerializer,
+    TaskOnSkillResponseSerializer,
+)
 
 
 # from procollab_skills.decorators import (
@@ -22,10 +28,14 @@ from progress.serializers import ResponseSerializer
 from .serializers import IntegerListSerializer
 
 
-class TaskList(generics.ListAPIView):
+class TaskList(generics.RetrieveAPIView):
     serializer_class = TaskSerializer
 
-    @extend_schema(summary="Выводит информацию о задаче", tags=["Навыки и задачи"], responses={200: TaskSerializer})
+    @extend_schema(
+        summary="Выводит информацию о задаче",
+        tags=["Навыки и задачи"],
+        responses={200: TaskOnSkillResponseSerializer},
+    )
     def get(self, request, *args, **kwargs):
         task_id = self.kwargs.get("task_id")
 
@@ -83,8 +93,9 @@ class SkillsList(generics.ListAPIView):
     summary="Выводит подробную информацию о навыке",
     description="""Выводит только тот уровень, который юзер может пройти. Остальные для прохождения закрыты""",
     tags=["Навыки и задачи"],
+    responses={200: SkillSerializer},
 )
-class SkillDetails(generics.ListAPIView):
+class SkillDetails(generics.RetrieveAPIView):
     serializer_class = ResponseSerializer
 
     def get(self, request, *args, **kwargs):
