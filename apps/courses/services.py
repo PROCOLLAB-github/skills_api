@@ -1,21 +1,21 @@
 from django.db.models import Prefetch, Count, F, Q
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, get_list_or_404
 
 from courses.models import Task, Skill
 from progress.models import TaskObjUserResult
 
 
 def get_stats(skill_id: int, profile_id: int) -> dict:
-    tasks_of_skill = (
+    tasks_of_skill = get_list_or_404(
         Task.objects.prefetch_related(
             Prefetch(
                 "task_objects__user_results",
                 queryset=TaskObjUserResult.objects.filter(user_profile_id=profile_id),
                 to_attr="filtered_user_results",  # этот атрибут будет недоступен напрямую через объект Task
             )
-        )
-        .prefetch_related("task_objects")
-        .filter(skill_id=skill_id)
+        ).prefetch_related("task_objects"),
+        skill_id=skill_id,
+        skill__status="published",
     )
 
     data = []
@@ -31,7 +31,7 @@ def get_stats(skill_id: int, profile_id: int) -> dict:
             }
         )
 
-    statuses = (sum(1 for obj in data if obj["status"]) / tasks_of_skill.count()) * 100
+    statuses = (sum(1 for obj in data if obj["status"]) / len(tasks_of_skill)) * 100
     new_data = {"progress": int(statuses), "tasks": data}
     return new_data
 
@@ -40,10 +40,10 @@ def get_skills_details(skill_id: int, user_profile_id: int) -> dict:
     # user_profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
 
     skill = get_object_or_404(  # получаем все скиллы у юзера. те, которые он выбрал, и те, которые он пытался решать
-        Skill.objects.select_related("file", "skill_preview", "skill_point_logo")
+        Skill.published.select_related("file", "skill_preview", "skill_point_logo")
         .annotate(total_tasks=Count("tasks"))
         .distinct()
-        .filter(id=skill_id, status="published")
+        .filter(id=skill_id)
     )
 
     tasks = (  # получаем все задачи у скиллов с количеством вопросов и ответов
