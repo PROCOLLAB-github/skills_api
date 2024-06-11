@@ -1,8 +1,9 @@
 from rest_framework import serializers
+from rest_framework_dataclasses.serializers import DataclassSerializer
 
 from courses.mapping import SWAGGER_API_HINTS
 from courses.models import Skill, Task
-from files.models import FileModel
+from courses.typing import TaskResultData
 
 
 class StepSerializer(serializers.Serializer):
@@ -17,24 +18,10 @@ class TaskSerializer(serializers.Serializer):
     step_data = StepSerializer(many=True)
 
 
-class FileSerializer(serializers.ListSerializer):
-    child = serializers.FileField(required=False)
-
-
-class StrSerializer(serializers.Serializer):
-    string = serializers.CharField(required=False)
-
-
 class TasksOfSkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         exclude = ["skill"]
-
-
-class FileModelSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FileModel
-        fields = ("link",)
 
 
 class SkillsBasicSerializer(serializers.ModelSerializer):
@@ -58,6 +45,12 @@ class SkillSerializer(serializers.Serializer):
 class TaskOnSkillResponseSerializer(SkillSerializer):
     count = serializers.IntegerField()
     step_data = StepSerializer(many=True)
+
+
+class TaskResult(DataclassSerializer):
+
+    class Meta:
+        dataclass = TaskResultData
 
 
 IntegerListSerializer = serializers.ListSerializer(child=serializers.IntegerField(), allow_empty=False)

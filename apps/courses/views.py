@@ -1,4 +1,6 @@
-from django.db.models import Case, When, BooleanField
+from decimal import Decimal, ROUND_HALF_UP
+
+from django.db.models import Case, When, BooleanField, Count, F, Sum, Q
 
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
@@ -6,15 +8,17 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework import permissions
 
-from .mapping import TYPE_TASK_OBJECT, check_if_task_correct
-from .models import Task, Skill, TaskObject
+from .mapping import TYPE_TASK_OBJECT
+from .models import Task, Skill
 from .services import get_stats, get_skills_details
+from .typing import TaskResultData
 from .serializers import (
     TaskSerializer,
     SkillSerializer,
     SkillsBasicSerializer,
     TasksOfSkillSerializer,
     TaskOnSkillResponseSerializer,
+    TaskResult,
 )
 
 
@@ -22,7 +26,6 @@ from .serializers import (
 #  exclude_sub_check_perm
 # )
 
-from progress.models import TaskObjUserResult
 from progress.pagination import DefaultPagination
 from progress.serializers import ResponseSerializer
 from .serializers import IntegerListSerializer
@@ -118,51 +121,57 @@ class TasksOfSkill(generics.ListAPIView):
 @extend_schema(
     summary="""Инфа о новом уровне""",
     request=IntegerListSerializer,
-    # responses={200: TasksOfSkillSerializer(many=True)},
+    responses={200: TaskResult},
     tags=["Навыки и задачи"],
 )
-class TaskStatsGet(generics.ListAPIView):
-    serializer_class = ...
+class TaskStatsGet(generics.RetrieveAPIView):
+    serializer_class = TaskResult
 
-    def list(self, request, *args, **kwargs):
-        task_id = self.kwargs.get("task_id")
+    def get(self, request, *args, **kwargs) -> Response:
+        task_id: int = self.kwargs.get("task_id")
 
-        task = get_object_or_404(Task.objects.values("skill_id", "id", "ordinal_number"), id=task_id)
-
-        next_task = (
-            Task.objects.filter(skill_id=task["skill_id"], ordinal_number=task["ordinal_number"] + 1)
-            .values("id")
-            .first()
+        task: Task = get_object_or_404(
+            Task.objects.annotate(  # Задание по запросу.
+                total_questions=Count("task_objects"),  # Всего вопросов в задании.
+                total_answers=Count(  # Всего ответов пользователя в задании.
+                    "task_objects__user_results",
+                    filter=Q(task_objects__user_results__user_profile_id=self.profile_id)
+                ),
+                points_gained=Sum(  # Кол-во полученных поинтов юзером в рамках задания.
+                    "task_objects__user_results__points_gained",
+                    filter=Q(task_objects__user_results__user_profile_id=self.profile_id)
+                )
+            ),
+            id=task_id,
         )
 
-        task["next_task_id"] = next_task["id"] if next_task else None
-
-        skill_data = get_skills_details(
-            skill_id=task["skill_id"],
-            user_profile_id=self.profile_id,
-        )
-        needed_skill_data = {
-            "level": skill_data["level"],
-            "progress": skill_data.get("progress", 0),
-            "skill_name": skill_data.get("skill_name"),
-        }
-        task_objs = TaskObject.objects.filter(task_id=task["id"]).values_list("id", flat=True)
-        task_results = TaskObjUserResult.objects.select_related("task_object", "task_object__content_type").filter(
-            user_profile_id=self.profile_id,
-            task_object_id__in=task_objs,
+        skill: Skill = get_object_or_404(
+            Skill.published
+            .annotate(
+                num_levels=F("quantity_of_levels"),  # Общее кол-во заданий навыка.
+                total_num_questions=Count("tasks__task_objects"),  # Общее кол-во вопросов навыка.
+                total_user_answers=Count(  # Общее кол-во ответов юзера в рамках навыка.
+                    "tasks__task_objects__user_results",
+                    filter=Q(tasks__task_objects__user_results__user_profile_id=self.profile_id)
+                ),
+            ),
+            id=task.skill.id,
         )
 
-        done_correct_tasks = 0
-        total_points = 0
-        for result in task_results:
-            if points := check_if_task_correct(result):
-                total_points += points
-                done_correct_tasks += 1
-        data = {
-            "points_gained": total_points,
-            "quantity_done_correct": done_correct_tasks,
-            "quantity_all": task_objs.count(),
-            **needed_skill_data,
-            "next_task_id": task["next_task_id"],
-        }
-        return Response(data, status=200)
+        progress: int = 0
+        if skill.total_user_answers and skill.total_num_questions:
+            # Округление до %, round() работает некорректно, поэтому взят Decimal
+            decimal_progress: Decimal = Decimal(str((skill.total_user_answers / skill.total_num_questions) * 100))
+            progress: int = int(decimal_progress.quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+
+        data = TaskResultData(
+            points_gained=task.points_gained if task.points_gained else 0,
+            quantity_done_correct=task.total_answers,
+            quantity_all=task.total_questions,
+            level=task.level,
+            progress=progress,
+            skill_name=skill.name,
+            next_task_id=task.level + 1 if task.level + 1 < skill.num_levels else None
+        )
+        serializer = self.get_serializer(data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
