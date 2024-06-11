@@ -28,7 +28,7 @@ def get_user_data(profile_id: int) -> dict:
     years_passed = None
     if user.age:
         current_date = datetime.datetime.now()
-        time_difference = current_date - user.age.replace(tzinfo=None)
+        time_difference = current_date.date() - user.age
         years_passed = time_difference.days // 365
 
     return {
@@ -37,7 +37,7 @@ def get_user_data(profile_id: int) -> dict:
         "file_link": user_profile.file.link if user_profile.file else None,
         "specialization": user.specialization,
         "age": years_passed,
-        "geo_position": user.geo_position,
+        "geo_position": user.city,
     }
 
 
@@ -140,10 +140,9 @@ def last_two_months_stats(user_profile_id: int) -> list[SkillMonthProgressType]:
 
 def get_user_tasks(user_profile_id: int) -> tuple[QuerySet[Skill], QuerySet]:
     """Получение всех навыков и их id для конкретного пользователя."""
-    user_skills: QuerySet[Skill] = Skill.objects.filter(
+    user_skills: QuerySet[Skill] = Skill.published.filter(
         Q(intermediateuserskills__user_profile__id=user_profile_id)
         | Q(tasks__task_objects__user_results__user_profile__id=user_profile_id),
-        status="published",
     ).distinct()
     user_skills_ids: QuerySet = user_skills.values_list("id", flat=True)
     return user_skills, user_skills_ids

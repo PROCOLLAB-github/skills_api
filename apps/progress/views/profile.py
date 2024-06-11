@@ -8,7 +8,7 @@ from rest_framework import permissions
 
 from courses.models import Skill
 
-# from procollab_skills.decorators import exclude_sub_check_perm
+
 from procollab_skills.permissions import IfSubscriptionOutdatedPermission
 
 from progress.models import CustomUser
@@ -25,7 +25,6 @@ from progress.services import get_user_data, get_current_level, last_two_months_
 # TODO разобраться с выводом очков
 
 
-# @exclude_sub_check_perm
 class UserProfileList(generics.ListAPIView):
     serializer_class = ResponseSerializer
     permission_classes = [AllowAny]
@@ -60,7 +59,7 @@ class UserChooseSkills(generics.UpdateAPIView):
 
     def update(self, request, *args, **kwargs):
         try:
-            skills = Skill.objects.filter(id__in=request.data, status="published")
+            skills = Skill.published.filter(id__in=request.data)
 
             self.user_profile.chosen_skills.add(*skills)
             return Response("success", status=status.HTTP_204_NO_CONTENT)

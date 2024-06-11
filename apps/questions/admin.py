@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.contenttypes.models import ContentType
 
 from questions.models import (
     QuestionSingleAnswer,
@@ -8,6 +9,37 @@ from questions.models import (
     AnswerConnect,
     QuestionWrite,
 )
+
+from courses.models import TaskObject, Skill, Task
+
+
+class AbstractQuestionShowcase(admin.ModelAdmin):
+    """Абстарктная модель для вопросов."""
+
+    list_display = ("id", "short_description", "related_task_object", "related_skill")
+
+    def short_description(self, obj) -> str:
+        """Сокращенное описание вопроса."""
+        return obj.description[:50] + "..." if len(obj.description) > 50 else obj.description
+    short_description.short_description = "Описание"
+
+    def related_task_object(self, obj) -> int | None:
+        """ID части задачи, если вопрос уже привязан."""
+        content_type: ContentType = ContentType.objects.get_for_model(obj)
+        try:
+            task_object: TaskObject = TaskObject.objects.get(content_type=content_type, object_id=obj.id)
+            return task_object.id
+        except TaskObject.DoesNotExist:
+            return None
+    related_task_object.short_description = "ID части задачи"
+
+    def related_skill(self, obj) -> Skill | None:
+        """Навык к которому относится вопрос, если он привязан."""
+        task_object_id: int = self.related_task_object(obj)
+        if task_object_id:
+            task: Task = TaskObject.objects.get(id=task_object_id).task
+            return task.skill if task else None
+    related_skill.short_description = "Навык"
 
 
 class ConnectAnswersInline(admin.StackedInline):  # Или TabularInline для другого стиля отображения
@@ -22,7 +54,7 @@ class ConnectAnswersInline(admin.StackedInline):  # Или TabularInline для 
 
 
 @admin.register(QuestionConnect)
-class QuestionConnectAdmin(admin.ModelAdmin):
+class QuestionConnectAdmin(AbstractQuestionShowcase):
     inlines = [ConnectAnswersInline]
 
 
@@ -32,15 +64,19 @@ class SingleAnswersInline(admin.StackedInline):
 
 
 @admin.register(QuestionSingleAnswer)
-class QuestionSingleAnswerAdmin(admin.ModelAdmin):
+class QuestionSingleAnswerAdmin(AbstractQuestionShowcase):
     inlines = [SingleAnswersInline]
 
 
 @admin.register(InfoSlide)
-class InfoSlideAdmin(admin.ModelAdmin):
-    pass
+class InfoSlideAdmin(AbstractQuestionShowcase):
+
+    def short_description(self, obj) -> str:
+        """Сокращенное описание вопроса."""
+        return obj.text[:50] + "..." if len(obj.text) > 50 else obj.text
+    short_description.short_description = "Описание"
 
 
 @admin.register(QuestionWrite)
-class QuestionWriteAdmin(admin.ModelAdmin):
+class QuestionWriteAdmin(AbstractQuestionShowcase):
     pass

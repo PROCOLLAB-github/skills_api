@@ -23,9 +23,8 @@ class CustomUser(AbstractUser):
 
     city = models.CharField(max_length=255, null=True, blank=True)
     organization = models.CharField(max_length=255, null=True, blank=True)
-    age = models.DateTimeField(null=True, blank=False)
+    age = models.DateField(null=True, blank=False)
     specialization = models.CharField(max_length=40, verbose_name="Специальность пользователя", null=True)
-    geo_position = models.CharField(max_length=50, null=True)
 
     datetime_updated = models.DateTimeField(auto_now=True)
     datetime_created = models.DateTimeField(auto_now_add=True)
