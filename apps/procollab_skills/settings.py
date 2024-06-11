@@ -109,6 +109,7 @@ REST_FRAMEWORK = {
         "procollab_skills.auth.CustomAuth",
         "rest_framework.authentication.BasicAuthentication",
     ],
+    "DEFAULT_PERMISSION_CLASSES": ["procollab_skills.permissions.IfSubscriptionOutdatedPermission"],
 }
 
 CACHES = {

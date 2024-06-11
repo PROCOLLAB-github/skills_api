@@ -28,7 +28,7 @@ def get_user_data(profile_id: int) -> dict:
     years_passed = None
     if user.age:
         current_date = datetime.datetime.now()
-        time_difference = current_date - user.age.replace(tzinfo=None)
+        time_difference = current_date.date() - user.age
         years_passed = time_difference.days // 365
 
     return {
@@ -37,7 +37,7 @@ def get_user_data(profile_id: int) -> dict:
         "file_link": user_profile.file.link if user_profile.file else None,
         "specialization": user.specialization,
         "age": years_passed,
-        "geo_position": user.geo_position,
+        "geo_position": user.city,
     }
 
 
