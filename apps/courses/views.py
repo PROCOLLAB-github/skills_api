@@ -1,6 +1,6 @@
 from decimal import Decimal, ROUND_HALF_UP
 
-from django.db.models import Case, When, BooleanField, Count, F, Sum, Q
+from django.db.models import Count, F, Sum, Q, Exists, OuterRef
 
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
@@ -8,8 +8,9 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework import permissions
 
+from progress.models import TaskObjUserResult
 from .mapping import TYPE_TASK_OBJECT
-from .models import Task, Skill
+from .models import Task, Skill, TaskObject
 from .services import get_stats, get_skills_details
 from .typing import TaskResultData
 from .serializers import (
@@ -44,12 +45,11 @@ class TaskList(generics.RetrieveAPIView):
 
         task = Task.objects.prefetch_related("task_objects", "task_objects__content_object").get(id=int(task_id))
 
-        task_objects = (
-            task.task_objects.annotate(
-                has_user_results=Case(
-                    When(user_results__user_profile__id=self.profile_id, then=True),
-                    default=False,
-                    output_field=BooleanField(),
+        task_objects = task_objects = (
+            TaskObject.objects.filter(task=task)
+            .annotate(
+                has_user_results=Exists(
+                    TaskObjUserResult.objects.filter(task_object=OuterRef("pk"), user_profile_id=self.profile_id)
                 )
             )
             .distinct()
