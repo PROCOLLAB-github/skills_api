@@ -131,14 +131,17 @@ class TaskStatsGet(generics.RetrieveAPIView):
         task_id: int = self.kwargs.get("task_id")
 
         task: Task = get_object_or_404(
-            Task.objects.annotate(  # Задание по запросу.
-                total_questions=Count("task_objects"),  # Всего вопросов в задании.
+            Task.objects.annotate(
+                total_questions=Count("task_objects", distinct=True),  # Всего вопросов в задании.
                 total_answers=Count(  # Всего ответов пользователя в задании.
-                    "task_objects__user_results", filter=Q(task_objects__user_results__user_profile_id=self.profile_id)
+                    "task_objects__user_results",
+                    filter=Q(task_objects__user_results__user_profile_id=self.profile_id),
+                    distinct=True,
                 ),
                 points_gained=Sum(  # Кол-во полученных поинтов юзером в рамках задания.
                     "task_objects__user_results__points_gained",
                     filter=Q(task_objects__user_results__user_profile_id=self.profile_id),
+                    distinct=True,
                 ),
             ),
             id=task_id,
