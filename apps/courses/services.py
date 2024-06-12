@@ -11,7 +11,7 @@ def get_stats(skill_id: int, profile_id: int) -> dict:
             Prefetch(
                 "task_objects__user_results",
                 queryset=TaskObjUserResult.objects.filter(user_profile_id=profile_id),
-                to_attr="filtered_user_results",  # этот атрибут будет недоступен напрямую через объект Task
+                to_attr="filtered_user_results",
             )
         ).prefetch_related("task_objects"),
         skill_id=skill_id,
