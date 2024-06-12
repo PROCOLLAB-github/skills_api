@@ -45,7 +45,7 @@ class TaskList(generics.RetrieveAPIView):
 
         task = Task.objects.prefetch_related("task_objects", "task_objects__content_object").get(id=int(task_id))
 
-        task_objects = task_objects = (
+        task_objects = (
             TaskObject.objects.filter(task=task)
             .annotate(
                 has_user_results=Exists(
