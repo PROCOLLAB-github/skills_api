@@ -41,6 +41,7 @@ class UserScoreRatingFilter(filters.FilterSet):
             score_count=Sum(
                 "chosen_skills__tasks__task_objects__user_results__points_gained",
                 filter=filter_skills & filter_time_frame,
+                distinct=True,
             )
         ).distinct()
 
