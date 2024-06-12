@@ -73,7 +73,7 @@ class TaskList(generics.RetrieveAPIView):
 
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
-            skill_data = get_skills_details(task.skill.id, user_profile_id=1)
+            skill_data = get_stats(task.skill.id, self.profile_id)
             return Response(skill_data | data, status=status.HTTP_200_OK)
         else:
             return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -134,25 +134,23 @@ class TaskStatsGet(generics.RetrieveAPIView):
             Task.objects.annotate(  # Задание по запросу.
                 total_questions=Count("task_objects"),  # Всего вопросов в задании.
                 total_answers=Count(  # Всего ответов пользователя в задании.
-                    "task_objects__user_results",
-                    filter=Q(task_objects__user_results__user_profile_id=self.profile_id)
+                    "task_objects__user_results", filter=Q(task_objects__user_results__user_profile_id=self.profile_id)
                 ),
                 points_gained=Sum(  # Кол-во полученных поинтов юзером в рамках задания.
                     "task_objects__user_results__points_gained",
-                    filter=Q(task_objects__user_results__user_profile_id=self.profile_id)
-                )
+                    filter=Q(task_objects__user_results__user_profile_id=self.profile_id),
+                ),
             ),
             id=task_id,
         )
 
         skill: Skill = get_object_or_404(
-            Skill.published
-            .annotate(
+            Skill.published.annotate(
                 num_levels=F("quantity_of_levels"),  # Общее кол-во заданий навыка.
                 total_num_questions=Count("tasks__task_objects"),  # Общее кол-во вопросов навыка.
                 total_user_answers=Count(  # Общее кол-во ответов юзера в рамках навыка.
                     "tasks__task_objects__user_results",
-                    filter=Q(tasks__task_objects__user_results__user_profile_id=self.profile_id)
+                    filter=Q(tasks__task_objects__user_results__user_profile_id=self.profile_id),
                 ),
             ),
             id=task.skill.id,
@@ -162,7 +160,7 @@ class TaskStatsGet(generics.RetrieveAPIView):
         if skill.total_user_answers and skill.total_num_questions:
             # Округление до %, round() работает некорректно, поэтому взят Decimal
             decimal_progress: Decimal = Decimal(str((skill.total_user_answers / skill.total_num_questions) * 100))
-            progress: int = int(decimal_progress.quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+            progress: int = int(decimal_progress.quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
         data = TaskResultData(
             points_gained=task.points_gained if task.points_gained else 0,
@@ -171,7 +169,7 @@ class TaskStatsGet(generics.RetrieveAPIView):
             level=task.level,
             progress=progress,
             skill_name=skill.name,
-            next_task_id=task.level + 1 if task.level + 1 < skill.num_levels else None
+            next_task_id=task.level + 1 if task.level + 1 < skill.num_levels else None,
         )
         serializer = self.get_serializer(data)
         return Response(serializer.data, status=status.HTTP_200_OK)

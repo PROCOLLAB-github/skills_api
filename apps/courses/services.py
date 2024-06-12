@@ -62,7 +62,7 @@ def get_skills_details(skill_id: int, user_profile_id: int) -> dict:
             "file": skill.file.link if skill.file else None,
             "skill_preview": skill.skill_preview.link if skill.skill_preview else None,
             "skill_point_logo": skill.skill_point_logo.link if skill.skill_point_logo else None,
-            "description": skill.description
+            "description": skill.description,
         }
     }
 
