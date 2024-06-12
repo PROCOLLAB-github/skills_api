@@ -55,7 +55,6 @@ class UserSkillsRating(generics.ListAPIView):
     )
     def get(self, request, *args, **kwargs):
         # TODO добавить отображение уровней у навыков
-
         user_skills = (
             Skill.published.filter(intermediateuserskills__user_profile__id=self.profile_id)
             .annotate(
@@ -64,18 +63,16 @@ class UserSkillsRating(generics.ListAPIView):
                     filter=Q(tasks__task_objects__user_results__user_profile_id=self.profile_id),
                 )
             )
-            .prefetch_related("tasks__task_objects__user_results")
-            .order_by("-score_count")
             .distinct()
+            .order_by("-score_count")
         )
 
-        print(user_skills.query)
         paginated_data = self.pagination_class().paginate_queryset(user_skills, self.request)
 
         data = [
             {
                 "skill_name": skill.name,
-                "score_count": round(skill.score_count / 2),
+                "score_count": skill.score_count,
                 "file": skill.file.link,
             }
             for skill in paginated_data
