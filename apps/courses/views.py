@@ -102,7 +102,11 @@ class SkillDetails(generics.RetrieveAPIView):
     serializer_class = ResponseSerializer
 
     def get(self, request, *args, **kwargs):
-        return Response(get_skills_details(self.kwargs.get("skill_id"), self.profile_id), status=200)
+        # TODO FIX this
+        # Временно статично "1 уровень" для навыков
+        skill_detail = get_skills_details(self.kwargs.get("skill_id"), self.profile_id)
+        skill_detail["level"] = 1
+        return Response(skill_detail, status=200)
 
 
 @extend_schema(
