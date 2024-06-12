@@ -29,7 +29,7 @@ class SkillsBasicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Skill
-        fields = ("id", "name", "who_created", "file_link", "quantity_of_levels")
+        fields = ("id", "name", "who_created", "file_link", "quantity_of_levels", "description")
 
 
 class SkillSerializer(serializers.Serializer):
