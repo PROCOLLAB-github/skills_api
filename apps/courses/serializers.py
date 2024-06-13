@@ -14,6 +14,9 @@ class StepSerializer(serializers.Serializer):
 
 
 class TaskSerializer(serializers.Serializer):
+    skill_name = serializers.CharField()
+    skill_preview = serializers.CharField()
+    skill_point_logo = serializers.CharField()
     count = serializers.IntegerField(help_text="количество вопросов и информационных слайдов у задания")
     step_data = StepSerializer(many=True)
 
@@ -40,11 +43,6 @@ class SkillSerializer(serializers.Serializer):
     description = serializers.CharField()
     level = serializers.IntegerField()
     progress = serializers.IntegerField()
-
-
-class TaskOnSkillResponseSerializer(SkillSerializer):
-    count = serializers.IntegerField()
-    step_data = StepSerializer(many=True)
 
 
 class TaskResult(DataclassSerializer):

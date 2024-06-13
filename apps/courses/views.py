@@ -18,7 +18,6 @@ from .serializers import (
     SkillSerializer,
     SkillsBasicSerializer,
     TasksOfSkillSerializer,
-    TaskOnSkillResponseSerializer,
     TaskResult,
 )
 
@@ -38,12 +37,17 @@ class TaskList(generics.RetrieveAPIView):
     @extend_schema(
         summary="Выводит информацию о задаче",
         tags=["Навыки и задачи"],
-        responses={200: TaskOnSkillResponseSerializer},
+        responses={200: TaskSerializer},
     )
     def get(self, request, *args, **kwargs):
+
         task_id = self.kwargs.get("task_id")
 
-        task = Task.objects.prefetch_related("task_objects", "task_objects__content_object").get(id=int(task_id))
+        task = (
+            Task.objects
+            .select_related("skill__skill_preview", "skill__skill_point_logo")
+            .get(id=int(task_id))
+        )
 
         task_objects = (
             TaskObject.objects.filter(task=task)
@@ -56,7 +60,13 @@ class TaskList(generics.RetrieveAPIView):
             .order_by("ordinal_number")
         )
 
-        data = {"count": task_objects.count(), "step_data": []}
+        data = {
+            "skill_name": task.skill.name,
+            "skill_preview": task.skill.skill_preview.link if task.skill.skill_preview else None,
+            "skill_point_logo": task.skill.skill_point_logo.link if task.skill.skill_point_logo else None,
+            "count": task_objects.count(),
+            "step_data": [],
+        }
         for task_object in task_objects:
             type_task = TYPE_TASK_OBJECT[task_object.content_type.model]
             # TODO вместо словаря сделать Enum
