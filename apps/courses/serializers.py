@@ -3,7 +3,7 @@ from rest_framework_dataclasses.serializers import DataclassSerializer
 
 from courses.mapping import SWAGGER_API_HINTS
 from courses.models import Skill, Task
-from courses.typing import TaskResultData
+from courses.typing import TaskResultData, TaskResponseSerializerData
 
 
 class StepSerializer(serializers.Serializer):
@@ -19,6 +19,17 @@ class TaskSerializer(serializers.Serializer):
     skill_point_logo = serializers.CharField()
     count = serializers.IntegerField(help_text="количество вопросов и информационных слайдов у задания")
     step_data = StepSerializer(many=True)
+
+
+class TaskResponseSerializer(DataclassSerializer):
+
+    class Meta:
+        dataclass = TaskResponseSerializerData
+
+
+class CoursesResponseSerializer(TaskSerializer):
+    progress = serializers.IntegerField()
+    tasks = TaskResponseSerializer(many=True)
 
 
 class TasksOfSkillSerializer(serializers.ModelSerializer):

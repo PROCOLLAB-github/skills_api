@@ -19,6 +19,7 @@ from .serializers import (
     SkillsBasicSerializer,
     TasksOfSkillSerializer,
     TaskResult,
+    CoursesResponseSerializer,
 )
 
 
@@ -37,7 +38,7 @@ class TaskList(generics.RetrieveAPIView):
     @extend_schema(
         summary="Выводит информацию о задаче",
         tags=["Навыки и задачи"],
-        responses={200: TaskSerializer},
+        responses={200: CoursesResponseSerializer},
     )
     def get(self, request, *args, **kwargs):
 
