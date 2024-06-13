@@ -95,6 +95,7 @@ class TaskList(generics.RetrieveAPIView):
     tags=["Навыки и задачи"],
 )
 class SkillsList(generics.ListAPIView):
+    # TODO FIX: В сериализаторе указан статичный уровень 1 для всех навыков
     serializer_class = SkillsBasicSerializer
     pagination_class = DefaultPagination
     queryset = Skill.published.all()

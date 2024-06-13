@@ -29,10 +29,16 @@ class TasksOfSkillSerializer(serializers.ModelSerializer):
 
 class SkillsBasicSerializer(serializers.ModelSerializer):
     file_link = serializers.URLField(source="file.link")  # Access the link field from the related FileModel
+    # Просьба захардкодить, статичный 1 уровень для всех навыков
+    quantity_of_levels = serializers.SerializerMethodField()
 
     class Meta:
         model = Skill
         fields = ("id", "name", "who_created", "file_link", "quantity_of_levels", "description")
+
+    def get_quantity_of_levels(self, obj) -> int:
+        # Просьба захардкодить, статичный 1 уровень для всех навыков
+        return 1
 
 
 class SkillSerializer(serializers.Serializer):
