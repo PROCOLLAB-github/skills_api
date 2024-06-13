@@ -31,8 +31,6 @@ from progress.serializers import ResponseSerializer
 from .serializers import IntegerListSerializer
 
 
-from django.db import connection
-
 class TaskList(generics.RetrieveAPIView):
     serializer_class = TaskSerializer
 
@@ -42,7 +40,6 @@ class TaskList(generics.RetrieveAPIView):
         responses={200: TaskSerializer},
     )
     def get(self, request, *args, **kwargs):
-        connection.queries_log.clear()
 
         task_id = self.kwargs.get("task_id")
 
@@ -87,7 +84,6 @@ class TaskList(generics.RetrieveAPIView):
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             skill_data = get_stats(task.skill.id, self.profile_id)
-            print(f"Количество выполненных запросов: {len(connection.queries)}")
             return Response(skill_data | data, status=status.HTTP_200_OK)
         else:
             return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
