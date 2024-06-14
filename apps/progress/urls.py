@@ -1,7 +1,14 @@
 from django.urls import path
 
-from progress.views.profile import UserProfileList, UserChooseSkills, CreateUserView, SubscriptionUserData
+from progress.views.profile import (
+    UserProfileList,
+    UserChooseSkills,
+    CreateUserView,
+    SubscriptionUserData,
+    UpdateAutoRenewal,
+)
 from progress.views.rating import UserScoreRating, UserSkillsRating
+
 
 urlpatterns = [
     path(
@@ -28,5 +35,9 @@ urlpatterns = [
     path(
         "registration/",
         CreateUserView.as_view(),
+    ),
+    path(
+        "update-auto-renewal/",
+        UpdateAutoRenewal.as_view(),
     ),
 ]
