@@ -97,3 +97,9 @@ class CustomObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         token["email"] = user.email
         return token
+
+
+class SubProclong(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ["is_autopay_allowed"]

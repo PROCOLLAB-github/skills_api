@@ -3,7 +3,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.generics import CreateAPIView, ListAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView
 from rest_framework import permissions
 
 from courses.models import Skill
@@ -17,6 +17,7 @@ from progress.serializers import (
     HollowSerializer,
     IntegerListSerializer,
     UserSerializer,
+    SubProclong,
 )
 from subscription.serializers import UserSubscriptionDataSerializer
 from progress.services import get_user_data, get_current_level, last_two_months_stats
@@ -90,3 +91,19 @@ class SubscriptionUserData(ListAPIView):
     def get(self, request, *args, **kwargs):
         serializer = self.serializer_class(self.user_profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@extend_schema(
+    summary="""Изменить статус авто-продления подписки""",
+    tags=["Профиль"],
+)
+class UpdateAutoRenewal(UpdateAPIView):
+    serializer_class = SubProclong
+
+    def patch(self, request, *args, **kwargs):
+        new_status = request.data.get("is_autopay_allowed")
+
+        self.user_profile.is_autopay_allowed = new_status
+        self.user_profile.save()
+
+        return Response(status=204)
