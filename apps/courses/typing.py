@@ -10,3 +10,11 @@ class TaskResultData:
     progress: int
     skill_name: str
     next_task_id: int | None
+
+
+@dataclass
+class TaskResponseSerializerData:
+    id: int
+    name: str
+    level: int
+    status: bool
