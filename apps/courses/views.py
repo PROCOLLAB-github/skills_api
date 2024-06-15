@@ -1,6 +1,6 @@
 from decimal import Decimal, ROUND_HALF_UP
 
-from django.db.models import Count, F, Sum, Q, Exists, OuterRef
+from django.db.models import Count, F, Sum, Q, Exists, OuterRef, Max
 
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
@@ -167,7 +167,7 @@ class TaskStatsGet(generics.RetrieveAPIView):
 
         skill: Skill = get_object_or_404(
             Skill.published.annotate(
-                num_levels=F("quantity_of_levels"),  # Общее кол-во заданий навыка.
+                max_task_id=Max("tasks__id"),  # Общее кол-во заданий навыка.
                 total_num_questions=Count("tasks__task_objects"),  # Общее кол-во вопросов навыка.
                 total_user_answers=Count(  # Общее кол-во ответов юзера в рамках навыка.
                     "tasks__task_objects__user_results",
@@ -190,7 +190,7 @@ class TaskStatsGet(generics.RetrieveAPIView):
             level=task.level,
             progress=progress,
             skill_name=skill.name,
-            next_task_id=task.level + 1 if task.level + 1 < skill.num_levels else None,
+            next_task_id=task.id + 1 if task.id + 1 <= skill.max_task_id else None,
         )
         serializer = self.get_serializer(data)
         return Response(serializer.data, status=status.HTTP_200_OK)
