@@ -99,6 +99,7 @@ class SubscriptionUserData(ListAPIView):
 )
 class UpdateAutoRenewal(UpdateAPIView):
     serializer_class = SubProclong
+    permission_classes = [AllowAny]
 
     def patch(self, request, *args, **kwargs):
         new_status = request.data.get("is_autopay_allowed")

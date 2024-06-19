@@ -19,4 +19,7 @@ def create_payment(payload: CreatePaymentData | CreateRecurrentPaymentData) -> C
             metadata=response_data["metadata"],
         )
     except requests.exceptions.HTTPError:
-        pass
+        if isinstance(payload, CreateRecurrentPaymentData):
+            pass
+        elif isinstance(payload, CreatePaymentData):
+            raise
