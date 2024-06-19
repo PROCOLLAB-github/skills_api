@@ -158,17 +158,14 @@ class NotificationWebHook(CreateAPIView):
 @extend_schema(summary="Запрос возврата", tags=["Подписка"])
 class CreateRefund(CreateAPIView):
     def create(self, request, *args, **kwargs):
-        one_month_ago = timezone.now() - timedelta(days=30)
         payments = Payment.list(
             {
-                "created_at.lte": one_month_ago.isoformat(),
                 "metadata": {"user_profile_id": self.profile_id},
                 "status": "succeeded",
             }
         )
         last_payment = payments.items[0]
         if self.user_profile.last_subscription_date >= timezone.now().date() - timedelta(days=15):
-
             Refund.create(
                 {
                     "payment_id": last_payment.id,
