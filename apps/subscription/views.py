@@ -167,12 +167,26 @@ class CreateRefund(CreateAPIView):
             )
             last_payment = payments.items[0]
             if self.user_profile.last_subscription_date >= timezone.now().date() - timedelta(days=15):
-                Refund.create(
+                response = Refund.create(
                     {
                         "payment_id": last_payment.id,
                         "amount": {"value": last_payment.amount.value, "currency": "RUB"},
                     }
                 )
+                if response.status == "succeeded":
+                    self.user_profile.last_subscription_date = None
+                    self.user_profile.is_autoplay_allowed = False
+
+                    self.user_profile.save()
+
+                    logging.info(
+                        f"subscription canceled for {self.user_profile.user.first_name} "
+                        f"{self.user_profile.user.last_name}"
+                    )
+                    return Response(
+                        f"subscription canceled for {self.user_profile.user.first_name} "
+                        f"{self.user_profile.user.last_name}"
+                    )
 
             else:
                 return Response(
