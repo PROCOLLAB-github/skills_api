@@ -108,27 +108,30 @@ class NotificationWebHook(CreateAPIView):
         return WebHookRequest(event=self.request.data["event"], object=self.request.data["object"])
 
     def create(self, request, *args, **kwargs) -> Response:
+        # try:
         notification_data = self.get_request_data()
 
-        profile_to_update = UserProfile.objects.select_related("user", "last_subscription_type").get(
+        profile_to_update = UserProfile.objects.select_related("user", "last_subscription_type").filter(
             id=notification_data.object["metadata"]["user_profile_id"]
         )
 
         if notification_data.event == "payment.succeeded" and notification_data.object["status"] == "succeeded":
 
             params_to_update = {"last_subscription_date": timezone.now()}
-            if sub_id := notification_data.object["metadata"][
+            if sub_id := notification_data.object["metadata"].get(
                 "subscription_id"
-            ]:  # если совершается впервые (не продливается)
-                profile_to_update["subscription_id"] = sub_id
+            ):  # если совершается впервые (не продливается)
+                params_to_update["last_subscription_type_id"] = sub_id
 
             profile_to_update.update(**params_to_update)
 
             logging.info(
-                f"subscription date renewed for {profile_to_update.user.first_name} {profile_to_update.user.last_name}"
+                f"subscription date renewed for {profile_to_update[0].user.first_name} "
+                f"{profile_to_update[0].user.last_name}"
             )
             return Response(
-                f"subscription date renewed for {profile_to_update.user.first_name} {profile_to_update.user.last_name}"
+                f"subscription date renewed for {profile_to_update[0].user.first_name} "
+                f"{profile_to_update[0].user.last_name}"
             )
         elif notification_data.event == "refund.succeeded" and notification_data.object["status"] == "succeeded":
             (
@@ -138,13 +141,18 @@ class NotificationWebHook(CreateAPIView):
             )
 
             logging.info(
-                f"subscription canceled for {profile_to_update.user.first_name} {profile_to_update.user.last_name}"
+                f"subscription canceled for {profile_to_update[0].user.first_name} "
+                f"{profile_to_update[0].user.last_name}"
             )
             return Response(
-                f"subscription canceled for {profile_to_update.user.first_name} {profile_to_update.user.last_name}"
+                f"subscription canceled for {profile_to_update[0].user.first_name} "
+                f"{profile_to_update[0].user.last_name}"
             )
 
         return Response({"error": "event is not yet succeeded"}, status=400)
+
+    # except Exception as e:
+    #     return Response({"error": str(e)}, status=400)
 
 
 @extend_schema(summary="Запрос возврата", tags=["Подписка"])
