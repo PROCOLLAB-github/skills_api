@@ -46,7 +46,7 @@ class CreatePaymentData:
     amount: AmountData
     confirmation: ConfirmationRequestData
     metadata: dict[Literal["user_profile_id"], int]
-    save_payment_method: bool = True  # возможность провести платёж ещё раз без подтверждения
+    save_payment_method: bool = False  # возможность провести платёж ещё раз без подтверждения
     capture: bool = True  # авто-проведение поступившего платежа
 
 
