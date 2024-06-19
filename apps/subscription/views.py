@@ -30,6 +30,7 @@ from subscription.serializers import (
     BuySubSerializer,
 )
 from subscription.utils.create_payment import create_payment
+import logging
 
 
 @extend_schema(
@@ -97,8 +98,8 @@ class ViewSubscriptions(ListAPIView):
         return Response(serializer.data, status=200)
 
 
-@extend_schema(summary="Обновление дат подписки для юзеров", tags=["Подписка"])
-class ServeWebHook(CreateAPIView):
+@extend_schema(summary="НЕ ДЛЯ ФРОНТА. Обновление дат подписки для юзеров.", tags=["Подписка"])
+class NotificationWebHook(CreateAPIView):
     serializer_class = RenewSubDateSerializer
     permission_classes = [AllowAny]
     authentication_classes = []
@@ -109,17 +110,38 @@ class ServeWebHook(CreateAPIView):
     def create(self, request, *args, **kwargs) -> Response:
         notification_data = self.get_request_data()
 
+        profile_to_update = UserProfile.objects.select_related("user", "last_subscription_type").get(
+            id=notification_data.object["metadata"]["user_profile_id"]
+        )
+
         if notification_data.event == "payment.succeeded" and notification_data.object["status"] == "succeeded":
-            profile_to_update = UserProfile.objects.select_related("user").get(
-                id=notification_data.object["metadata"]["user_profile_id"]
+
+            params_to_update = {"last_subscription_date": timezone.now()}
+            if sub_id := notification_data.object["metadata"][
+                "subscription_id"
+            ]:  # если совершается впервые (не продливается)
+                profile_to_update["subscription_id"] = sub_id
+
+            profile_to_update.update(**params_to_update)
+
+            logging.info(
+                f"subscription date renewed for {profile_to_update.user.first_name} {profile_to_update.user.last_name}"
             )
-
-            profile_to_update.last_subscription_date = timezone.now()
-            profile_to_update.last_subscription_type_id = notification_data.object["metadata"]["subscription_id"]
-            profile_to_update.save()
-
             return Response(
                 f"subscription date renewed for {profile_to_update.user.first_name} {profile_to_update.user.last_name}"
+            )
+        elif notification_data.event == "refund.succeeded" and notification_data.object["status"] == "succeeded":
+            (
+                profile_to_update.update(
+                    last_subscription_date=None, is_autopay_allowed=False, last_subscription_type=None
+                )
+            )
+
+            logging.info(
+                f"subscription canceled for {profile_to_update.user.first_name} {profile_to_update.user.last_name}"
+            )
+            return Response(
+                f"subscription canceled for {profile_to_update.user.first_name} {profile_to_update.user.last_name}"
             )
 
         return Response({"error": "event is not yet succeeded"}, status=400)
@@ -137,17 +159,15 @@ class CreateRefund(CreateAPIView):
             }
         )
         last_payment = payments.items[0]
-        if self.user_profile.last_subscription_date <= timezone.now().date() - timedelta(days=15):
+        if self.user_profile.last_subscription_date >= timezone.now().date() - timedelta(days=15):
+
             Refund.create(
                 {
                     "payment_id": last_payment.id,
                     "amount": {"value": last_payment.amount.value, "currency": "RUB"},
                 }
             )
-            self.user_profile.last_subscription_date = None
-            self.user_profile.is_autopay_allowed = False
-            self.user_profile.last_subscription_type = None
-            self.user_profile.save()
+
         else:
             return Response({"error": "Вы не можете отменить подписку после 15 дней пользования, извините"}, status=400)
-        return Response(status=204)
+        return Response(status=202)
