@@ -158,21 +158,26 @@ class NotificationWebHook(CreateAPIView):
 @extend_schema(summary="Запрос возврата", tags=["Подписка"])
 class CreateRefund(CreateAPIView):
     def create(self, request, *args, **kwargs):
-        payments = Payment.list(
-            {
-                "metadata": {"user_profile_id": self.profile_id},
-                "status": "succeeded",
-            }
-        )
-        last_payment = payments.items[0]
-        if self.user_profile.last_subscription_date >= timezone.now().date() - timedelta(days=15):
-            Refund.create(
+        try:
+            payments = Payment.list(
                 {
-                    "payment_id": last_payment.id,
-                    "amount": {"value": last_payment.amount.value, "currency": "RUB"},
+                    "metadata": {"user_profile_id": self.profile_id},
+                    "status": "succeeded",
                 }
             )
+            last_payment = payments.items[0]
+            if self.user_profile.last_subscription_date >= timezone.now().date() - timedelta(days=15):
+                Refund.create(
+                    {
+                        "payment_id": last_payment.id,
+                        "amount": {"value": last_payment.amount.value, "currency": "RUB"},
+                    }
+                )
 
-        else:
-            return Response({"error": "Вы не можете отменить подписку после 15 дней пользования, извините"}, status=400)
-        return Response(status=202)
+            else:
+                return Response(
+                    {"error": "Вы не можете отменить подписку после 15 дней пользования, извините"}, status=400
+                )
+            return Response(status=202)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
