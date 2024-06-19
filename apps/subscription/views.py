@@ -11,6 +11,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 # from procollab_skills.decorators import exclude_auth_perm  # , exclude_sub_check_perm
+from yookassa import Payment, Refund
+
 from progress.models import UserProfile
 from subscription.typing import (
     CreatePaymentData,
@@ -44,7 +46,6 @@ class CreatePayment(CreateAPIView):
     @staticmethod
     def check_subscription(user_sub_date):
         try:
-            raise Exception("Fix when get prod creds")
             thirty_days_ago = datetime.now().date() - timedelta(days=30)
             if user_sub_date and user_sub_date >= thirty_days_ago:
                 raise PermissionDenied("Подписка уже оформлена.")
@@ -124,6 +125,29 @@ class ServeWebHook(CreateAPIView):
         return Response({"error": "event is not yet succeeded"}, status=400)
 
 
-# TODO получение информации о платеже
-
-# TODO запрос на создание возврата
+@extend_schema(summary="Запрос возврата", tags=["Подписка"])
+class CreateRefund(CreateAPIView):
+    def create(self, request, *args, **kwargs):
+        one_month_ago = timezone.now() - timedelta(days=30)
+        payments = Payment.list(
+            {
+                "created_at.lte": one_month_ago.isoformat(),
+                "metadata": {"user_profile_id": self.profile_id},
+                "status": "succeeded",
+            }
+        )
+        last_payment = payments.items[0]
+        if self.user_profile.last_subscription_date <= timezone.now().date() - timedelta(days=15):
+            Refund.create(
+                {
+                    "payment_id": last_payment.id,
+                    "amount": {"value": last_payment.amount.value, "currency": "RUB"},
+                }
+            )
+            self.user_profile.last_subscription_date = None
+            self.user_profile.is_autopay_allowed = False
+            self.user_profile.last_subscription_type = None
+            self.user_profile.save()
+        else:
+            return Response({"error": "Вы не можете отменить подписку после 15 дней пользования, извините"}, status=400)
+        return Response(status=204)
