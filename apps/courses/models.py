@@ -110,7 +110,7 @@ class TaskObject(models.Model):
         ContentType, on_delete=models.CASCADE, related_name="task_objects_content", verbose_name="Тип единицы задачи"
     )
     object_id = models.PositiveIntegerField(verbose_name="ID единицы задачи")
-    popup = models.ManyToManyField("Popup", related_name="task_objects", verbose_name="Поп-ап")
+    popup = models.ManyToManyField("Popup", blank=True, related_name="task_objects", verbose_name="Поп-ап")
     content_object = GenericForeignKey("content_type", "object_id")
 
     def __str__(self):
@@ -153,6 +153,7 @@ class Popup(models.Model):
                                   "'Заголовок', 'Содержимое' или 'Изображение'")
 
     def save(self, *args, **kwargs):
+        # TODO автоинкремен и валидация при добалении в TaskObject
         if self.ordinal_number is None:
             self.ordinal_number = 1
         super().save(*args, **kwargs)
