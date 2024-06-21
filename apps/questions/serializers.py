@@ -5,7 +5,7 @@ from courses.serializers import PopupSerializer
 from questions import typing
 
 
-class AbstractPupupField(DataclassSerializer):
+class AbstractPopupField(DataclassSerializer):
     """Абстрактный класс под поле popups"""
     popups = PopupSerializer(many=True, read_only=True, required=False, allow_null=True)
 
@@ -13,28 +13,28 @@ class AbstractPupupField(DataclassSerializer):
         abstract = True
 
 
-class InfoSlideSerializer(AbstractPupupField):
+class InfoSlideSerializer(AbstractPopupField):
     """GET: инфо-слайд (response)."""
 
     class Meta:
         dataclass = typing.InfoSlideSerializerData
 
 
-class SingleQuestionAnswerSerializer(AbstractPupupField):
+class SingleQuestionAnswerSerializer(AbstractPopupField):
     """GET: Вопрос с 1 правильным ответом/на исключение (response)."""
 
     class Meta:
         dataclass = typing.QuestionSerializerData
 
 
-class WriteQuestionSerializer(AbstractPupupField):
+class WriteQuestionSerializer(AbstractPopupField):
     """GET: Вопрос на ввод ответа (response)."""
 
     class Meta:
         dataclass = typing.QuestionWriteSerializerData
 
 
-class ConnectQuestionSerializer(AbstractPupupField):
+class ConnectQuestionSerializer(AbstractPopupField):
     """GET: Вопрос на соотношение (response)."""
 
     class Meta:
