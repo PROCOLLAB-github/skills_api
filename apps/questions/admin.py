@@ -31,12 +31,14 @@ class AbstractQuestionShowcase(admin.ModelAdmin):
             return task_object.id
         except TaskObject.DoesNotExist:
             return None
+        except TaskObject.MultipleObjectsReturned:
+            return "Ошибка заполнения, 1 вопрос указан у двух разных TaskObject"
     related_task_object.short_description = "ID части задачи"
 
     def related_skill(self, obj) -> Skill | None:
         """Навык к которому относится вопрос, если он привязан."""
         task_object_id: int = self.related_task_object(obj)
-        if task_object_id:
+        if task_object_id and isinstance(task_object_id, int):
             task: Task = TaskObject.objects.get(id=task_object_id).task
             return task.skill if task else None
     related_skill.short_description = "Навык"
