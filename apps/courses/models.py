@@ -118,6 +118,15 @@ class TaskObject(models.Model):
     object_id = models.PositiveIntegerField(verbose_name="ID единицы задачи")
     popup = models.ManyToManyField("Popup", blank=True, related_name="task_objects", verbose_name="Поп-ап")
     content_object = GenericForeignKey("content_type", "object_id")
+    validate_answer = models.BooleanField(
+        default=True,
+        verbose_name="Проверка ответа",
+        help_text=(
+            "Отключает проверку ответа.<br>"
+            "(Только для 'Вопрос с одним правильным ответом', 'Вопрос с одним правильным ответом (Исключающий)' "
+            "и 'Вопрос на соотношение', на остальных проверка не требуется)"
+        ),
+    )
 
     def __str__(self):
         return f"{self.task.name} {self.ordinal_number}"
