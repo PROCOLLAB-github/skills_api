@@ -44,10 +44,10 @@ class TaskList(generics.RetrieveAPIView):
 
         task_id = self.kwargs.get("task_id")
 
-        task = (
-            Task.objects
-            .select_related("skill__skill_preview", "skill__skill_point_logo")
-            .get(id=int(task_id))
+        task = get_object_or_404(
+            Task.published
+            .select_related("skill__skill_preview", "skill__skill_point_logo"),
+            id=int(task_id),
         )
 
         task_objects = (
@@ -133,7 +133,8 @@ class TasksOfSkill(generics.ListAPIView):
     serializer_class = TasksOfSkillSerializer
 
     def get(self, request, *args, **kwargs):
-        return Response(get_stats(self.kwargs.get("skill_id"), self.profile_id), status=200)
+        skill = get_object_or_404(Skill.published.all(), id=self.kwargs.get("skill_id"))
+        return Response(get_stats(skill.id, self.profile_id), status=200)
 
 
 @extend_schema(
@@ -149,7 +150,7 @@ class TaskStatsGet(generics.RetrieveAPIView):
         task_id: int = self.kwargs.get("task_id")
 
         task: Task = get_object_or_404(
-            Task.objects.annotate(
+            Task.published.annotate(
                 total_questions=Count("task_objects", distinct=True),  # Всего вопросов в задании.
                 total_answers=Count(  # Всего ответов пользователя в задании.
                     "task_objects__user_results",
@@ -162,7 +163,7 @@ class TaskStatsGet(generics.RetrieveAPIView):
                     distinct=True,
                 ),
                 next_task_id=Subquery(  # ID следующего задания.
-                    Task.objects.filter(
+                    Task.published.filter(
                         skill=OuterRef("skill"),
                         ordinal_number=OuterRef("ordinal_number") + 1
                     ).values("id")[:1]

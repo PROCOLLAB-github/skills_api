@@ -49,7 +49,7 @@ def get_current_level(user_profile_id: int) -> dict[SkillIdType, SkillProgressTy
 
     # Получение значений для всех задач, связанных с навыками пользователя.
     tasks: QuerySet = (
-        Task.objects.filter(skill__in=user_skills_ids)
+        Task.published.filter(skill__in=user_skills_ids)
         .annotate(
             num_questions=Count("task_objects"),
             num_answers=Count(
@@ -89,7 +89,7 @@ def last_two_months_stats(user_profile_id: int) -> list[SkillMonthProgressType]:
 
     # Получение значений для всех уровней за 2 месяца, связанных с навыками пользователя.
     tasks: QuerySet = (
-        Task.objects.filter(skill_id__in=user_skills_ids)
+        Task.published.filter(skill_id__in=user_skills_ids)
         .annotate(
             num_questions=Count("task_objects"),
             num_answers_last_months=Count(
