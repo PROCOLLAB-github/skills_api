@@ -21,8 +21,8 @@ class AnswerSingle(models.Model):
 
 
 class AnswerConnect(models.Model):
-    connect_left = models.CharField(max_length=50, null=True, blank=True, verbose_name="Вопрос (текст)")
-    connect_right = models.CharField(max_length=50, null=True, blank=True, verbose_name="Ответ (текст)")
+    connect_left = models.TextField(max_length=450, null=True, blank=True, verbose_name="Вопрос (текст)")
+    connect_right = models.TextField(max_length=450, null=True, blank=True, verbose_name="Ответ (текст)")
     file_left = models.ForeignKey(
         FileModel,
         on_delete=models.PROTECT,
