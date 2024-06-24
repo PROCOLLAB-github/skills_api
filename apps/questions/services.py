@@ -22,7 +22,7 @@ def add_popup_data(data: ReturnDict | dict, task_object: TaskObject) -> ReturnDi
     data["popups"] = []
     for popup in task_object.popup.all():
         data["popups"].append({
-            "title": popup.title if popup.title else None,
+            "title": popup.title,
             "text": popup.text if popup.text else None,
             "file_link": popup.file.link if popup.file else None,
             "ordinal_number": popup.ordinal_number,
