@@ -8,9 +8,12 @@ from courses.serializers import IntegerListSerializer
 from procollab_skills.permissions import IfSubscriptionOutdatedPermission
 from progress.models import TaskObjUserResult
 
+from questions import serializers
+from questions import api_examples
 from questions.exceptions import UserAlreadyAnsweredException
 from questions.mapping import TypeQuestionPoints
 from questions.permissions import CheckQuestionTypePermission, SimpleCheckQuestionTypePermission
+from questions.services import handle_no_validation_required
 from questions.models import (
     QuestionSingleAnswer,
     QuestionConnect,
@@ -19,8 +22,6 @@ from questions.models import (
     AnswerSingle,
     AnswerConnect,
 )
-from questions import serializers
-from questions import api_examples
 
 
 @extend_schema(
@@ -47,6 +48,17 @@ class SingleCorrectPost(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
+
+            # Если у TaskObject отключена проверка ответа, то дальнешие действия не нужны.
+            if not self.request_task_object.validate_answer:
+                return handle_no_validation_required(
+                    self.task_object_id,
+                    self.profile_id,
+                    TypeQuestionPoints.QUESTION_SINGLE_ANSWER,
+                    request.data.get("answer_id"),
+                    {"is_correct": True},
+                )
+
             question_answers: QuerySet[AnswerSingle] = self.request_question.single_answers.all()
             given_answer: AnswerSingle = question_answers.get(id=request.data.get("answer_id"))
             is_correct_answer: bool = given_answer.is_correct
@@ -94,10 +106,21 @@ class ConnectQuestionPost(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
-            user_answers = request.data
-
             question: QuestionConnect = self.request_question
             all_answer_options: QuerySet[AnswerConnect] = question.connect_answers.all()
+
+            # Если у TaskObject отключена проверка ответа, то дальнешие действия не нужны.
+            if not self.request_task_object.validate_answer:
+                return handle_no_validation_required(
+                    self.task_object_id,
+                    self.profile_id,
+                    TypeQuestionPoints.QUESTION_CONNECT,
+                    request.data,
+                    {"text": "success"},
+                    required_data=all_answer_options,
+                )
+
+            user_answers = request.data
             answers_left_to_check: list[int] = list(all_answer_options.values_list("id", flat=True))
             # all_answers_count = all_answer_options.count()
 
@@ -162,6 +185,16 @@ class QuestionExcludePost(generics.CreateAPIView):
     def create(self, request, *args, **kwargs) -> Response:
         try:
             given_answer_ids: list[int] = request.data
+
+            # Если у TaskObject отключена проверка ответа, то дальнешие действия не нужны.
+            if not self.request_task_object.validate_answer:
+                return handle_no_validation_required(
+                    self.task_object_id,
+                    self.profile_id,
+                    TypeQuestionPoints.QUESTION_EXCLUDE,
+                    given_answer_ids,
+                    {"text": "success"},
+                )
 
             # Все правильные ответы (в рамках исключения).
             set_correct_answer_ids: set[int] = set(
