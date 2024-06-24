@@ -21,6 +21,8 @@ from subscription.typing import (
     CreatePaymentViewRequestData,
     CreatePaymentResponseData,
     WebHookRequest,
+    ReceiptData,
+    ItemData,
 )
 from subscription.models import SubscriptionType
 from subscription.serializers import (
@@ -68,14 +70,20 @@ class CreatePayment(CreateAPIView):
         try:
             self.check_subscription(self.user_profile.last_subscription_date)
 
-            request_data = self.get_request_data(self.profile_id)
+            request_data: CreatePaymentViewRequestData = self.get_request_data(self.profile_id)
             subscription = get_object_or_404(SubscriptionType, id=self.subscription_id)
 
+            amount = AmountData(value=subscription.price)
+
             payload = CreatePaymentData(
-                amount=AmountData(value=subscription.price),
+                amount=amount,
                 confirmation=request_data.confirmation,
                 metadata={"user_profile_id": self.profile_id, "subscription_id": subscription.id},
+                receipt=ReceiptData(
+                    customer={"email": self.user.email}, items=[ItemData(description=subscription.name, amount=amount)]
+                ),
             )
+            print(payload, "\n", asdict(payload))
             payment: CreatePaymentResponseData = create_payment(payload)
             return Response(asdict(payment), status=200)
         except Exception as e:

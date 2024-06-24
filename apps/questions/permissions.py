@@ -1,7 +1,6 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.generics import ListAPIView
 
 from courses.models import TaskObject
 from questions.mapping import get_fields_for_answer_type, wrong_endpoint_text
@@ -19,8 +18,8 @@ class CheckQuestionTypePermission(permissions.BasePermission):
         prefetch_fields_list: list[str] = get_fields_for_answer_type(view)
 
         # Для GET запроса необходимо подягивать файлы, для POST нет.
-        if issubclass(type(view), ListAPIView):
-            prefetch_fields_list.append("content_object__files")
+        if request.method == "GET":
+            prefetch_fields_list.extend(["content_object__files", "popup", "popup__file"])
 
         try:
             request_task_object: TaskObject = get_object_or_404(
@@ -45,6 +44,7 @@ class CheckQuestionTypePermission(permissions.BasePermission):
         needed_model_class, gotten_model_class = wrong_endpoint_text(request_question, view)
         if isinstance(request_question, view.expected_question_model) and needed_model_class == gotten_model_class:
             # Установка атрибутов класса представления, чтобы повторно не дергать БД с запросом.
+            view.request_task_object = request_task_object
             view.task_object_id = task_object_id
             view.request_question = request_question
             return True

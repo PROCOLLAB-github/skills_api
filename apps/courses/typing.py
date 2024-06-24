@@ -18,3 +18,11 @@ class TaskResponseSerializerData:
     name: str
     level: int
     status: bool
+
+
+@dataclass
+class PopupSerializerData:
+    title: str | None
+    text: str | None
+    file_link: str | None
+    ordinal_number: int

@@ -25,6 +25,7 @@ from questions.models import (
 )
 from questions.serializers import InfoSlideSerializer
 from questions.permissions import CheckQuestionTypePermission
+from questions.services import add_popup_data
 from questions.typing import (
     QuestionSerializerData,
     SingleAnswerData,
@@ -35,7 +36,7 @@ from questions.typing import (
 )
 
 
-class QuestionSingleAnswerGet(generics.ListAPIView):
+class QuestionSingleAnswerGet(generics.RetrieveAPIView):
     serializer_class = SingleQuestionAnswerSerializer
     permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
     expected_question_model = QuestionSingleAnswer
@@ -71,10 +72,10 @@ class QuestionSingleAnswerGet(generics.ListAPIView):
                 is_answered=True if user_result else False,
             )
         )
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(add_popup_data(serializer.data, self.request_task_object), status=status.HTTP_200_OK)
 
 
-class QuestionConnectGet(generics.ListAPIView):
+class QuestionConnectGet(generics.RetrieveAPIView):
     serializer_class = ConnectQuestionSerializer
     permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
     expected_question_model = QuestionConnect
@@ -118,10 +119,10 @@ class QuestionConnectGet(generics.ListAPIView):
             random.shuffle(target_left)
 
         serializer = self.serializer_class(question_data)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(add_popup_data(serializer.data, self.request_task_object), status=status.HTTP_200_OK)
 
 
-class QuestionExcludeAnswerGet(generics.ListAPIView):
+class QuestionExcludeAnswerGet(generics.RetrieveAPIView):
     serializer_class = SingleQuestionAnswerSerializer
     permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
     expected_question_model = QuestionSingleAnswer
@@ -158,10 +159,10 @@ class QuestionExcludeAnswerGet(generics.ListAPIView):
         random.shuffle(answers)
 
         serializer = self.serializer_class(data_to_serialize)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(add_popup_data(serializer.data, self.request_task_object), status=status.HTTP_200_OK)
 
 
-class InfoSlideDetails(generics.ListAPIView):
+class InfoSlideDetails(generics.RetrieveAPIView):
     serializer_class = InfoSlideSerializer
     permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
     expected_question_model = InfoSlide
@@ -185,13 +186,13 @@ class InfoSlideDetails(generics.ListAPIView):
             }
         )
         if serializer.is_valid():
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(add_popup_data(serializer.data, self.request_task_object), status=status.HTTP_200_OK)
         else:
             return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # GET вопрос для текста
-class QuestionWriteAnswer(generics.ListAPIView):
+class QuestionWriteAnswer(generics.RetrieveAPIView):
     serializer_class = WriteQuestionSerializer
     permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
     expected_question_model = QuestionWrite
@@ -214,5 +215,5 @@ class QuestionWriteAnswer(generics.ListAPIView):
             self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_WRITE
         ):
             write_question.answer = AnswerUserWriteData(id=user_answer.id, text=user_answer.text)
-
-        return Response(asdict(write_question), status=status.HTTP_200_OK)
+        data = asdict(write_question)
+        return Response(add_popup_data(data, self.request_task_object), status=status.HTTP_200_OK)

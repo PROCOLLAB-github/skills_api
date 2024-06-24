@@ -1,5 +1,6 @@
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Max
 
@@ -115,6 +116,7 @@ class TaskObject(models.Model):
         ContentType, on_delete=models.CASCADE, related_name="task_objects_content", verbose_name="Тип единицы задачи"
     )
     object_id = models.PositiveIntegerField(verbose_name="ID единицы задачи")
+    popup = models.ManyToManyField("Popup", blank=True, related_name="task_objects", verbose_name="Поп-ап")
     content_object = GenericForeignKey("content_type", "object_id")
 
     def __str__(self):
@@ -134,3 +136,30 @@ class TaskObject(models.Model):
         super().save(*args, **kwargs)
 
     # TODO сделать валидацию и то, что выше
+
+
+class Popup(models.Model):
+    title = models.CharField(null=True, blank=True, max_length=150, verbose_name="Заголовок")
+    text = models.TextField(null=True, blank=True, verbose_name="Содержимое")
+    file = models.ForeignKey(
+        FileModel, null=True, blank=True, on_delete=models.PROTECT, related_name="popups", verbose_name="Изображение"
+    )
+    ordinal_number = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name="Порядковый номер")
+
+    class Meta:
+        verbose_name = "Поп-ап"
+        verbose_name_plural = "Поп-апы"
+
+    def __str__(self):
+        return self.title or self.text or self.file.link
+
+    def clean(self):
+        if not self.title and not self.text and not self.file:
+            raise ValidationError("Должено быть заполнено хотя бы один из полей: "
+                                  "'Заголовок', 'Содержимое' или 'Изображение'")
+
+    def save(self, *args, **kwargs):
+        # TODO автоинкремен и валидация при добалении в TaskObject
+        if self.ordinal_number is None:
+            self.ordinal_number = 1
+        super().save(*args, **kwargs)

@@ -1,37 +1,40 @@
 from rest_framework import serializers
 from rest_framework_dataclasses.serializers import DataclassSerializer
 
-from questions.models import InfoSlide
+from courses.serializers import PopupSerializer
 from questions import typing
 
 
-class InfoSlideSerializer(serializers.Serializer):
-    """GET: Инфо-слайд (response)."""
-
-    text = serializers.CharField()
-    files = serializers.ListSerializer(child=serializers.CharField())
-    is_done = serializers.BooleanField()
+class AbstractPopupField(DataclassSerializer):
+    """Абстрактный класс под поле popups"""
+    popups = PopupSerializer(many=True, read_only=True, required=False, allow_null=True)
 
     class Meta:
-        model = InfoSlide
-        fields = ["text", "files", "is_done"]
+        abstract = True
 
 
-class SingleQuestionAnswerSerializer(DataclassSerializer):
+class InfoSlideSerializer(AbstractPopupField):
+    """GET: инфо-слайд (response)."""
+
+    class Meta:
+        dataclass = typing.InfoSlideSerializerData
+
+
+class SingleQuestionAnswerSerializer(AbstractPopupField):
     """GET: Вопрос с 1 правильным ответом/на исключение (response)."""
 
     class Meta:
         dataclass = typing.QuestionSerializerData
 
 
-class WriteQuestionSerializer(DataclassSerializer):
+class WriteQuestionSerializer(AbstractPopupField):
     """GET: Вопрос на ввод ответа (response)."""
 
     class Meta:
         dataclass = typing.QuestionWriteSerializerData
 
 
-class ConnectQuestionSerializer(DataclassSerializer):
+class ConnectQuestionSerializer(AbstractPopupField):
     """GET: Вопрос на соотношение (response)."""
 
     class Meta:

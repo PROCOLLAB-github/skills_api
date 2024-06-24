@@ -3,7 +3,7 @@ from rest_framework_dataclasses.serializers import DataclassSerializer
 
 from courses.mapping import SWAGGER_API_HINTS
 from courses.models import Skill, Task
-from courses.typing import TaskResultData, TaskResponseSerializerData
+from courses.typing import TaskResultData, TaskResponseSerializerData, PopupSerializerData
 
 
 class StepSerializer(serializers.Serializer):
@@ -68,6 +68,12 @@ class TaskResult(DataclassSerializer):
 
     class Meta:
         dataclass = TaskResultData
+
+
+class PopupSerializer(DataclassSerializer):
+
+    class Meta:
+        dataclass = PopupSerializerData
 
 
 IntegerListSerializer = serializers.ListSerializer(child=serializers.IntegerField(), allow_empty=False)

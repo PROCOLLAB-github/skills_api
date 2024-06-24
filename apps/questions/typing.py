@@ -93,3 +93,10 @@ class SingleCorrectPostSuccessResponseSerializerData:
 class SingleCorrectPostErrorResponseSerializerData:
     is_correct: bool
     correct_answer: int
+
+
+@dataclass
+class InfoSlideSerializerData:
+    text: str
+    files: list[str]
+    is_done: bool
