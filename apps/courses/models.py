@@ -4,15 +4,25 @@ from django.db import models
 from django.db.models import Max
 
 from files.models import FileModel
-from courses.managers import SkillPublishedManager
+from courses.managers import PublishedManager
 
 
-class Skill(models.Model):
-
+class AbstractStatusField(models.Model):
     STATUS_CHOICES = [
         ("draft", "Черновик"),
         ("published", "Опубликован"),
     ]
+
+    status = models.CharField(choices=STATUS_CHOICES, max_length=15, default="draft", verbose_name="Статус")
+
+    objects = models.Manager()
+    published = PublishedManager()
+
+    class Meta:
+        abstract = True
+
+
+class Skill(AbstractStatusField):
 
     name = models.CharField(max_length=50, verbose_name="Название навыка")
     description = models.TextField(null=True)
@@ -42,10 +52,6 @@ class Skill(models.Model):
         blank=True,
     )
     quantity_of_levels = models.IntegerField(default=0)
-    status = models.CharField(choices=STATUS_CHOICES, max_length=15, default="draft", verbose_name="Статус")
-
-    objects = models.Manager()
-    published = SkillPublishedManager()
 
     def __str__(self):
         return f"{self.name}"
@@ -64,7 +70,7 @@ class Skill(models.Model):
         super().save(*args, **kwargs)
 
 
-class Task(models.Model):
+class Task(AbstractStatusField):
     ordinal_number = models.PositiveSmallIntegerField(
         null=True,
         blank=True,
