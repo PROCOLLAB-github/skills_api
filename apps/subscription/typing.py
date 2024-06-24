@@ -48,7 +48,7 @@ class ItemData:
     vat_code: int = 1
     quantity: str = "1"
     payment_mode: str = "full_payment"
-    payment_subject: str = "payment_subject"
+    payment_subject: str = "service"
     measuer: str = "measure"
 
 
