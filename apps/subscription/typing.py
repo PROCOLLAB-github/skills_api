@@ -42,10 +42,25 @@ class CreatePaymentResponseData:
 
 
 @dataclass(frozen=True)
+class ItemData:
+    description: str
+    amount: AmountData
+    vat_code: int = 1
+    quantity: str = "1"
+
+
+@dataclass(frozen=True)
+class ReceiptData:
+    customer: dict[Literal["email"], str]
+    items: list[ItemData]
+
+
+@dataclass(frozen=True)
 class CreatePaymentData:
     amount: AmountData
     confirmation: ConfirmationRequestData
     metadata: dict[Literal["user_profile_id"], int]
+    receipt: ReceiptData
     save_payment_method: bool = False  # возможность провести платёж ещё раз без подтверждения
     capture: bool = True  # авто-проведение поступившего платежа
 
