@@ -10,12 +10,23 @@ from questions.models import QuestionSingleAnswer
 
 @admin.register(Skill)
 class SkillAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        "id",
+        "name",
+        "quantity_of_levels",
+        "status",
+    )
 
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        "id",
+        "name",
+        "skill",
+        "level",
+        "status",
+    )
 
 
 class TaskObjectForm(forms.ModelForm):
