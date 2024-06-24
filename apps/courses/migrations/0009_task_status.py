@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("courses", "0007_skill_skill_point_logo_skill_skill_preview_and_more"),
+        ("courses", "0008_popup_taskobject_popup"),
     ]
 
     operations = [
