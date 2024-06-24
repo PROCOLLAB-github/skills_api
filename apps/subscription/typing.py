@@ -47,12 +47,25 @@ class ItemData:
     amount: AmountData
     vat_code: int = 1
     quantity: str = "1"
+    payment_mode: str = "full_payment"
+    payment_subject: str = "service"
+    measuer: str = "measure"
+
+
+@dataclass
+class SettlementData:
+    type: Literal["payment", "refund"]
+    amount: AmountData
 
 
 @dataclass(frozen=True)
 class ReceiptData:
+    type: Literal["payment", "refund"]
     customer: dict[Literal["email"], str]
     items: list[ItemData]
+    settlements: list[SettlementData]
+    tax_system_code: int = 2
+    send: bool = True
 
 
 @dataclass(frozen=True)

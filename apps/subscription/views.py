@@ -1,5 +1,6 @@
 from dataclasses import asdict
 from datetime import datetime, timedelta
+from typing import Literal
 
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -23,6 +24,7 @@ from subscription.typing import (
     WebHookRequest,
     ReceiptData,
     ItemData,
+    SettlementData,
 )
 from subscription.models import SubscriptionType
 from subscription.serializers import (
@@ -74,13 +76,17 @@ class CreatePayment(CreateAPIView):
             subscription = get_object_or_404(SubscriptionType, id=self.subscription_id)
 
             amount = AmountData(value=subscription.price)
+            type: Literal["payment"] = "payment"
 
             payload = CreatePaymentData(
                 amount=amount,
                 confirmation=request_data.confirmation,
                 metadata={"user_profile_id": self.profile_id, "subscription_id": subscription.id},
                 receipt=ReceiptData(
-                    customer={"email": self.user.email}, items=[ItemData(description=subscription.name, amount=amount)]
+                    customer={"email": self.user.email},
+                    items=[ItemData(description=subscription.name, amount=amount)],
+                    settlements=[SettlementData(type=type, amount=amount)],
+                    type=type,
                 ),
             )
             print(payload, "\n", asdict(payload))
