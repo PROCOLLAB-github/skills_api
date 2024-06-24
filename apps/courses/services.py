@@ -1,21 +1,20 @@
 from django.db.models import Prefetch, Count, F, Q
-from django.shortcuts import get_object_or_404, get_list_or_404
+from django.shortcuts import get_object_or_404
 
 from courses.models import Task, Skill
 from progress.models import TaskObjUserResult
 
 
 def get_stats(skill_id: int, profile_id: int) -> dict:
-    tasks_of_skill = get_list_or_404(
-        Task.objects.prefetch_related(
+    tasks_of_skill = (
+        Task.published.prefetch_related(
             Prefetch(
                 "task_objects__user_results",
                 queryset=TaskObjUserResult.objects.filter(user_profile_id=profile_id),
                 to_attr="filtered_user_results",
             )
-        ).prefetch_related("task_objects"),
-        skill_id=skill_id,
-        skill__status="published",
+        ).prefetch_related("task_objects")
+        .filter(skill_id=skill_id, skill__status="published")
     )
 
     data = []
@@ -31,7 +30,7 @@ def get_stats(skill_id: int, profile_id: int) -> dict:
             }
         )
 
-    statuses = (sum(1 for obj in data if obj["status"]) / len(tasks_of_skill)) * 100
+    statuses = (sum(1 for obj in data if obj["status"]) / tasks_of_skill.count()) * 100 if tasks_of_skill.count() else 0
     new_data = {"progress": int(statuses), "tasks": data}
     return new_data
 
@@ -47,7 +46,7 @@ def get_skills_details(skill_id: int, user_profile_id: int) -> dict:
     )
 
     tasks = (  # получаем все задачи у скиллов с количеством вопросов и ответов
-        Task.objects.select_related("skill")
+        Task.published.select_related("skill")
         .filter(skill=skill)
         .annotate(
             num_questions=Count("task_objects"),
@@ -63,6 +62,7 @@ def get_skills_details(skill_id: int, user_profile_id: int) -> dict:
             "skill_preview": skill.skill_preview.link if skill.skill_preview else None,
             "skill_point_logo": skill.skill_point_logo.link if skill.skill_point_logo else None,
             "description": skill.description,
+            "progress": 0,
         }
     }
 
@@ -89,7 +89,7 @@ def get_skills_details(skill_id: int, user_profile_id: int) -> dict:
     # проверка прогресса недопройденных навыков
     undone_tasks = tasks.filter(
         ~Q(num_questions=F("num_answers")),
-        level=skill_data[skill_id]["level"],
+        level=skill_data[skill_id].get("level"),
         skill__id=skill_id,
     )
     # raise ValueError(tasks, undone_tasks, skill_data[skill_id]["level"])

@@ -16,7 +16,7 @@ def get_skill_level(skill_id: int, user_profile_id: int) -> dict:
     )
 
     tasks = (  # получаем все задачи у скиллов с количеством вопросов и ответов
-        Task.objects.select_related("skill")
+        Task.published.select_related("skill")
         .filter(skill=skill)
         .annotate(
             num_questions=Count("task_objects"),
