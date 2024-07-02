@@ -34,6 +34,13 @@ class UserProfileForm(forms.ModelForm):
 class UserProfileAdmin(admin.ModelAdmin):
     form = UserProfileForm
     inlines = (IntermediateUserSkillsInline,)
+    list_display = (
+        "user",
+        "last_subscription_date",
+    )
+
+    def get_name(self):
+        return f"{self.obj.first_name} {self.obj.last_name}"
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
