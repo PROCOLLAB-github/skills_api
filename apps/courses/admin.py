@@ -54,6 +54,7 @@ class TaskObjectAdmin(admin.ModelAdmin):
         "id",
         "task_name",
         "question_type",
+        "validate_answer",
         "has_popups",
         "ordinal_number",
     )
