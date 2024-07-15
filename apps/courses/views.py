@@ -174,10 +174,13 @@ class TaskStatsGet(generics.RetrieveAPIView):
 
         skill: Skill = get_object_or_404(
             Skill.published.annotate(
-                total_num_questions=Count("tasks__task_objects"),  # Общее кол-во вопросов навыка.
-                total_user_answers=Count(  # Общее кол-во ответов юзера в рамках навыка.
+                # Общее кол-во опубликованных вопросов навыка.
+                total_num_questions=Count("tasks__task_objects", filter=Q(tasks__status="published")),
+                # Общее кол-во ответов юзера на опубликованные вопросы в рамках навыка.
+                total_user_answers=Count(
                     "tasks__task_objects__user_results",
-                    filter=Q(tasks__task_objects__user_results__user_profile_id=self.profile_id),
+                    filter=(Q(tasks__task_objects__user_results__user_profile_id=self.profile_id)
+                            & Q(tasks__status="published")),
                 ),
             ),
             id=task.skill.id,
