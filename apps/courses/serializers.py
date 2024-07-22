@@ -54,7 +54,7 @@ class SkillsBasicSerializer(serializers.ModelSerializer):
         return 1
 
 
-class SkillSerializer(serializers.Serializer):
+class SkillDetailsSerializer(serializers.Serializer):
     skill_name = serializers.CharField()
     file = serializers.URLField()
     skill_preview = serializers.URLField()

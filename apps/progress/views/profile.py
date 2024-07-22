@@ -13,7 +13,7 @@ from procollab_skills.permissions import IfSubscriptionOutdatedPermission
 
 from progress.models import CustomUser
 from progress.serializers import (
-    ResponseSerializer,
+    UserProfileResponseSerializer,
     HollowSerializer,
     IntegerListSerializer,
     UserSerializer,
@@ -26,8 +26,8 @@ from progress.services import get_user_data, get_current_level, last_two_months_
 # TODO разобраться с выводом очков
 
 
-class UserProfileList(generics.ListAPIView):
-    serializer_class = ResponseSerializer
+class UserProfileList(generics.RetrieveAPIView):
+    serializer_class = UserProfileResponseSerializer
     permission_classes = [AllowAny]
 
     @extend_schema(
@@ -36,16 +36,12 @@ class UserProfileList(generics.ListAPIView):
     )
     def get(self, request, *args, **kwargs):
         user_data = get_user_data(self.user_profile.id)
-
         skills_and_levels = get_current_level(self.user_profile.id)
-
-        # months_stats = cache.get(f"months_data_{profile_id}", None)
-        # if months_stats is None:
         months_stats = last_two_months_stats(self.user_profile.id)
-        # cache.set(f"months_data_{profile_id}", months_stats, MONTHS_CACHING_TIMEOUT)
-
-        data = {"user_data": user_data} | {"skills": skills_and_levels} | {"months": months_stats}
-        return Response(data, status=200)
+        return Response(
+            {"user_data": user_data, "skills": skills_and_levels, "months": months_stats},
+            status=status.HTTP_200_OK
+        )
 
 
 @extend_schema(

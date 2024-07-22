@@ -1,21 +1,20 @@
-from decimal import Decimal, ROUND_HALF_UP
-
+from django.shortcuts import get_object_or_404
 from django.db.models import Count, Sum, Q, Exists, OuterRef, Subquery
 
-from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework import permissions
 
 from progress.models import TaskObjUserResult
+from progress.services import get_decimal_percent_round
 from .mapping import TYPE_TASK_OBJECT
 from .models import Task, Skill, TaskObject
 from .services import get_stats, get_skills_details
 from .typing import TaskResultData
 from .serializers import (
     TaskSerializer,
-    SkillSerializer,
+    SkillDetailsSerializer,
     SkillsBasicSerializer,
     TasksOfSkillSerializer,
     TaskResult,
@@ -28,7 +27,6 @@ from .serializers import (
 # )
 
 from progress.pagination import DefaultPagination
-from progress.serializers import ResponseSerializer
 from .serializers import IntegerListSerializer
 
 
@@ -110,10 +108,10 @@ class SkillsList(generics.ListAPIView):
     summary="Выводит подробную информацию о навыке",
     description="""Выводит только тот уровень, который юзер может пройти. Остальные для прохождения закрыты""",
     tags=["Навыки и задачи"],
-    responses={200: SkillSerializer},
+    responses={200: SkillDetailsSerializer},
 )
 class SkillDetails(generics.RetrieveAPIView):
-    serializer_class = ResponseSerializer
+    serializer_class = SkillDetailsSerializer
 
     def get(self, request, *args, **kwargs):
         # TODO FIX this
@@ -186,11 +184,7 @@ class TaskStatsGet(generics.RetrieveAPIView):
             id=task.skill.id,
         )
 
-        progress: int = 0
-        if skill.total_user_answers and skill.total_num_questions:
-            # Округление до %, round() работает некорректно, поэтому взят Decimal
-            decimal_progress: Decimal = Decimal(str((skill.total_user_answers / skill.total_num_questions) * 100))
-            progress: int = int(decimal_progress.quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+        progress: int = get_decimal_percent_round(skill.total_user_answers, skill.total_num_questions)
 
         data = TaskResultData(
             points_gained=task.points_gained if task.points_gained else 0,

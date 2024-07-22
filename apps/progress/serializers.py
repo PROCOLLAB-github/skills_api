@@ -7,28 +7,30 @@ from progress.models import CustomUser
 
 
 class UserDataSerializer(serializers.Serializer):
-    first_name = serializers.CharField(max_length=100)
-    last_name = serializers.CharField(max_length=100)
-    age = serializers.IntegerField()
-    specialization = serializers.CharField(max_length=100)
-    geo_position = serializers.CharField(max_length=100)
+    first_name = serializers.CharField(read_only=True)
+    last_name = serializers.CharField(read_only=True)
+    age = serializers.IntegerField(read_only=True)
+    specialization = serializers.CharField(read_only=True)
+    geo_position = serializers.CharField(read_only=True)
+    file_link = serializers.CharField(read_only=True)
 
 
-class SkillSerializer(serializers.Serializer):
-    skill_name = serializers.CharField(max_length=100)
-    level = serializers.IntegerField(help_text="""Выводится как 'количество пройденный уровней' + 1'""")
-    progress = serializers.IntegerField(required=False, help_text="""Выводится только выбран юзером""")
+class UserSkillProgressSerializer(serializers.Serializer):
+    skill_id = serializers.IntegerField(read_only=True)
+    skill_name = serializers.CharField(read_only=True)
+    level = serializers.IntegerField(read_only=True)
+    progress = serializers.IntegerField(read_only=True)
 
 
-class MonthSerializer(serializers.Serializer):
-    month = serializers.CharField(max_length=100)
-    is_passed = serializers.BooleanField()
+class MonthSerializerResponseSerializer(serializers.Serializer):
+    month = serializers.CharField(read_only=True)
+    is_passed = serializers.BooleanField(read_only=True)
 
 
-class ResponseSerializer(serializers.Serializer):
-    user_data = UserDataSerializer()
-    skills = SkillSerializer(many=True)
-    months = MonthSerializer(many=True)
+class UserProfileResponseSerializer(serializers.Serializer):
+    user_data = UserDataSerializer(read_only=True)
+    skills = UserSkillProgressSerializer(many=True, read_only=True)
+    months = MonthSerializerResponseSerializer(many=True, read_only=True)
 
 
 class HollowSerializer(serializers.Serializer):
