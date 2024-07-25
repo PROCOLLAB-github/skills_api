@@ -72,6 +72,12 @@ class Skill(AbstractStatusField):
 
 
 class Task(AbstractStatusField):
+    WEEK_CHOICES = [
+        (1, "1 Неделя"),
+        (2, "2 Неделя"),
+        (3, "3 Неделя"),
+        (4, "4 Неделя (До конца месяца)"),
+    ]
     ordinal_number = models.PositiveSmallIntegerField(
         null=True,
         blank=True,
@@ -81,7 +87,7 @@ class Task(AbstractStatusField):
     name = models.CharField(max_length=50, verbose_name="Название")
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE, related_name="tasks", verbose_name="Навык")
     level = models.IntegerField(default=1, verbose_name="Уровень")
-    # TODO добавить порядковый номер для показа
+    week = models.PositiveSmallIntegerField(choices=WEEK_CHOICES, default=1, verbose_name="Неделя")
 
     def __str__(self):
         return f"name:<{self.name}> skill:<{self.skill.name}> level:<{self.level}>"

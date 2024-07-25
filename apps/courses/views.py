@@ -9,17 +9,19 @@ from rest_framework.response import Response
 from rest_framework import permissions
 
 from progress.models import TaskObjUserResult
+from courses.permissions import CheckUserHasWeekPermission
+from procollab_skills.permissions import IfSubscriptionOutdatedPermission
 from .mapping import TYPE_TASK_OBJECT
 from .models import Task, Skill, TaskObject
-from .services import get_stats, get_skills_details
+from .services import get_stats
 from .typing import TaskResultData
 from .serializers import (
     TaskSerializer,
-    SkillSerializer,
     SkillsBasicSerializer,
-    TasksOfSkillSerializer,
+    TaskOfSkillProgressSerializerData,
     TaskResult,
     CoursesResponseSerializer,
+    SkillDetailsSerializer,
 )
 
 
@@ -28,12 +30,12 @@ from .serializers import (
 # )
 
 from progress.pagination import DefaultPagination
-from progress.serializers import ResponseSerializer
 from .serializers import IntegerListSerializer
 
 
 class TaskList(generics.RetrieveAPIView):
     serializer_class = TaskSerializer
+    permission_classes = [IfSubscriptionOutdatedPermission, CheckUserHasWeekPermission]
 
     @extend_schema(
         summary="Выводит информацию о задаче",
@@ -110,27 +112,26 @@ class SkillsList(generics.ListAPIView):
     summary="Выводит подробную информацию о навыке",
     description="""Выводит только тот уровень, который юзер может пройти. Остальные для прохождения закрыты""",
     tags=["Навыки и задачи"],
-    responses={200: SkillSerializer},
+    responses={200: SkillDetailsSerializer},
 )
 class SkillDetails(generics.RetrieveAPIView):
-    serializer_class = ResponseSerializer
+    queryset = Skill.published.all()
+    serializer_class = SkillDetailsSerializer
+    lookup_field = "skill_id"
 
-    def get(self, request, *args, **kwargs):
-        # TODO FIX this
+    def get_object(self):
         # Временно статично "1 уровень" для навыков
-        skill_detail = get_skills_details(self.kwargs.get("skill_id"), self.profile_id)
-        skill_detail["level"] = 1
-        return Response(skill_detail, status=200)
+        skill_id = self.kwargs.get(self.lookup_field)
+        return get_object_or_404(self.queryset, pk=skill_id)
 
 
 @extend_schema(
     summary="""Вывод задач для навыков""",
-    request=IntegerListSerializer,
-    responses={200: TasksOfSkillSerializer(many=True)},
+    responses={200: TaskOfSkillProgressSerializerData},
     tags=["Навыки и задачи"],
 )
-class TasksOfSkill(generics.ListAPIView):
-    serializer_class = TasksOfSkillSerializer
+class TasksOfSkill(generics.RetrieveAPIView):
+    serializer_class = TaskOfSkillProgressSerializerData
 
     def get(self, request, *args, **kwargs):
         skill = get_object_or_404(Skill.published.all(), id=self.kwargs.get("skill_id"))
@@ -145,6 +146,7 @@ class TasksOfSkill(generics.ListAPIView):
 )
 class TaskStatsGet(generics.RetrieveAPIView):
     serializer_class = TaskResult
+    permission_classes = [IfSubscriptionOutdatedPermission, CheckUserHasWeekPermission]
 
     def get(self, request, *args, **kwargs) -> Response:
         task_id: int = self.kwargs.get("task_id")

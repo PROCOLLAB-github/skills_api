@@ -45,7 +45,7 @@ def get_current_level(user_profile_id: int) -> dict[SkillIdType, SkillProgressTy
     """Выдаёт наиболее маленький непройденный уровень у всех скиллов пользователя"""
 
     # Навыки и id навыков пользователя.
-    user_skills, user_skills_ids = get_user_tasks(user_profile_id)
+    user_skills, user_skills_ids = get_user_skills(user_profile_id)
 
     # Получение значений для всех задач, связанных с навыками пользователя.
     tasks: QuerySet = (
@@ -138,7 +138,7 @@ def last_two_months_stats(user_profile_id: int) -> list[SkillMonthProgressType]:
     return months_data
 
 
-def get_user_tasks(user_profile_id: int) -> tuple[QuerySet[Skill], QuerySet]:
+def get_user_skills(user_profile_id: int) -> tuple[QuerySet[Skill], QuerySet]:
     """Получение всех навыков и их id для конкретного пользователя."""
     user_skills: QuerySet[Skill] = Skill.published.filter(
         Q(intermediateuserskills__user_profile__id=user_profile_id)

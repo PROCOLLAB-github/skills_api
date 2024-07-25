@@ -1,106 +1,68 @@
-from django.db.models import Prefetch, Count, F, Q
-from django.shortcuts import get_object_or_404
+import datetime
+import math
 
-from courses.models import Task, Skill
-from progress.models import TaskObjUserResult
+from django.db.models import Prefetch, Q, QuerySet
+from django.utils import timezone
+
+from courses.models import Task
+from progress.models import TaskObjUserResult, UserProfile
 
 
 def get_stats(skill_id: int, profile_id: int) -> dict:
-    tasks_of_skill = (
-        Task.published.prefetch_related(
-            Prefetch(
-                "task_objects__user_results",
-                queryset=TaskObjUserResult.objects.filter(user_profile_id=profile_id),
-                to_attr="filtered_user_results",
+    available_user_tasks: QuerySet[Task] | None = get_user_available_tasks(skill_id, profile_id)
+    if available_user_tasks:
+        tasks_of_skill = (
+            available_user_tasks.prefetch_related(
+                Prefetch(
+                    "task_objects__user_results",
+                    queryset=TaskObjUserResult.objects.filter(user_profile_id=profile_id),
+                    to_attr="filtered_user_results",
+                )
+            ).prefetch_related("task_objects")
+            .filter(
+                skill_id=skill_id,
+                skill__status="published",
+                id__in=available_user_tasks.values('id')
             )
-        ).prefetch_related("task_objects")
-        .filter(skill_id=skill_id, skill__status="published")
-    )
-
-    data = []
-
-    for task in tasks_of_skill:
-        user_results_count = sum(1 for obj in task.task_objects.all() if obj.filtered_user_results)
-        data.append(
-            {
-                "id": task.id,
-                "name": task.name,
-                "level": task.level,
-                "status": user_results_count == task.task_objects.all().count(),
-            }
         )
 
-    statuses = (sum(1 for obj in data if obj["status"]) / tasks_of_skill.count()) * 100 if tasks_of_skill.count() else 0
-    new_data = {"progress": int(statuses), "tasks": data}
+        data = []
+
+        for task in tasks_of_skill:
+            user_results_count = sum(1 for obj in task.task_objects.all() if obj.filtered_user_results)
+            data.append(
+                {
+                    "id": task.id,
+                    "name": task.name,
+                    "level": task.level,
+                    "week": task.week,
+                    "status": user_results_count == task.task_objects.all().count(),
+                }
+            )
+
+        statuses = ((sum(1 for obj in data if obj["status"])
+                     / tasks_of_skill.count()) * 100 if tasks_of_skill.count() else 0)
+        new_data = {"progress": int(statuses), "tasks": data}
+    else:
+        new_data = {"progress": 0, "tasks": []}
     return new_data
 
 
-def get_skills_details(skill_id: int, user_profile_id: int) -> dict:
-    # user_profile_id = UserProfile.objects.get(user_id=self.request.user.id).id
+def get_user_available_tasks(profile_id: int, skill_id: int) -> QuerySet[Task] | None:
+    """
+    Основной интерфейс ограничения заданий для пользователя по неделям.
+    Если подписка вообще не оформлена, то -> `None`.
+    """
+    subscription_date: datetime = UserProfile.objects.get(pk=profile_id).last_subscription_date
 
-    skill = get_object_or_404(  # получаем все скиллы у юзера. те, которые он выбрал, и те, которые он пытался решать
-        Skill.published.select_related("file", "skill_preview", "skill_point_logo")
-        .annotate(total_tasks=Count("tasks"))
-        .distinct()
-        .filter(id=skill_id)
-    )
-
-    tasks = (  # получаем все задачи у скиллов с количеством вопросов и ответов
-        Task.published.select_related("skill")
-        .filter(skill=skill)
-        .annotate(
-            num_questions=Count("task_objects"),
-            num_answers=Count("task_objects__user_results"),
+    if subscription_date:
+        current_date: datetime = timezone.now().date()
+        # Если подписка была сегодня то прошло дней 0, сооотв -> 1.
+        days_since_subscription: datetime.timedelta = (current_date - subscription_date).days or 1
+        # Дробный результат преобразуется в бОльшую часть, пример: 2.1 -> 3
+        # (т.е. как началась 3 неделя, чтобы она была включительно)
+        current_week: int = math.ceil(days_since_subscription / 7)
+        tasks: QuerySet[Task] = Task.published.filter(
+            (Q(week__lte=current_week) | Q(week=current_week)) & Q(skill__id=skill_id)
         )
-        .distinct()
-    )
-
-    skill_data = {
-        skill.id: {
-            "skill_name": skill.name,
-            "file": skill.file.link if skill.file else None,
-            "skill_preview": skill.skill_preview.link if skill.skill_preview else None,
-            "skill_point_logo": skill.skill_point_logo.link if skill.skill_point_logo else None,
-            "description": skill.description,
-            "progress": 0,
-        }
-    }
-
-    # скилла, для каждого уровня, для каждого уровня, если все задачи решены, то накидываем уровень для скилла
-
-    levels_of_skill = tasks.values_list("level", flat=True).distinct()
-    for level in levels_of_skill:
-        if "level" not in skill_data[skill.id].keys():
-            skill_data[skill.id]["level"] = 0
-
-        task_statistics = tasks.filter(level=level, skill=skill).aggregate(
-            quantity_tasks_of_skill=Count("id"),
-            quantity_of_done_tasks=Count("id", filter=F("num_questions") == F("num_answers")),
-        )
-
-        total_tasks = task_statistics.get("quantity_tasks_of_skill", 0)
-        total_done_tasks = task_statistics.get("quantity_of_done_tasks", 0)
-
-        if total_tasks == total_done_tasks:
-            skill_data[skill.id]["level"] += 1
-
-    user_skills_ids = [skill.id]
-
-    # проверка прогресса недопройденных навыков
-    undone_tasks = tasks.filter(
-        ~Q(num_questions=F("num_answers")),
-        level=skill_data[skill_id].get("level"),
-        skill__id=skill_id,
-    )
-    # raise ValueError(tasks, undone_tasks, skill_data[skill_id]["level"])
-    if skill_id in user_skills_ids:
-        quantity_tasks_undone = undone_tasks.count()
-        if quantity_tasks_undone:
-            progress = (
-                sum(undone_task.num_answers / undone_task.num_questions for undone_task in undone_tasks)
-                / quantity_tasks_undone
-            )
-            skill_data[skill_id]["progress"] = progress * 100
-
-    first_key = list(skill_data.keys())[0]
-    return skill_data[first_key]
+        return tasks

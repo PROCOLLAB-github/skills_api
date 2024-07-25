@@ -17,6 +17,7 @@ class TaskResponseSerializerData:
     id: int
     name: str
     level: int
+    week: int
     status: bool
 
 
@@ -26,3 +27,9 @@ class PopupSerializerData:
     text: str | None
     file_link: str | None
     ordinal_number: int
+
+
+@dataclass
+class TaskOfSkillProgressSerializerData:
+    progress: int
+    tasks: list[TaskResponseSerializerData]
