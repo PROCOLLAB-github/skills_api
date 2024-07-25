@@ -26,6 +26,7 @@ class TaskAdmin(admin.ModelAdmin):
         "skill",
         "level",
         "status",
+        "week",
     )
 
 

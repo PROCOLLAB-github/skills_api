@@ -9,7 +9,7 @@ from progress.models import TaskObjUserResult, UserProfile
 
 
 def get_stats(skill_id: int, profile_id: int) -> dict:
-    available_user_tasks: QuerySet[Task] | None = get_user_available_tasks(skill_id, profile_id)
+    available_user_tasks: QuerySet[Task] | None = get_user_available_tasks(profile_id, skill_id)
     if available_user_tasks:
         tasks_of_skill = (
             available_user_tasks.prefetch_related(
