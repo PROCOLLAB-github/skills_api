@@ -12,7 +12,6 @@ from questions import serializers
 from questions import api_examples
 from questions.exceptions import UserAlreadyAnsweredException
 from questions.mapping import TypeQuestionPoints
-from courses.permissions import CheckUserHasWeekPermission
 from questions.permissions import CheckQuestionTypePermission, SimpleCheckQuestionTypePermission
 from questions.services import handle_no_validation_required
 from questions.models import (
@@ -45,11 +44,7 @@ from questions.models import (
 class SingleCorrectPost(generics.CreateAPIView):
     serializer_class = serializers.SingleCorrectPostSerializer
     expected_question_model = QuestionSingleAnswer
-    permission_classes = [
-        IfSubscriptionOutdatedPermission,
-        CheckQuestionTypePermission,
-        CheckUserHasWeekPermission,
-    ]
+    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
@@ -106,11 +101,7 @@ class SingleCorrectPost(generics.CreateAPIView):
 )
 class ConnectQuestionPost(generics.CreateAPIView):
     serializer_class = serializers.ConnectQuestionPostResponseSerializer
-    permission_classes = [
-        IfSubscriptionOutdatedPermission,
-        CheckQuestionTypePermission,
-        CheckUserHasWeekPermission,
-    ]
+    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
     expected_question_model = QuestionConnect
 
     def create(self, request, *args, **kwargs) -> Response:
@@ -188,11 +179,7 @@ class ConnectQuestionPost(generics.CreateAPIView):
 )
 class QuestionExcludePost(generics.CreateAPIView):
     serializer_class = serializers.SimpleNumberListSerializer
-    permission_classes = [
-        IfSubscriptionOutdatedPermission,
-        CheckQuestionTypePermission,
-        CheckUserHasWeekPermission,
-    ]
+    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
     expected_question_model = QuestionSingleAnswer
 
     def create(self, request, *args, **kwargs) -> Response:
@@ -251,11 +238,7 @@ class QuestionExcludePost(generics.CreateAPIView):
 class QuestionWritePost(generics.CreateAPIView):
     serializer_class = serializers.WriteAnswerTextSerializer
     expected_question_model = QuestionWrite
-    permission_classes = [
-        IfSubscriptionOutdatedPermission,
-        SimpleCheckQuestionTypePermission,
-        CheckUserHasWeekPermission,
-    ]
+    permission_classes = [IfSubscriptionOutdatedPermission, SimpleCheckQuestionTypePermission]
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
@@ -283,11 +266,7 @@ class QuestionWritePost(generics.CreateAPIView):
 )
 class InfoSlidePost(generics.CreateAPIView):
     expected_question_model = InfoSlide
-    permission_classes = [
-        IfSubscriptionOutdatedPermission,
-        SimpleCheckQuestionTypePermission,
-        CheckUserHasWeekPermission,
-    ]
+    permission_classes = [IfSubscriptionOutdatedPermission, SimpleCheckQuestionTypePermission]
 
     def create(self, request, *args, **kwargs) -> Response:
         try:

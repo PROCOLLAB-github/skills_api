@@ -49,6 +49,7 @@ def get_current_level(user_profile_id: int) -> dict[SkillIdType, SkillProgressTy
 
     # Получение значений для всех задач, связанных с навыками пользователя.
     tasks: QuerySet = (
+        # TODO Fix как утвердится инфа для профиля, надо учесть недели.
         Task.published.filter(skill__in=user_skills_ids)
         .annotate(
             num_questions=Count("task_objects"),

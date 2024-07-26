@@ -28,6 +28,7 @@ class TaskAdmin(admin.ModelAdmin):
         "status",
         "week",
     )
+    list_filter = ["week"]
 
 
 class TaskObjectForm(forms.ModelForm):

@@ -9,11 +9,9 @@ from rest_framework.response import Response
 from rest_framework import permissions
 
 from progress.models import TaskObjUserResult
-from courses.permissions import CheckUserHasWeekPermission
-from procollab_skills.permissions import IfSubscriptionOutdatedPermission
 from .mapping import TYPE_TASK_OBJECT
 from .models import Task, Skill, TaskObject
-from .services import get_stats
+from .services import get_stats, get_user_available_week
 from .typing import TaskResultData
 from .serializers import (
     TaskSerializer,
@@ -35,7 +33,6 @@ from .serializers import IntegerListSerializer
 
 class TaskList(generics.RetrieveAPIView):
     serializer_class = TaskSerializer
-    permission_classes = [IfSubscriptionOutdatedPermission, CheckUserHasWeekPermission]
 
     @extend_schema(
         summary="Выводит информацию о задаче",
@@ -45,9 +42,10 @@ class TaskList(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
 
         task_id = self.kwargs.get("task_id")
-
+        available_week: int = get_user_available_week(self.profile_id)
         task = get_object_or_404(
-            Task.published
+            Task.available
+            .only_awailable_weeks(available_week)
             .select_related("skill__skill_preview", "skill__skill_point_logo"),
             id=int(task_id),
         )
@@ -117,12 +115,7 @@ class SkillsList(generics.ListAPIView):
 class SkillDetails(generics.RetrieveAPIView):
     queryset = Skill.published.all()
     serializer_class = SkillDetailsSerializer
-    lookup_field = "skill_id"
-
-    def get_object(self):
-        # Временно статично "1 уровень" для навыков
-        skill_id = self.kwargs.get(self.lookup_field)
-        return get_object_or_404(self.queryset, pk=skill_id)
+    lookup_url_kwarg = "skill_id"
 
 
 @extend_schema(
@@ -146,13 +139,14 @@ class TasksOfSkill(generics.RetrieveAPIView):
 )
 class TaskStatsGet(generics.RetrieveAPIView):
     serializer_class = TaskResult
-    permission_classes = [IfSubscriptionOutdatedPermission, CheckUserHasWeekPermission]
 
     def get(self, request, *args, **kwargs) -> Response:
         task_id: int = self.kwargs.get("task_id")
-
+        available_week: int = get_user_available_week(self.profile_id)
         task: Task = get_object_or_404(
-            Task.published.annotate(
+            (Task.available
+             .only_awailable_weeks(available_week)  # Только доступыне недели.
+             .annotate(
                 total_questions=Count("task_objects", distinct=True),  # Всего вопросов в задании.
                 total_answers=Count(  # Всего ответов пользователя в задании.
                     "task_objects__user_results",
@@ -165,24 +159,29 @@ class TaskStatsGet(generics.RetrieveAPIView):
                     distinct=True,
                 ),
                 next_task_id=Subquery(  # ID следующего задания.
-                    Task.published.filter(
-                        skill=OuterRef("skill"),
-                        ordinal_number=OuterRef("ordinal_number") + 1
-                    ).values("id")[:1]
-                )
-            ),
+                    Task.available
+                    .only_awailable_weeks(available_week)  # Только доступыне недели.
+                    .filter(skill=OuterRef("skill"), ordinal_number=OuterRef("ordinal_number") + 1)
+                    .values("id")[:1]
+                ))),
             id=task_id,
         )
 
         skill: Skill = get_object_or_404(
             Skill.published.annotate(
                 # Общее кол-во опубликованных вопросов навыка.
-                total_num_questions=Count("tasks__task_objects", filter=Q(tasks__status="published")),
+                total_num_questions=Count(
+                    "tasks__task_objects",
+                    filter=(Q(tasks__status="published") & Q(tasks__week__lte=available_week))
+                ),
                 # Общее кол-во ответов юзера на опубликованные вопросы в рамках навыка.
                 total_user_answers=Count(
                     "tasks__task_objects__user_results",
-                    filter=(Q(tasks__task_objects__user_results__user_profile_id=self.profile_id)
-                            & Q(tasks__status="published")),
+                    filter=(
+                        Q(tasks__task_objects__user_results__user_profile_id=self.profile_id)
+                        & Q(tasks__status="published")
+                        & Q(tasks__week__lte=available_week)  # Только доступыне недели.
+                    ),
                 ),
             ),
             id=task.skill.id,

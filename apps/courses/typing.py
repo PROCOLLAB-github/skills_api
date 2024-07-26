@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import TypedDict
 
 
 @dataclass
@@ -33,3 +34,8 @@ class PopupSerializerData:
 class TaskOfSkillProgressSerializerData:
     progress: int
     tasks: list[TaskResponseSerializerData]
+
+
+class GetStatsDict(TypedDict):
+    progress: int
+    tasks: list[list | None]
