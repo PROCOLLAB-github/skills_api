@@ -3,8 +3,7 @@ from django.db import models
 
 from django.utils import timezone
 
-from progress.manager import CustomUserManager
-from progress.managers import TaskObjUserResultManager, UserProfileManager
+from progress.managers import TaskObjUserResultManager, UserProfileManager, CustomUserManager
 
 from progress.validators import user_name_validator
 from subscription.models import SubscriptionType

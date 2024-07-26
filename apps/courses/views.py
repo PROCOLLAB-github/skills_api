@@ -45,8 +45,7 @@ class TaskList(generics.RetrieveAPIView):
         task_id = self.kwargs.get("task_id")
 
         task = get_object_or_404(
-            Task.published
-            .select_related("skill__skill_preview", "skill__skill_point_logo"),
+            Task.published.select_related("skill__skill_preview", "skill__skill_point_logo"),
             id=int(task_id),
         )
 
@@ -138,7 +137,7 @@ class TasksOfSkill(generics.ListAPIView):
 
 
 @extend_schema(
-    summary="""Инфа о новом уровне""",
+    summary="Инфа о новом уровне",
     request=IntegerListSerializer,
     responses={200: TaskResult},
     tags=["Навыки и задачи"],
@@ -164,10 +163,9 @@ class TaskStatsGet(generics.RetrieveAPIView):
                 ),
                 next_task_id=Subquery(  # ID следующего задания.
                     Task.published.filter(
-                        skill=OuterRef("skill"),
-                        ordinal_number=OuterRef("ordinal_number") + 1
+                        skill=OuterRef("skill"), ordinal_number=OuterRef("ordinal_number") + 1
                     ).values("id")[:1]
-                )
+                ),
             ),
             id=task_id,
         )
