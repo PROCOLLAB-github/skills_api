@@ -43,8 +43,8 @@ from questions.models import (
 )
 class SingleCorrectPost(generics.CreateAPIView):
     serializer_class = serializers.SingleCorrectPostSerializer
-    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
     expected_question_model = QuestionSingleAnswer
+    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
@@ -237,8 +237,8 @@ class QuestionExcludePost(generics.CreateAPIView):
 )
 class QuestionWritePost(generics.CreateAPIView):
     serializer_class = serializers.WriteAnswerTextSerializer
-    permission_classes = [IfSubscriptionOutdatedPermission, SimpleCheckQuestionTypePermission]
     expected_question_model = QuestionWrite
+    permission_classes = [IfSubscriptionOutdatedPermission, SimpleCheckQuestionTypePermission]
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
@@ -265,8 +265,8 @@ class QuestionWritePost(generics.CreateAPIView):
     examples=[api_examples.USER_ALREADY_DONE_TASK, api_examples.WRONG_TASKOBJECT],
 )
 class InfoSlidePost(generics.CreateAPIView):
-    permission_classes = [IfSubscriptionOutdatedPermission, SimpleCheckQuestionTypePermission]
     expected_question_model = InfoSlide
+    permission_classes = [IfSubscriptionOutdatedPermission, SimpleCheckQuestionTypePermission]
 
     def create(self, request, *args, **kwargs) -> Response:
         try:

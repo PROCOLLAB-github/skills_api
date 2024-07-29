@@ -38,8 +38,8 @@ from questions.typing import (
 
 class QuestionSingleAnswerGet(generics.RetrieveAPIView):
     serializer_class = SingleQuestionAnswerSerializer
-    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
     expected_question_model = QuestionSingleAnswer
+    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
 
     @extend_schema(
         summary="Выводит данные для трёх видов вопросов (см. описание)",
@@ -77,8 +77,8 @@ class QuestionSingleAnswerGet(generics.RetrieveAPIView):
 
 class QuestionConnectGet(generics.RetrieveAPIView):
     serializer_class = ConnectQuestionSerializer
-    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
     expected_question_model = QuestionConnect
+    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
 
     @extend_schema(
         summary="Получить данные для вопроса на соотношение",
@@ -124,8 +124,8 @@ class QuestionConnectGet(generics.RetrieveAPIView):
 
 class QuestionExcludeAnswerGet(generics.RetrieveAPIView):
     serializer_class = SingleQuestionAnswerSerializer
-    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
     expected_question_model = QuestionSingleAnswer
+    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
 
     @extend_schema(
         summary="Выводит данные для трёх видов вопросов (см. описание)",
@@ -164,8 +164,8 @@ class QuestionExcludeAnswerGet(generics.RetrieveAPIView):
 
 class InfoSlideDetails(generics.RetrieveAPIView):
     serializer_class = InfoSlideSerializer
-    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
     expected_question_model = InfoSlide
+    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
 
     @extend_schema(
         summary="Выводит информацию для информационного слайда",
@@ -194,8 +194,8 @@ class InfoSlideDetails(generics.RetrieveAPIView):
 # GET вопрос для текста
 class QuestionWriteAnswer(generics.RetrieveAPIView):
     serializer_class = WriteQuestionSerializer
-    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
     expected_question_model = QuestionWrite
+    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
 
     @extend_schema(
         summary="Выводит информацию для слайда с вопросом, для которого надо будет написать ответ",

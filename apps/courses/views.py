@@ -11,15 +11,15 @@ from rest_framework import permissions
 from progress.models import TaskObjUserResult
 from .mapping import TYPE_TASK_OBJECT
 from .models import Task, Skill, TaskObject
-from .services import get_stats, get_skills_details
+from .services import get_stats, get_user_available_week
 from .typing import TaskResultData
 from .serializers import (
     TaskSerializer,
-    SkillSerializer,
     SkillsBasicSerializer,
-    TasksOfSkillSerializer,
+    TaskOfSkillProgressSerializerData,
     TaskResult,
     CoursesResponseSerializer,
+    SkillDetailsSerializer,
 )
 
 
@@ -28,7 +28,6 @@ from .serializers import (
 # )
 
 from progress.pagination import DefaultPagination
-from progress.serializers import ResponseSerializer
 from .serializers import IntegerListSerializer
 
 
@@ -43,9 +42,10 @@ class TaskList(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
 
         task_id = self.kwargs.get("task_id")
-
+        available_week: int = get_user_available_week(self.profile_id)
         task = get_object_or_404(
-            Task.published
+            Task.available
+            .only_awailable_weeks(available_week)
             .select_related("skill__skill_preview", "skill__skill_point_logo"),
             id=int(task_id),
         )
@@ -110,27 +110,21 @@ class SkillsList(generics.ListAPIView):
     summary="Выводит подробную информацию о навыке",
     description="""Выводит только тот уровень, который юзер может пройти. Остальные для прохождения закрыты""",
     tags=["Навыки и задачи"],
-    responses={200: SkillSerializer},
+    responses={200: SkillDetailsSerializer},
 )
 class SkillDetails(generics.RetrieveAPIView):
-    serializer_class = ResponseSerializer
-
-    def get(self, request, *args, **kwargs):
-        # TODO FIX this
-        # Временно статично "1 уровень" для навыков
-        skill_detail = get_skills_details(self.kwargs.get("skill_id"), self.profile_id)
-        skill_detail["level"] = 1
-        return Response(skill_detail, status=200)
+    queryset = Skill.published.all()
+    serializer_class = SkillDetailsSerializer
+    lookup_url_kwarg = "skill_id"
 
 
 @extend_schema(
     summary="""Вывод задач для навыков""",
-    request=IntegerListSerializer,
-    responses={200: TasksOfSkillSerializer(many=True)},
+    responses={200: TaskOfSkillProgressSerializerData},
     tags=["Навыки и задачи"],
 )
-class TasksOfSkill(generics.ListAPIView):
-    serializer_class = TasksOfSkillSerializer
+class TasksOfSkill(generics.RetrieveAPIView):
+    serializer_class = TaskOfSkillProgressSerializerData
 
     def get(self, request, *args, **kwargs):
         skill = get_object_or_404(Skill.published.all(), id=self.kwargs.get("skill_id"))
@@ -148,9 +142,11 @@ class TaskStatsGet(generics.RetrieveAPIView):
 
     def get(self, request, *args, **kwargs) -> Response:
         task_id: int = self.kwargs.get("task_id")
-
+        available_week: int = get_user_available_week(self.profile_id)
         task: Task = get_object_or_404(
-            Task.published.annotate(
+            (Task.available
+             .only_awailable_weeks(available_week)  # Только доступыне недели.
+             .annotate(
                 total_questions=Count("task_objects", distinct=True),  # Всего вопросов в задании.
                 total_answers=Count(  # Всего ответов пользователя в задании.
                     "task_objects__user_results",
@@ -163,21 +159,29 @@ class TaskStatsGet(generics.RetrieveAPIView):
                     distinct=True,
                 ),
                 next_task_id=Subquery(  # ID следующего задания.
-                    Task.published.filter(
-                        skill=OuterRef("skill"),
-                        ordinal_number=OuterRef("ordinal_number") + 1
-                    ).values("id")[:1]
-                )
-            ),
+                    Task.available
+                    .only_awailable_weeks(available_week)  # Только доступыне недели.
+                    .filter(skill=OuterRef("skill"), ordinal_number=OuterRef("ordinal_number") + 1)
+                    .values("id")[:1]
+                ))),
             id=task_id,
         )
 
         skill: Skill = get_object_or_404(
             Skill.published.annotate(
-                total_num_questions=Count("tasks__task_objects"),  # Общее кол-во вопросов навыка.
-                total_user_answers=Count(  # Общее кол-во ответов юзера в рамках навыка.
+                # Общее кол-во опубликованных вопросов навыка.
+                total_num_questions=Count(
+                    "tasks__task_objects",
+                    filter=(Q(tasks__status="published") & Q(tasks__week__lte=available_week))
+                ),
+                # Общее кол-во ответов юзера на опубликованные вопросы в рамках навыка.
+                total_user_answers=Count(
                     "tasks__task_objects__user_results",
-                    filter=Q(tasks__task_objects__user_results__user_profile_id=self.profile_id),
+                    filter=(
+                        Q(tasks__task_objects__user_results__user_profile_id=self.profile_id)
+                        & Q(tasks__status="published")
+                        & Q(tasks__week__lte=available_week)  # Только доступыне недели.
+                    ),
                 ),
             ),
             id=task.skill.id,
