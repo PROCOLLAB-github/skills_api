@@ -6,6 +6,7 @@ from progress.views.profile import (
     CreateUserView,
     SubscriptionUserData,
     UpdateAutoRenewal,
+    GetUserProfileData,
 )
 from progress.views.rating import UserScoreRating, UserSkillsRating
 
@@ -39,5 +40,9 @@ urlpatterns = [
     path(
         "update-auto-renewal/",
         UpdateAutoRenewal.as_view(),
+    ),
+    path(
+        "user-data/",
+        GetUserProfileData.as_view(),
     ),
 ]
