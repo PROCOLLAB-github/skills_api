@@ -103,3 +103,21 @@ class SubProclong(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ["is_autopay_allowed"]
+
+
+class CustomUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = [
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "patronymic",
+            "city",
+            "organization",
+            "age",
+            "specialization",
+            "datetime_updated",
+            "datetime_created",
+        ]

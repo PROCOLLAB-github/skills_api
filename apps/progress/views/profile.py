@@ -3,7 +3,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView, get_object_or_404
 from rest_framework import permissions
 
 from courses.models import Skill
@@ -18,6 +18,7 @@ from progress.serializers import (
     IntegerListSerializer,
     UserSerializer,
     SubProclong,
+    CustomUserSerializer,
 )
 from subscription.serializers import UserSubscriptionDataSerializer
 from progress.services import get_user_data, get_current_level, last_two_months_stats
@@ -108,3 +109,12 @@ class UpdateAutoRenewal(UpdateAPIView):
         self.user_profile.save()
 
         return Response(status=204)
+
+
+class GetUserProfileData(ListAPIView):
+    serializer_class = CustomUserSerializer
+
+    def get(self, request, *args, **kwargs) -> Response:
+        user = get_object_or_404(CustomUser.objects.all(), pk=self.request.user.id)
+        serializer = self.serializer_class(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
