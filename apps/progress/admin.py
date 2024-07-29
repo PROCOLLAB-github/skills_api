@@ -8,6 +8,7 @@ from .models import TaskObjUserResult, CustomUser, UserProfile, IntermediateUser
 @admin.register(TaskObjUserResult)
 class TaskAdmin(admin.ModelAdmin):
     ordering = ("-datetime_created",)
+    list_display = ("id", "task_object", "user_profile", "datetime_created")
 
 
 @admin.register(CustomUser)

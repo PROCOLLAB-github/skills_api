@@ -2,8 +2,13 @@ from rest_framework import serializers
 from rest_framework_dataclasses.serializers import DataclassSerializer
 
 from courses.mapping import SWAGGER_API_HINTS
-from courses.models import Skill, Task
-from courses.typing import TaskResultData, TaskResponseSerializerData, PopupSerializerData
+from courses.models import Skill
+from courses.typing import (
+    TaskResultData,
+    TaskResponseSerializerData,
+    PopupSerializerData,
+    TaskOfSkillProgressSerializerData,
+)
 
 
 class StepSerializer(serializers.Serializer):
@@ -34,10 +39,9 @@ class CoursesResponseSerializer(TaskSerializer):
     tasks = TaskResponseSerializer(many=True)
 
 
-class TasksOfSkillSerializer(serializers.ModelSerializer):
+class TaskOfSkillProgressSerializerData(DataclassSerializer):
     class Meta:
-        model = Task
-        exclude = ["skill"]
+        dataclass = TaskOfSkillProgressSerializerData
 
 
 class SkillsBasicSerializer(serializers.ModelSerializer):
@@ -54,16 +58,6 @@ class SkillsBasicSerializer(serializers.ModelSerializer):
         return 1
 
 
-class SkillSerializer(serializers.Serializer):
-    skill_name = serializers.CharField()
-    file = serializers.URLField()
-    skill_preview = serializers.URLField()
-    skill_point_logo = serializers.URLField()
-    description = serializers.CharField()
-    level = serializers.IntegerField()
-    progress = serializers.IntegerField()
-
-
 class TaskResult(DataclassSerializer):
 
     class Meta:
@@ -77,3 +71,35 @@ class PopupSerializer(DataclassSerializer):
 
 
 IntegerListSerializer = serializers.ListSerializer(child=serializers.IntegerField(), allow_empty=False)
+
+
+class SkillDetailsSerializer(serializers.ModelSerializer):
+    skill_name = serializers.CharField(source="name")
+    file = serializers.SerializerMethodField()
+    skill_preview = serializers.SerializerMethodField()
+    skill_point_logo = serializers.SerializerMethodField()
+    level = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Skill
+        fields = (
+            "skill_name",
+            "file",
+            "skill_preview",
+            "skill_point_logo",
+            "description",
+            "level",
+        )
+
+    def get_level(self, obj) -> int:
+        # Просьба захардкодить на 1 уровень везде.
+        return 1
+
+    def get_file(self, obj) -> str | None:
+        return obj.file.link if obj.file else None
+
+    def get_skill_preview(self, obj) -> str | None:
+        return obj.skill_preview.link if obj.skill_preview else None
+
+    def get_skill_point_logo(self, obj) -> str | None:
+        return obj.skill_point_logo.link if obj.skill_point_logo else None
