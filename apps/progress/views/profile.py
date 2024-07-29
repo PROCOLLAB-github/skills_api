@@ -8,7 +8,6 @@ from rest_framework import permissions
 
 from courses.models import Skill
 
-
 from procollab_skills.permissions import IfSubscriptionOutdatedPermission
 
 from progress.models import CustomUser
@@ -111,6 +110,10 @@ class UpdateAutoRenewal(UpdateAPIView):
         return Response(status=204)
 
 
+@extend_schema(
+    summary="""Получить данные о юзере""",
+    tags=["Профиль"],
+)
 class GetUserProfileData(ListAPIView):
     serializer_class = CustomUserSerializer
 
