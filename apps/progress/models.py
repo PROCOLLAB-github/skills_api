@@ -1,11 +1,9 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
 from django.utils import timezone
 
 from progress.manager import CustomUserManager
 from progress.managers import TaskObjUserResultManager, UserProfileManager
-
 from progress.validators import user_name_validator
 from subscription.models import SubscriptionType
 
@@ -126,3 +124,88 @@ class TaskObjUserResult(models.Model):
         verbose_name = "Ответ пользователя на единицу задания"
         verbose_name_plural = "Ответы пользователя на единицу задания"
         unique_together = ("task_object", "user_profile")
+
+
+class UserSkillDone(models.Model):
+    """
+    Завершенные навыки пользователя.
+    Запись создается сигналом от `TaskObjUserResult` через Celery task.
+    """
+
+    user_profile = models.ForeignKey(
+        UserProfile,
+        on_delete=models.CASCADE,
+        related_name="done_skills",
+        verbose_name="Пользователь",
+    )
+    skill = models.ForeignKey(
+        "courses.Skill",
+        on_delete=models.CASCADE,
+        related_name="done_skills",
+        verbose_name="Навык",
+    )
+    additional_points = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name="Дополнительные баллы",
+        help_text="Начисляются за прохождение месяца вовремя.",
+    )
+
+    def __str__(self):
+        return f"{self.user_profile.user.first_name} {self.user_profile.user.last_name}: {self.skill.name}"
+
+    class Meta:
+        verbose_name = "Завершенный навык"
+        verbose_name_plural = "Завершенные навыки"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user_profile", "skill"],
+                name="unique_skill_in_profile"
+            )
+        ]
+
+
+class UserWeekStat(models.Model):
+    """
+    Завершенные недели пользователя.
+    Запись создается сигналом от `TaskObjUserResult` через Celery task.
+    """
+
+    WEEK_CHOICES = [
+        (1, "1 Неделя"),
+        (2, "2 Неделя"),
+        (3, "3 Неделя"),
+        (4, "4 Неделя"),
+    ]
+    user_profile = models.ForeignKey(
+        UserProfile,
+        on_delete=models.CASCADE,
+        related_name="weeks_result",
+        verbose_name="Пользователь",
+    )
+    skill = models.ForeignKey(
+        "courses.Skill",
+        on_delete=models.CASCADE,
+        related_name="weeks_result",
+        verbose_name="Навык",
+    )
+    additional_points = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name="Дополнительные баллы",
+        help_text="Начисляются за прохождение недели вовремя.",
+    )
+    week = models.PositiveSmallIntegerField(choices=WEEK_CHOICES, verbose_name="Неделя")
+    is_done = models.BooleanField(verbose_name="Неделя завершена")
+    created = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+
+    class Meta:
+        verbose_name = "Завершенная неделя"
+        verbose_name_plural = "Завершенные недели"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user_profile", "skill", "week"],
+                name="unique_week_stat"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user_profile.user.first_name}: {self.skill.name} - week {self.week}"

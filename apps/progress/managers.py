@@ -35,6 +35,14 @@ class TaskObjUserResultManager(Manager):
             else:
                 raise IntegrityError(str(e))
 
+    def get_wiht_related_fields(self, task_obj_id: int):
+        return self.get_queryset().select_related(
+            "user_profile",
+            "task_object",
+            "task_object__task",
+            "task_object__task__skill",
+        ).get(pk=task_obj_id)
+
 
 class UserProfileManager(Manager):
     def prefetch_current_skills(self):
