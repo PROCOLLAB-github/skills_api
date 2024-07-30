@@ -106,6 +106,8 @@ class SubProclong(serializers.ModelSerializer):
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
+    avatar = serializers.SerializerMethodField()
+
     class Meta:
         model = CustomUser
         fields = [
@@ -120,4 +122,9 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "specialization",
             "datetime_updated",
             "datetime_created",
+            "avatar",
         ]
+
+    def get_avatar(self, obj: CustomUser) -> str | None:
+        if file := obj.profiles.file:
+            return file.link
