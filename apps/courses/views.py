@@ -44,6 +44,7 @@ class TaskList(generics.RetrieveAPIView):
         task_id = self.kwargs.get("task_id")
         available_week: int = get_user_available_week(self.profile_id)
         task = get_object_or_404(
+
             Task.available
             .only_awailable_weeks(available_week)
             .select_related("skill__skill_preview", "skill__skill_point_logo"),
@@ -132,7 +133,7 @@ class TasksOfSkill(generics.RetrieveAPIView):
 
 
 @extend_schema(
-    summary="""Инфа о новом уровне""",
+    summary="Инфа о новом уровне",
     request=IntegerListSerializer,
     responses={200: TaskResult},
     tags=["Навыки и задачи"],
@@ -159,6 +160,7 @@ class TaskStatsGet(generics.RetrieveAPIView):
                     distinct=True,
                 ),
                 next_task_id=Subquery(  # ID следующего задания.
+
                     Task.available
                     .only_awailable_weeks(available_week)  # Только доступыне недели.
                     .filter(skill=OuterRef("skill"), ordinal_number=OuterRef("ordinal_number") + 1)
