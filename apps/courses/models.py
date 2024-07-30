@@ -92,7 +92,6 @@ class Task(AbstractStatusField):
     objects = models.Manager()
     available = AvailableForUser()
 
-
     def __str__(self):
         return f"name:<{self.name}> skill:<{self.skill.name}> level:<{self.level}>"
 
