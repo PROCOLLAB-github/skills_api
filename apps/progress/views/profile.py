@@ -1,13 +1,16 @@
+import json
+
+import requests
 from django.core.exceptions import ValidationError
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView, get_object_or_404
 from rest_framework import permissions
 
 from courses.models import Skill
-
+from procollab_skills import settings
 
 from procollab_skills.permissions import IfSubscriptionOutdatedPermission
 
@@ -18,6 +21,7 @@ from progress.serializers import (
     IntegerListSerializer,
     UserSerializer,
     SubProclong,
+    CustomUserSerializer,
 )
 from subscription.serializers import UserSubscriptionDataSerializer
 from progress.services import get_user_data, get_current_level, last_two_months_stats
@@ -108,3 +112,27 @@ class UpdateAutoRenewal(UpdateAPIView):
         self.user_profile.save()
 
         return Response(status=204)
+
+
+@extend_schema(
+    summary="""Получить данные о юзере""",
+    tags=["Профиль"],
+)
+class GetUserProfileData(ListAPIView):
+    serializer_class = CustomUserSerializer
+
+    def _get_date_verificated(self) -> str:
+        url_name = "dev" if settings.DEBUG else "api"
+        data = requests.get(
+            f"https://{url_name}.procollab.ru/auth/users/clone-data", data={"email": self.request.user.email}
+        )
+
+        return json.loads(data.content)[0]["verification_date"]
+
+    def get(self, request, *args, **kwargs) -> Response:
+        user = get_object_or_404(CustomUser.objects.select_related("profiles__file").all(), pk=self.request.user.id)
+        serialized_data = self.serializer_class(user).data
+
+        serialized_data["verification_date"] = self._get_date_verificated()
+
+        return Response(serialized_data, status=status.HTTP_200_OK)

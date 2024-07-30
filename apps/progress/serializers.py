@@ -103,3 +103,28 @@ class SubProclong(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ["is_autopay_allowed"]
+
+
+class CustomUserSerializer(serializers.ModelSerializer):
+    avatar = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "patronymic",
+            "city",
+            "organization",
+            "age",
+            "specialization",
+            "datetime_updated",
+            "datetime_created",
+            "avatar",
+        ]
+
+    def get_avatar(self, obj: CustomUser) -> str | None:
+        if file := obj.profiles.file:
+            return file.link
