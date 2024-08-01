@@ -25,6 +25,10 @@ app.conf.beat_schedule = {
         "task": "progress.tasks.profile_month_recache",
         "schedule": crontab(0, 0, day_of_month="1"),
     },
+    "user_month_stat": {
+        "task": "progress.tasks.monthly_check_user_goals",
+        "schedule": crontab(0, 0, day_of_month="1"),
+    },
 }
 
 if __name__ == "__main__":

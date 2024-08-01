@@ -1,5 +1,8 @@
+import calendar
 from datetime import timedelta
 
+from django.db import transaction
+from django.utils import timezone
 from django.core.cache import cache
 from django.db.models import Count, Q, QuerySet
 
@@ -7,9 +10,17 @@ from procollab_skills.celery import app
 from courses.models import Skill, Task
 from courses.services import get_user_available_week
 from progress.constants import MONTHS_CACHING_TIMEOUT
-from progress.models import UserProfile, TaskObjUserResult, UserWeekStat, UserSkillDone
 from progress.mapping import AdditionalPoints
-from progress.services import last_two_months_stats
+from progress.typing import UserSkillsProgress
+from progress.services import last_two_months_stats, get_user_skills
+from progress.models import (
+    UserProfile,
+    TaskObjUserResult,
+    UserWeekStat,
+    UserSkillDone,
+    UserMonthTarget,
+    UserMonthStat,
+)
 
 
 @app.task
@@ -56,18 +67,13 @@ def check_week_stat(task_obj_id: int) -> None:
     # и сделано вовремя (текущая доступная неделя == неделя задания).
     additional_points: int = AdditionalPoints.MONTH.value if (all_done and week == available_week) else 0
 
-    # Создание/Получение записи результата недели.
-    obj, created = UserWeekStat.objects.get_or_create(
+    # Создание/Обновление записи результата недели.
+    UserWeekStat.objects.update_or_create(
         user_profile=user_profile,
         skill=skill,
         week=week,
         defaults={"is_done": all_done, "additional_points": additional_points},
     )
-    # Если объект ранее был создан.
-    if not created:
-        obj.additional_points = additional_points
-        obj.is_done = all_done
-        obj.save()
 
 
 @app.task
@@ -115,8 +121,122 @@ def check_skill_done(task_obj_id: int) -> None:
     # Навык считается пройденным если сделаны все части задачи, доп. баллы - если сделан вовремя.
     if skill.total_user_answers == skill.total_num_questions:
         additional_points = AdditionalPoints.SKILL.value if skill.total_num_questions == skill.timely_responses else 0
-        UserSkillDone.objects.create(
+        UserSkillDone.objects.update_or_create(
             user_profile=user_profile,
             skill=skill,
-            additional_points=additional_points,
+            defaults={"additional_points": additional_points},
         )
+
+
+@app.task
+@transaction.atomic
+def create_user_monts_target(user_profile_id: int) -> None:
+    """Celery Task:
+        После сохранения `UserProfile` если дата подписки изменилась (т.е. пользователь подписался или переподписался),
+        формируются цели на текущий месяц, если конец подписки уходит на след. месяц то и на след. месяц.
+        Цели формируются исходя из кол-ва дней до конца текущего месяца:
+            - Если до конца месяца(30 дней) 10 дней, то цель == 33% к концу месяца.
+            - Если пользователь в предыдущем месяце выбрал и не завершил навык, но при этом в текущем месяце взял его 
+              вновь, то его цель обновляется, до актуальной для текущего месяца. 
+    """
+    user_profile = UserProfile.objects.get(pk=user_profile_id)
+    # Если у пользователя просто слетела подписка или ее не было, дальше ехать нет смысла.
+    if not user_profile.last_subscription_date:
+        return
+
+    deadline = user_profile.last_subscription_date + timedelta(days=30)
+    current_year: int = user_profile.last_subscription_date.year  # Текущий год.
+    current_month: int = user_profile.last_subscription_date.month  # Текущий месяц.
+    current_day: int = user_profile.last_subscription_date.day  # Текущий день.
+    next_month: int = 1 if current_month == 12 else current_month + 1  # След. месяц
+    next_month_year: int = current_year + 1 if current_month == 12 else current_year  # След. год
+    _, last_day = calendar.monthrange(current_year, current_month)  # Последний день текущего месяца.
+    days_until_end_month = (last_day - current_day) + 1  # Дней до конца месяца (включая текущий).
+
+    percentag_complete: int = int((days_until_end_month / last_day) * 100)  # Остаток отбрасывается.
+
+    # user_skills = user_profile.chosen_skills.all()
+    # TODO: ↑ вариант, когда будут скиллы только по выбору, логика ↓ будет не нужна.
+    user_skills, _ = get_user_skills(user_profile_id)
+    user_done_skills = UserSkillDone.objects.filter(user_profile=user_profile).values("skill__id")
+    user_skills = user_skills.exclude(id__in=user_done_skills)  # Исключение тех навыков, которые завершены.
+
+    for skill in user_skills:
+        # Если пользователь выбирает один и тот же навык, и ранее он его не завершил,
+        # то его цель на текущий месяц обновляется, если подобной цели не было -> создается.
+        UserMonthTarget.objects.update_or_create(
+            user_profile=user_profile,
+            month=current_month,
+            year=current_year,
+            skill=skill,
+            defaults={"percentage_of_completion": percentag_complete},
+        )
+        # Если подписка выходит за рамки текущего месяца, то формируется еще 1 запись на след. месяц.
+        # цель на след. месяц == полный комплит навыка (100%).
+        if deadline.month != current_month:
+            UserMonthTarget.objects.update_or_create(
+                user_profile=user_profile,
+                month=next_month,
+                year=next_month_year,
+                skill=skill,
+                defaults={"percentage_of_completion": 100},
+            )
+
+
+@app.task
+@transaction.atomic
+def monthly_check_user_goals() -> None:
+    """Celery-beat Task:
+        Задача заведена на 1 день месяца. Проверяются цели за предыдущий месяц `UserMonthTarget` 
+        и записывается статистика за месяц `UserMonthStat`.
+        Булевый флаг `successfully_done` для `UserMonthStat` завсит от выполнения цели в %.
+    """
+    now = timezone.now()
+    previous_month: int = now.month - 1 if now.month > 1 else 12  # Предыдущий месяц.
+    previous_year: int = now.year if now.month > 1 else now.year - 1  # Предыдущий год (если мы проверям в янв.).
+
+    # Цели пользователей за прошлый месяц.
+    users_targets: QuerySet[UserMonthTarget] = (
+        UserMonthTarget.objects
+        .select_related("user_profile", "skill")
+        .filter(month=previous_month, year=previous_year)
+    )
+    user_skills_data: UserSkillsProgress = {}
+    # Перебор целей для формирования словаря с информацией по комплиту запланированных навыков.
+    for user_target in users_targets:
+        try:
+            skill: Skill = (
+                Skill.published.annotate(
+                    total_num_questions=Count("tasks__task_objects", filter=Q(tasks__status="published")),
+                    total_user_answers=Count(
+                        "tasks__task_objects__user_results",
+                        filter=(
+                            Q(tasks__task_objects__user_results__user_profile_id=user_target.user_profile.id)
+                            & Q(tasks__status="published")
+                        ),
+                    ),
+                )
+                .get(id=user_target.skill.id)
+            )
+            skill_percentage = (  # На всякий случай проверка, чтобы все не упало при кривом заполнении навыков.
+                int((skill.total_user_answers / skill.total_num_questions) * 100)
+                if skill.total_num_questions > 0 else 100
+            )
+            # Ключом словаря является профиль, значение - список с булевыми значениями выполнена цель/нет.
+            (user_skills_data.setdefault(user_target.user_profile, [])
+             .append(skill_percentage >= user_target.percentage_of_completion))
+        except Skill.DoesNotExist:
+            # Ситуация, когда удалили/скрыли навык, а цель была сформирована.
+            pass
+
+    # Перебор профилей и результата по скиллам, формируются статистика за предыдущий месяц.
+    # В идеале bulk_create, но мы на проде шаффлим подписки, транзакция может не пройти.
+    for user_profile, skills_results in user_skills_data.items():
+        UserMonthStat.objects.update_or_create(
+            year=previous_year,
+            month=previous_month,
+            user_profile=user_profile,
+            defaults={'successfully_done': all(skills_results)},
+        )
+    # Ранее отфильтрованные цели за прошлый месяц удаляются (больше не нужны).
+    users_targets.delete()

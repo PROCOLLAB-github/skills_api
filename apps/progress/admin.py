@@ -9,6 +9,8 @@ from .models import (
     IntermediateUserSkills,
     UserSkillDone,
     UserWeekStat,
+    UserMonthStat,
+    UserMonthTarget,
 )
 
 
@@ -67,3 +69,15 @@ class UserSkillDoneAdmin(admin.ModelAdmin):
 class UserWeekStatAdmin(admin.ModelAdmin):
     list_display = ("id", "user_profile", "skill", "week", "is_done")
     list_filter = ["skill", "week"]
+
+
+@admin.register(UserMonthStat)
+class UserMonthStatAdmin(admin.ModelAdmin):
+    list_display = ("id", "user_profile", "month", "year", "successfully_done")
+    list_filter = ["month", "year"]
+
+
+@admin.register(UserMonthTarget)
+class UserMonthTargetAdmin(admin.ModelAdmin):
+    list_display = ("id", "user_profile", "skill", "month", "year", "percentage_of_completion")
+    list_filter = ["skill", "month", "year"]
