@@ -38,7 +38,7 @@ class TaskObjUserResultManager(Manager):
             else:
                 raise IntegrityError(str(e))
 
-    def get_wiht_related_fields(self, task_obj_id: int):
+    def get_with_related_fields(self, task_obj_id: int):
         return self.get_queryset().select_related(
             "user_profile",
             "task_object",

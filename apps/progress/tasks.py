@@ -28,7 +28,7 @@ def check_week_stat(task_obj_id: int) -> None:
         В результате создается/обновляется запись в `UserWeekStat`.
         Дополнительные баллы начилсяются если все было сделано в срок.
     """
-    instance: TaskObjUserResult = TaskObjUserResult.objects.get_wiht_related_fields(task_obj_id)
+    instance: TaskObjUserResult = TaskObjUserResult.objects.get_with_related_fields(task_obj_id)
 
     task: Task = instance.task_object.task
     skill: Skill = task.skill
@@ -50,7 +50,7 @@ def check_week_stat(task_obj_id: int) -> None:
         )
     )
     # Проверка, что все задачи каждой Task сделаны.
-    all_done: bool = all([task.task_objects_count == task.task_objects_done for task in tasks_by_week])
+    all_done: bool = all((task.task_objects_count == task.task_objects_done for task in tasks_by_week))
 
     # Баллы начисляются только при условии, что все сделано
     # и сделано вовремя (текущая доступная неделя == неделя задания).
@@ -77,7 +77,7 @@ def check_skill_done(task_obj_id: int) -> None:
         Если выполнено все, то создается запись `UserSkillDone`.
         Дополнительные баллы начилсяются если все было сделано в срок (Ответы в рамках 30 дней подписки).
     """
-    instance: TaskObjUserResult = TaskObjUserResult.objects.get_wiht_related_fields(task_obj_id)
+    instance: TaskObjUserResult = TaskObjUserResult.objects.get_with_related_fields(task_obj_id)
 
     task: Task = instance.task_object.task
     skill: Skill = task.skill
