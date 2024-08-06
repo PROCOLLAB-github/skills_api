@@ -89,8 +89,8 @@ class Task(AbstractStatusField):
     level = models.IntegerField(default=1, verbose_name="Уровень")
     week = models.PositiveSmallIntegerField(choices=WEEK_CHOICES, default=1, verbose_name="Неделя")
 
+    objects = models.Manager()
     available = AvailableForUser()
-
 
     def __str__(self):
         return f"name:<{self.name}> skill:<{self.skill.name}> level:<{self.level}>"
