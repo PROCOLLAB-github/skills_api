@@ -2,7 +2,16 @@ from django import forms
 from django.contrib import admin
 
 
-from .models import TaskObjUserResult, CustomUser, UserProfile, IntermediateUserSkills
+from .models import (
+    TaskObjUserResult,
+    CustomUser,
+    UserProfile,
+    IntermediateUserSkills,
+    UserSkillDone,
+    UserWeekStat,
+    UserMonthStat,
+    UserMonthTarget,
+)
 
 
 @admin.register(TaskObjUserResult)
@@ -48,3 +57,27 @@ class UserProfileAdmin(admin.ModelAdmin):
         if obj and obj.file:
             form.base_fields["avatar_url_custom"].initial = obj.file.link
         return form
+
+
+@admin.register(UserSkillDone)
+class UserSkillDoneAdmin(admin.ModelAdmin):
+    list_display = ("id", "user_profile", "skill", "additional_points")
+    list_filter = ["skill"]
+
+
+@admin.register(UserWeekStat)
+class UserWeekStatAdmin(admin.ModelAdmin):
+    list_display = ("id", "user_profile", "skill", "week", "is_done")
+    list_filter = ["skill", "week"]
+
+
+@admin.register(UserMonthStat)
+class UserMonthStatAdmin(admin.ModelAdmin):
+    list_display = ("id", "user_profile", "month", "year", "successfully_done")
+    list_filter = ["month", "year"]
+
+
+@admin.register(UserMonthTarget)
+class UserMonthTargetAdmin(admin.ModelAdmin):
+    list_display = ("id", "user_profile", "skill", "month", "year", "percentage_of_completion")
+    list_filter = ["skill", "month", "year"]
