@@ -73,12 +73,24 @@ class UserProfile(models.Model):
 
     # TODO перенести некоторую логику оценок в профиль пользователя, чтобы уменьшить нагрузку на БД
 
-    def __str__(self):
-        return f"{self.user.first_name} {self.user.last_name}"
-
     class Meta:
         verbose_name = "Профиль пользователя"
         verbose_name_plural = "Профили пользователей"
+
+    def __str__(self):
+        return f"{self.user.first_name} {self.user.last_name}"
+
+    def save(self, *args, **kwargs):
+        """
+        Проверка на подписку, если пользователь подписался,
+        формируется Celery таска на месячные цели.
+        """
+        if self.pk:
+            old_instance = UserProfile.objects.get(pk=self.pk)
+            if old_instance.last_subscription_date != self.last_subscription_date:
+                from progress.tasks import create_user_monts_target
+                create_user_monts_target.delay(old_instance.pk)
+        super().save(*args, **kwargs)
 
 
 class IntermediateUserSkills(models.Model):
@@ -209,3 +221,88 @@ class UserWeekStat(models.Model):
 
     def __str__(self):
         return f"{self.user_profile.user.first_name}: {self.skill.name} - week {self.week}"
+
+
+class AbstractMonthFields(models.Model):
+    """Абстрактная модель с полями для таблиц месяцев."""
+
+    class Month(models.IntegerChoices):
+        JAN = 1, "Январь"
+        FEB = 2, "Февраль"
+        MAR = 3, "Март"
+        APR = 4, "Апрель"
+        MAY = 5, "Май"
+        JUN = 6, "Июнь"
+        JUL = 7, "Июль"
+        AUG = 8, "Август"
+        SEP = 9, "Сентябрь"
+        OCT = 10, "Октябрь"
+        NOV = 11, "Ноябрь"
+        DEC = 12, "Декабрь"
+
+    month = models.PositiveSmallIntegerField(choices=Month.choices, verbose_name="Месяц")
+    year = models.PositiveSmallIntegerField(verbose_name="Год")
+
+    class Meta:
+        abstract = True
+
+
+class UserMonthStat(AbstractMonthFields):
+    """Месячная статистика пользователя. Запись создается через Celery-beat task."""
+
+    user_profile = models.ForeignKey(
+        UserProfile,
+        on_delete=models.CASCADE,
+        related_name="month_results",
+        verbose_name="Пользователь",
+    )
+
+    successfully_done = models.BooleanField(verbose_name="Месяц успешно закрыт")
+
+    class Meta:
+        verbose_name = "Статистика по месяцу"
+        verbose_name_plural = "Статистика по месяцам"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user_profile", "month", "year"],
+                name="unique_month_stat"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user_profile.user.first_name}: {self.month}.{self.year} - {self.successfully_done}"
+
+
+class UserMonthTarget(AbstractMonthFields):
+    """Цель по % комплиту навыка для пользователя. Цель формируется при переподписке пользователя."""
+
+    user_profile = models.ForeignKey(
+        UserProfile,
+        on_delete=models.CASCADE,
+        related_name="month_targets",
+        verbose_name="Пользователь",
+    )
+
+    skill = models.ForeignKey(
+        "courses.Skill",
+        on_delete=models.CASCADE,
+        related_name="months_result",
+        verbose_name="Навык",
+    )
+    percentage_of_completion = models.PositiveSmallIntegerField(
+        verbose_name="Необходимый % комплита",
+        help_text="Цель по навыку до конца текущего месяца",
+    )
+
+    class Meta:
+        verbose_name = "Месячная цель пользователя"
+        verbose_name_plural = "Месячные цели пользователей"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user_profile", "skill", "month", "year"],
+                name="unique_month_target"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user_profile.user.first_name}: {self.month}.{self.year} - {self.percentage_of_completion}"
