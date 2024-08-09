@@ -3,16 +3,13 @@ from datetime import timedelta
 
 from django.db import transaction
 from django.utils import timezone
-from django.core.cache import cache
 from django.db.models import Count, Q, QuerySet
 
 from procollab_skills.celery import app
 from courses.models import Skill, Task
-from courses.services import get_user_available_week
-from progress.constants import MONTHS_CACHING_TIMEOUT
 from progress.mapping import AdditionalPoints
 from progress.typing import UserSkillsProgress
-from progress.services import last_two_months_stats, get_user_skills
+from progress.services import get_user_skills, get_user_available_week
 from progress.models import (
     UserProfile,
     TaskObjUserResult,
@@ -21,15 +18,6 @@ from progress.models import (
     UserMonthTarget,
     UserMonthStat,
 )
-
-
-@app.task
-def profile_month_recache():
-    user_profiles = UserProfile.objects.values_list("id", flat=True)
-    # TODO сделать чтобы у "неактивных" пользователей кэш не обновлялся
-    for profile_id in user_profiles:
-        months_stats = last_two_months_stats(profile_id)
-        cache.set(f"months_data_{profile_id}", months_stats, MONTHS_CACHING_TIMEOUT)
 
 
 @app.task
