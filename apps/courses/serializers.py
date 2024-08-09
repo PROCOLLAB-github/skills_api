@@ -39,7 +39,7 @@ class CoursesResponseSerializer(TaskSerializer):
     tasks = TaskResponseSerializer(many=True)
 
 
-class TaskOfSkillProgressSerializerData(DataclassSerializer):
+class TaskOfSkillProgressSerializer(DataclassSerializer):
     class Meta:
         dataclass = TaskOfSkillProgressSerializerData
 

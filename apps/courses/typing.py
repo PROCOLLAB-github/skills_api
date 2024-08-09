@@ -31,11 +31,26 @@ class PopupSerializerData:
 
 
 @dataclass
+class StatsOfWeeksData:
+    week: int
+    is_done: bool
+    done_on_time: bool | None
+
+
+@dataclass
 class TaskOfSkillProgressSerializerData:
     progress: int
     tasks: list[TaskResponseSerializerData]
+    stats_of_weeks: list[StatsOfWeeksData]
+
+
+class WeekStatsDict(TypedDict):
+    week: int
+    is_done: bool
+    done_on_time: bool | None
 
 
 class GetStatsDict(TypedDict):
     progress: int
     tasks: list[list | None]
+    stats_of_weeks: list[WeekStatsDict | None]

@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 
-from progress.managers import TaskObjUserResultManager, UserProfileManager, CustomUserManager
+from progress.managers import TaskObjUserResultManager, CustomUserManager
 
 from progress.validators import user_name_validator
 from subscription.models import SubscriptionType
@@ -68,8 +68,6 @@ class UserProfile(models.Model):
     is_autopay_allowed = models.BooleanField(default=False)
     last_subscription_type = models.ForeignKey(SubscriptionType, on_delete=models.SET_NULL, null=True, blank=True)
     last_subscription_date = models.DateField(null=True, verbose_name="Последний раз когда юзер оформилял подписку")
-
-    objects = UserProfileManager()
 
     # TODO перенести некоторую логику оценок в профиль пользователя, чтобы уменьшить нагрузку на БД
 

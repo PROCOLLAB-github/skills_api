@@ -12,20 +12,23 @@ class UserDataSerializer(serializers.Serializer):
     age = serializers.IntegerField()
     specialization = serializers.CharField(max_length=100)
     geo_position = serializers.CharField(max_length=100)
+    points = serializers.IntegerField()
 
 
 class SkillSerializer(serializers.Serializer):
-    skill_name = serializers.CharField(max_length=100)
-    level = serializers.IntegerField(help_text="""Выводится как 'количество пройденный уровней' + 1'""")
-    progress = serializers.IntegerField(required=False, help_text="""Выводится только выбран юзером""")
+    skill_id = serializers.IntegerField()
+    skill_name = serializers.CharField()
+    skill_level = serializers.IntegerField()
+    skill_progress = serializers.IntegerField()
 
 
 class MonthSerializer(serializers.Serializer):
-    month = serializers.CharField(max_length=100)
-    is_passed = serializers.BooleanField()
+    month = serializers.CharField()
+    year = serializers.IntegerField()
+    successfully_done = serializers.BooleanField()
 
 
-class ResponseSerializer(serializers.Serializer):
+class ProfileResponseSerializer(serializers.Serializer):
     user_data = UserDataSerializer()
     skills = SkillSerializer(many=True)
     months = MonthSerializer(many=True)

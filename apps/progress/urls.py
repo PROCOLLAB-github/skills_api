@@ -1,7 +1,7 @@
 from django.urls import path
 
 from progress.views.profile import (
-    UserProfileList,
+    UserProfile,
     UserChooseSkills,
     CreateUserView,
     SubscriptionUserData,
@@ -14,7 +14,7 @@ from progress.views.rating import UserScoreRating, UserSkillsRating
 urlpatterns = [
     path(
         "profile/",
-        UserProfileList.as_view(),
+        UserProfile.as_view(),
     ),
     path(
         "subscription-data/",
