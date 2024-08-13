@@ -4,7 +4,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import UserManager
 
 from django.db import IntegrityError
-from django.db.models import Manager, Prefetch
+from django.db.models import Manager
 
 from questions.exceptions import UserAlreadyAnsweredException
 
@@ -45,23 +45,6 @@ class TaskObjUserResultManager(Manager):
             "task_object__task",
             "task_object__task__skill",
         ).get(pk=task_obj_id)
-
-
-class UserProfileManager(Manager):
-    def prefetch_current_skills(self):
-        from progress.models import IntermediateUserSkills
-        from progress.services import months_passed_data
-
-        dates = months_passed_data()
-        return self.get_queryset().prefetch_related(
-            Prefetch(
-                "chosen_skills",
-                queryset=IntermediateUserSkills.objects.filter(
-                    date_chosen__year__in=[date.year for date in dates],
-                    date_chosen__month__in=[date.month for date in dates],
-                ),
-            )
-        )
 
 
 class CustomUserManager(UserManager):

@@ -1,22 +1,20 @@
-from decimal import Decimal, ROUND_HALF_UP
-
-from django.db.models import Count, Sum, Q, Exists, OuterRef, Subquery
-
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema
+from django.db.models import Count, Sum, Q, Exists, OuterRef, Subquery
 from rest_framework import generics, status
-from rest_framework.response import Response
 from rest_framework import permissions
+from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema
 
 from progress.models import TaskObjUserResult
+from progress.services import get_user_available_week, get_rounded_percentage
 from .mapping import TYPE_TASK_OBJECT
 from .models import Task, Skill, TaskObject
-from .services import get_stats, get_user_available_week
+from .services import get_stats
 from .typing import TaskResultData
 from .serializers import (
     TaskSerializer,
     SkillsBasicSerializer,
-    TaskOfSkillProgressSerializerData,
+    TaskOfSkillProgressSerializer,
     TaskResult,
     CoursesResponseSerializer,
     SkillDetailsSerializer,
@@ -121,15 +119,15 @@ class SkillDetails(generics.RetrieveAPIView):
 
 @extend_schema(
     summary="""Вывод задач для навыков""",
-    responses={200: TaskOfSkillProgressSerializerData},
+    responses={200: TaskOfSkillProgressSerializer},
     tags=["Навыки и задачи"],
 )
 class TasksOfSkill(generics.RetrieveAPIView):
-    serializer_class = TaskOfSkillProgressSerializerData
+    serializer_class = TaskOfSkillProgressSerializer
 
     def get(self, request, *args, **kwargs):
         skill = get_object_or_404(Skill.published.all(), id=self.kwargs.get("skill_id"))
-        return Response(get_stats(skill.id, self.profile_id), status=200)
+        return Response(get_stats(skill.id, self.profile_id), status=status.HTTP_200_OK)
 
 
 @extend_schema(
@@ -188,13 +186,7 @@ class TaskStatsGet(generics.RetrieveAPIView):
             ),
             id=task.skill.id,
         )
-
-        progress: int = 0
-        if skill.total_user_answers and skill.total_num_questions:
-            # Округление до %, round() работает некорректно, поэтому взят Decimal
-            decimal_progress: Decimal = Decimal(str((skill.total_user_answers / skill.total_num_questions) * 100))
-            progress: int = int(decimal_progress.quantize(Decimal("1"), rounding=ROUND_HALF_UP))
-
+        progress: int = get_rounded_percentage(skill.total_user_answers, skill.total_num_questions)
         data = TaskResultData(
             points_gained=task.points_gained if task.points_gained else 0,
             quantity_done_correct=task.total_answers,
