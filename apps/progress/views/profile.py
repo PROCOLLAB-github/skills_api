@@ -1,13 +1,11 @@
 import json
-
 import requests
+
 from django.core.exceptions import ValidationError
-from drf_spectacular.utils import extend_schema
-from rest_framework import generics, status
-from rest_framework.permissions import AllowAny
+from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView, get_object_or_404
-from rest_framework import permissions
+from drf_spectacular.utils import extend_schema
 
 from courses.models import Skill
 from procollab_skills import settings
@@ -15,41 +13,37 @@ from procollab_skills import settings
 from procollab_skills.permissions import IfSubscriptionOutdatedPermission
 
 from progress.models import CustomUser, IntermediateUserSkills
+
+from progress.services import get_user_data, get_user_profile_skills_progress, get_user_profile_months_stats
+from progress.typing import UserProfileDataDict, UserSkillsProgressDict, UserMonthsProgressDict
+
 from progress.serializers import (
-    ResponseSerializer,
+    ProfileResponseSerializer,
     HollowSerializer,
     IntegerListSerializer,
     UserSerializer,
     SubProclong,
     CustomUserSerializer,
 )
+from procollab_skills.permissions import IfSubscriptionOutdatedPermission
 from subscription.serializers import UserSubscriptionDataSerializer
-from progress.services import get_user_data, get_current_level, last_two_months_stats
 
 
-# TODO разобраться с выводом очков
-
-
-class UserProfileList(generics.ListAPIView):
-    serializer_class = ResponseSerializer
-    permission_classes = [AllowAny]
+class UserProfile(generics.RetrieveAPIView):
+    serializer_class = ProfileResponseSerializer
+    permission_classes = [permissions.AllowAny]
 
     @extend_schema(
         summary="""Выводит все данные для страницы профиля пользователя""",
         tags=["Профиль"],
     )
     def get(self, request, *args, **kwargs):
-        user_data = get_user_data(self.user_profile.id)
-
-        skills_and_levels = get_current_level(self.user_profile.id)
-
-        # months_stats = cache.get(f"months_data_{profile_id}", None)
-        # if months_stats is None:
-        months_stats = last_two_months_stats(self.user_profile.id)
-        # cache.set(f"months_data_{profile_id}", months_stats, MONTHS_CACHING_TIMEOUT)
-
-        data = {"user_data": user_data} | {"skills": skills_and_levels} | {"months": months_stats}
-        return Response(data, status=200)
+        # TODO подумать над кэшированием.
+        user_data: UserProfileDataDict = get_user_data(self.user_profile.id)
+        skills_stats: list[UserSkillsProgressDict] = get_user_profile_skills_progress(self.user_profile.id)
+        months_stats: list[UserMonthsProgressDict] = get_user_profile_months_stats(self.user_profile.id)
+        data = {"user_data": user_data} | {"skills": skills_stats} | {"months": months_stats}
+        return Response(data, status=status.HTTP_200_OK)
 
 
 @extend_schema(
@@ -92,7 +86,7 @@ class CreateUserView(CreateAPIView):
 )
 class SubscriptionUserData(ListAPIView):
     serializer_class = UserSubscriptionDataSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request, *args, **kwargs):
         serializer = self.serializer_class(self.user_profile)
@@ -105,7 +99,7 @@ class SubscriptionUserData(ListAPIView):
 )
 class UpdateAutoRenewal(UpdateAPIView):
     serializer_class = SubProclong
-    permission_classes = [AllowAny]
+    permission_classes = [permissions.AllowAny]
 
     def patch(self, request, *args, **kwargs):
         new_status = request.data.get("is_autopay_allowed")
