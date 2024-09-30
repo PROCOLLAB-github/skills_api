@@ -14,7 +14,7 @@ from procollab_skills import settings
 
 from procollab_skills.permissions import IfSubscriptionOutdatedPermission
 
-from progress.models import CustomUser
+from progress.models import CustomUser, IntermediateUserSkills
 from progress.serializers import (
     ResponseSerializer,
     HollowSerializer,
@@ -66,7 +66,9 @@ class UserChooseSkills(generics.UpdateAPIView):
         try:
             skills = Skill.published.filter(id__in=request.data)
 
-            self.user_profile.chosen_skills.add(*skills)
+            IntermediateUserSkills.objects.bulk_create(
+                [IntermediateUserSkills(user_profile=self.user_profile, skill=skill) for skill in skills]
+            )
             return Response("success", status=status.HTTP_204_NO_CONTENT)
         except ValidationError as e:  # для случая, если юзер выбрал больше 5-ти
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -89,7 +89,7 @@ class IntermediateUserSkills(models.Model):
     date_chosen = models.DateField(default=timezone.now)
 
     class Meta:
-        unique_together = ("user_profile", "date_chosen")
+        unique_together = ("user_profile", "date_chosen", "skill")
 
     def __str__(self):
         return (
