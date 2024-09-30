@@ -9,9 +9,14 @@ from drf_spectacular.utils import extend_schema
 
 from courses.models import Skill
 from procollab_skills import settings
-from progress.models import CustomUser
+
+from procollab_skills.permissions import IfSubscriptionOutdatedPermission
+
+from progress.models import CustomUser, IntermediateUserSkills
+
 from progress.services import get_user_data, get_user_profile_skills_progress, get_user_profile_months_stats
 from progress.typing import UserProfileDataDict, UserSkillsProgressDict, UserMonthsProgressDict
+
 from progress.serializers import (
     ProfileResponseSerializer,
     HollowSerializer,
@@ -55,7 +60,9 @@ class UserChooseSkills(generics.UpdateAPIView):
         try:
             skills = Skill.published.filter(id__in=request.data)
 
-            self.user_profile.chosen_skills.add(*skills)
+            IntermediateUserSkills.objects.bulk_create(
+                [IntermediateUserSkills(user_profile=self.user_profile, skill=skill) for skill in skills]
+            )
             return Response("success", status=status.HTTP_204_NO_CONTENT)
         except ValidationError as e:  # для случая, если юзер выбрал больше 5-ти
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
