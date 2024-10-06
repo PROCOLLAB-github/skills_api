@@ -1,4 +1,4 @@
-from django.db.models import Prefetch, Count, QuerySet
+from django.db.models import Prefetch, Count, QuerySet, Max
 
 from courses.models import Task
 from courses.typing import GetStatsDict, WeekStatsDict
@@ -59,6 +59,13 @@ def get_stats_of_weeks(skill_id: int, profile_id: int, available_week: int) -> l
         }
         for week in UserWeekStat.objects.filter(user_profile__id=profile_id, skill__id=skill_id)
     ]
+
+    # TODO Временная мера(2 строчки ниже), как будет нормальное деление по неделям, необходимо убрать.
+    # Выбор из минимально доступной недели и максимальной имеющейся у навыка (сейчас на проде все задания - 1неделя)
+    # Если не убрать ничего не сломается, но лишний запрос.
+    max_skill_week: dict[str:int] = Task.published.filter(skill__id=skill_id).aggregate(Max("week"))
+    available_week = min(available_week, max_skill_week["week__max"])
+
     # Запись в `UserWeekStat` формируется при прохождении, но если юзер вообще не проходил,
     # необходимо дополнить список недостающими неделями (доступными ему сейчас).
     if len(stats_of_weeks) != available_week:
