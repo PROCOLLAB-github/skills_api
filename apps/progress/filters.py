@@ -23,8 +23,8 @@ class UserScoreRatingFilter(filters.FilterSet):
             "last_year": timezone.now() - datetime.timedelta(days=365),
         }
 
-        time_frame_param = self.request.query_params.get("time_frame", None)
-        skill_names_param = self.request.query_params.get("skills", None)
+        time_frame_param: str = self.request.query_params.get("time_frame", None)
+        skill_names_param: str = self.request.query_params.get("skills", None)
 
         filter_time_frame = (
             Q(task_obj_results__datetime_created__gte=values[time_frame_param])
@@ -45,4 +45,4 @@ class UserScoreRatingFilter(filters.FilterSet):
             )
         ).distinct()
 
-        return done_user_queryset.order_by("-score_count")
+        return done_user_queryset.exclude(score_count__isnull=True).order_by("-score_count")
