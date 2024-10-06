@@ -39,9 +39,7 @@ class UserScoreRating(generics.ListAPIView):
     pagination_class = DefaultPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = UserScoreRatingFilter
-
-    def get_queryset(self):
-        return UserProfile.objects.select_related("user", "file")
+    queryset = UserProfile.objects.select_related("user", "file")
 
 
 class UserSkillsRating(generics.ListAPIView):

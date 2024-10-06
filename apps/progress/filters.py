@@ -1,4 +1,4 @@
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, QuerySet
 import datetime
 from django_filters import rest_framework as filters
 from django.utils import timezone
@@ -15,9 +15,9 @@ class UserScoreRatingFilter(filters.FilterSet):
         model = UserProfile
         fields = []
 
-    def filter_by_time_frame(self, queryset, name, value):
+    def filter_by_time_frame(self, queryset, name, value) -> QuerySet[UserProfile]:
         """Фильтрует пользователей на основе временного промежутка."""
-        values: dict = {
+        values: dict[str, datetime.datetime] = {
             "last_day": timezone.now() - datetime.timedelta(days=1),
             "last_month": timezone.now() - datetime.timedelta(days=30),
             "last_year": timezone.now() - datetime.timedelta(days=365),
@@ -27,7 +27,7 @@ class UserScoreRatingFilter(filters.FilterSet):
         skill_names_param = self.request.query_params.get("skills", None)
 
         filter_time_frame = (
-            Q(chosen_skills__tasks__task_objects__user_results__datetime_created__gte=values[time_frame_param])
+            Q(task_obj_results__datetime_created__gte=values[time_frame_param])
             if time_frame_param
             else Q()  # If time_frame_param is None, an empty Q object is used
         )
@@ -39,7 +39,7 @@ class UserScoreRatingFilter(filters.FilterSet):
 
         done_user_queryset = queryset.annotate(
             score_count=Sum(
-                "chosen_skills__tasks__task_objects__user_results__points_gained",
+                "task_obj_results__points_gained",
                 filter=filter_skills & filter_time_frame,
                 distinct=True,
             )
