@@ -25,9 +25,6 @@ from .serializers import (
     SkillsDoneSerializer,
 )
 
-# from procollab_skills.decorators import (
-#  exclude_sub_check_perm
-# )
 
 from progress.pagination import DefaultPagination
 from .serializers import IntegerListSerializer
@@ -117,18 +114,14 @@ class DoneSkillsList(generics.ListAPIView):
     serializer_class = SkillsDoneSerializer
     pagination_class = DefaultPagination
 
-    def get_queryset(self):
-        current_user = self.request.user
-
-        return Skill.objects.prefetch_related(
-            Prefetch(
-                "done_skills", queryset=UserSkillDone.objects.filter(user=current_user), to_attr="user_done_skills"
-            ),
+    def get_queryset(self) -> Skill:
+        return Skill.objects.annotate(
+            has_user_done_skills=Exists(
+                UserSkillDone.objects.filter(user_profile=self.user_profile, skill_id=OuterRef("id"))
+            )
         ).annotate(
-            is_done=Case(
-                When(Q(user_done_skills__isnull=False), then=Value(True)),
-                default=Value(False),
-                output_field=BooleanField(),
+            is_doneg=Case(
+                When(has_user_done_skills=True, then=Value(True)), default=Value(False), output_field=BooleanField()
             )
         )
 
