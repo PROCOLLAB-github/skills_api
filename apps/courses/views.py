@@ -116,7 +116,7 @@ class DoneSkillsList(generics.ListAPIView):
                 UserSkillDone.objects.filter(user_profile=self.user_profile, skill_id=OuterRef("id"))
             )
         ).annotate(
-            is_doneg=Case(
+            is_done=Case(
                 When(has_user_done_skills=True, then=Value(True)), default=Value(False), output_field=BooleanField()
             )
         )
