@@ -89,6 +89,7 @@ class Task(AbstractStatusField):
     level = models.IntegerField(default=1, verbose_name="Уровень")
     week = models.PositiveSmallIntegerField(choices=WEEK_CHOICES, default=1, verbose_name="Неделя")
 
+    objects = models.Manager()
     available = AvailableForUser()
 
     def __str__(self):
@@ -99,6 +100,7 @@ class Task(AbstractStatusField):
         verbose_name_plural = "Задачи"
 
     def save(self, *args, **kwargs):
+        """Автоматически устанавливает порядковый номер"""
         if self.ordinal_number is None:  # если порядковый номер слайда не введен
             last_task_obj = Task.objects.aggregate(Max("ordinal_number"))
             if not last_task_obj.get("ordinal_number__max", 0):
@@ -172,8 +174,9 @@ class Popup(models.Model):
 
     def clean(self):
         if not self.title and not self.text and not self.file:
-            raise ValidationError("Должено быть заполнено хотя бы один из полей: "
-                                  "'Заголовок', 'Содержимое' или 'Изображение'")
+            raise ValidationError(
+                "Должено быть заполнено хотя бы один из полей: " "'Заголовок', 'Содержимое' или 'Изображение'"
+            )
 
     def save(self, *args, **kwargs):
         # TODO автоинкремен и валидация при добалении в TaskObject

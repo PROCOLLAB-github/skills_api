@@ -1,11 +1,15 @@
 from django.shortcuts import get_object_or_404
+
 from django.db.models import Count, Sum, Q, Exists, OuterRef, Subquery, Case, When, Value, BooleanField, Prefetch
+
 from rest_framework import generics, status
 from rest_framework import permissions
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 
+
 from progress.models import TaskObjUserResult, UserSkillDone
+
 from progress.services import get_user_available_week, get_rounded_percentage
 from .mapping import TYPE_TASK_OBJECT
 from .models import Task, Skill, TaskObject
@@ -42,9 +46,9 @@ class TaskList(generics.RetrieveAPIView):
         task_id = self.kwargs.get("task_id")
         available_week: int = get_user_available_week(self.profile_id)
         task = get_object_or_404(
-            Task.available.only_awailable_weeks(available_week).select_related(
-                "skill__skill_preview", "skill__skill_point_logo"
-            ),
+            Task.available
+            .only_awailable_weeks(available_week)
+            .select_related("skill__skill_preview", "skill__skill_point_logo"),
             id=int(task_id),
         )
 
