@@ -1,11 +1,15 @@
 from django.shortcuts import get_object_or_404
-from django.db.models import Count, Sum, Q, Exists, OuterRef, Subquery
+
+from django.db.models import Count, Sum, Q, Exists, OuterRef, Subquery, Case, When, Value, BooleanField, Prefetch
+
 from rest_framework import generics, status
 from rest_framework import permissions
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 
-from progress.models import TaskObjUserResult
+
+from progress.models import TaskObjUserResult, UserSkillDone
+
 from progress.services import get_user_available_week, get_rounded_percentage
 from .mapping import TYPE_TASK_OBJECT
 from .models import Task, Skill, TaskObject
@@ -18,8 +22,8 @@ from .serializers import (
     TaskResult,
     CoursesResponseSerializer,
     SkillDetailsSerializer,
+    SkillsDoneSerializer,
 )
-
 
 # from procollab_skills.decorators import (
 #  exclude_sub_check_perm
@@ -42,7 +46,6 @@ class TaskList(generics.RetrieveAPIView):
         task_id = self.kwargs.get("task_id")
         available_week: int = get_user_available_week(self.profile_id)
         task = get_object_or_404(
-
             Task.available
             .only_awailable_weeks(available_week)
             .select_related("skill__skill_preview", "skill__skill_point_logo"),
@@ -106,6 +109,31 @@ class SkillsList(generics.ListAPIView):
 
 
 @extend_schema(
+    summary="Выводит все навыки на платформе, помечает использованные",
+    tags=["Навыки и задачи"],
+)
+class DoneSkillsList(generics.ListAPIView):
+    # TODO FIX: В сериализаторе указан статичный уровень 1 для всех навыков
+    serializer_class = SkillsDoneSerializer
+    pagination_class = DefaultPagination
+
+    def get_queryset(self):
+        current_user = self.request.user
+
+        return Skill.objects.prefetch_related(
+            Prefetch(
+                "done_skills", queryset=UserSkillDone.objects.filter(user=current_user), to_attr="user_done_skills"
+            ),
+        ).annotate(
+            is_done=Case(
+                When(Q(user_done_skills__isnull=False), then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField(),
+            )
+        )
+
+
+@extend_schema(
     summary="Выводит подробную информацию о навыке",
     description="""Выводит только тот уровень, который юзер может пройти. Остальные для прохождения закрыты""",
     tags=["Навыки и задачи"],
@@ -143,27 +171,26 @@ class TaskStatsGet(generics.RetrieveAPIView):
         task_id: int = self.kwargs.get("task_id")
         available_week: int = get_user_available_week(self.profile_id)
         task: Task = get_object_or_404(
-            (Task.available
-             .only_awailable_weeks(available_week)  # Только доступыне недели.
-             .annotate(
-                total_questions=Count("task_objects", distinct=True),  # Всего вопросов в задании.
-                total_answers=Count(  # Всего ответов пользователя в задании.
-                    "task_objects__user_results",
-                    filter=Q(task_objects__user_results__user_profile_id=self.profile_id),
-                    distinct=True,
-                ),
-                points_gained=Sum(  # Кол-во полученных поинтов юзером в рамках задания.
-                    "task_objects__user_results__points_gained",
-                    filter=Q(task_objects__user_results__user_profile_id=self.profile_id),
-                    distinct=True,
-                ),
-                next_task_id=Subquery(  # ID следующего задания.
-
-                    Task.available
-                    .only_awailable_weeks(available_week)  # Только доступыне недели.
-                    .filter(skill=OuterRef("skill"), ordinal_number=OuterRef("ordinal_number") + 1)
-                    .values("id")[:1]
-                ))),
+            (
+                Task.available.only_awailable_weeks(available_week).annotate(  # Только доступыне недели.
+                    total_questions=Count("task_objects", distinct=True),  # Всего вопросов в задании.
+                    total_answers=Count(  # Всего ответов пользователя в задании.
+                        "task_objects__user_results",
+                        filter=Q(task_objects__user_results__user_profile_id=self.profile_id),
+                        distinct=True,
+                    ),
+                    points_gained=Sum(  # Кол-во полученных поинтов юзером в рамках задания.
+                        "task_objects__user_results__points_gained",
+                        filter=Q(task_objects__user_results__user_profile_id=self.profile_id),
+                        distinct=True,
+                    ),
+                    next_task_id=Subquery(  # ID следующего задания.
+                        Task.available.only_awailable_weeks(available_week)  # Только доступыне недели.
+                        .filter(skill=OuterRef("skill"), ordinal_number=OuterRef("ordinal_number") + 1)
+                        .values("id")[:1]
+                    ),
+                )
+            ),
             id=task_id,
         )
 
@@ -171,8 +198,7 @@ class TaskStatsGet(generics.RetrieveAPIView):
             Skill.published.annotate(
                 # Общее кол-во опубликованных вопросов навыка.
                 total_num_questions=Count(
-                    "tasks__task_objects",
-                    filter=(Q(tasks__status="published") & Q(tasks__week__lte=available_week))
+                    "tasks__task_objects", filter=(Q(tasks__status="published") & Q(tasks__week__lte=available_week))
                 ),
                 # Общее кол-во ответов юзера на опубликованные вопросы в рамках навыка.
                 total_user_answers=Count(

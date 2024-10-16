@@ -27,7 +27,6 @@ class TaskSerializer(serializers.Serializer):
 
 
 class TaskResponseSerializer(DataclassSerializer):
-
     class Meta:
         dataclass = TaskResponseSerializerData
 
@@ -58,14 +57,27 @@ class SkillsBasicSerializer(serializers.ModelSerializer):
         return 1
 
 
-class TaskResult(DataclassSerializer):
+class SkillsDoneSerializer(serializers.ModelSerializer):
+    file_link = serializers.URLField(source="file.link")  # Access the link field from the related FileModel
+    # Просьба захардкодить, статичный 1 уровень для всех навыков
+    quantity_of_levels = serializers.SerializerMethodField()
+    is_done = serializers.BooleanField()
 
+    class Meta:
+        model = Skill
+        fields = ("id", "name", "who_created", "file_link", "quantity_of_levels", "description", "is_done")
+
+    def get_quantity_of_levels(self, obj) -> int:
+        # Просьба захардкодить, статичный 1 уровень для всех навыков
+        return 1
+
+
+class TaskResult(DataclassSerializer):
     class Meta:
         dataclass = TaskResultData
 
 
 class PopupSerializer(DataclassSerializer):
-
     class Meta:
         dataclass = PopupSerializerData
 
