@@ -6,8 +6,8 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    restart: unless-stopped
-    command:  bash ./scripts/startup.sh
+    restart: always
+    command:  bash ./scripts/startup_dev.sh
     env_file:
       - .env
     environment:
@@ -23,8 +23,7 @@ services:
       - web
     ports:
       - 8001:80
-    volumes:
-      - static-volume:/procollab/static
+
 
   redis:
     container_name: skills_redis
@@ -51,21 +50,21 @@ services:
     volumes:
        - .:/procollab
 
-  db:
-    container_name: skills_db
-    image: postgres
-    environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - 5432:5432
-    restart: always
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
+ # db: # не удалять нужно для тестов celery
+#    container_name: skills_db
+#    image: postgres
+#    environment:
+#      POSTGRES_DB: postgres
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: postgres
+#    ports:
+#      - 5432:5432
+#    restart: always
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data/
 
 
 volumes:
   redis-data:
   static-volume:
-  postgres_data:
+  #postgres_data: # не удалять нужно для тестов celery

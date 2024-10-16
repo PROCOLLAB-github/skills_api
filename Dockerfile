@@ -24,6 +24,7 @@ RUN poetry config virtualenvs.create false \
 RUN mkdir /procollab/static
 
 COPY . /procollab/
+RUN poetry add django-cors-headers
 
 CMD ["bash", "./scripts/startup.sh"]
 
