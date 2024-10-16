@@ -1,3 +1,6 @@
+from enum import Enum
+
+
 MonthMapping: dict[int, str] = {
     1: "Январь",
     2: "Февраль",
@@ -12,3 +15,8 @@ MonthMapping: dict[int, str] = {
     11: "Ноябрь",
     12: "Декабрь",
 }
+
+
+class AdditionalPoints(Enum):
+    MONTH = 10
+    SKILL = 50
