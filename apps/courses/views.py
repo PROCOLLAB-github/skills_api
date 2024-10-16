@@ -1,11 +1,11 @@
 from django.shortcuts import get_object_or_404
-from django.db.models import Count, Sum, Q, Exists, OuterRef, Subquery, Case, When, Value, BooleanField
+from django.db.models import Count, Sum, Q, Exists, OuterRef, Subquery, Case, When, Value, BooleanField, Prefetch
 from rest_framework import generics, status
 from rest_framework import permissions
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 
-from progress.models import TaskObjUserResult
+from progress.models import TaskObjUserResult, UserSkillDone
 from progress.services import get_user_available_week, get_rounded_percentage
 from .mapping import TYPE_TASK_OBJECT
 from .models import Task, Skill, TaskObject
@@ -114,9 +114,15 @@ class DoneSkillsList(generics.ListAPIView):
     pagination_class = DefaultPagination
 
     def get_queryset(self):
-        return Skill.objects.prefetch_related("done_skills").annotate(
+        current_user = self.request.user
+
+        return Skill.objects.prefetch_related(
+            Prefetch(
+                "done_skills", queryset=UserSkillDone.objects.filter(user=current_user), to_attr="user_done_skills"
+            ),
+        ).annotate(
             is_done=Case(
-                When(done_skills__isnull=False, then=Value(True)),
+                When(Q(user_done_skills__isnull=False), then=Value(True)),
                 default=Value(False),
                 output_field=BooleanField(),
             )
