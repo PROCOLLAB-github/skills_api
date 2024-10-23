@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from django.db.models import Count, Sum, Q, Exists, OuterRef, Subquery, Case, When, Value, BooleanField, Prefetch
+from django.db.models import Count, Sum, Q, Exists, OuterRef, Subquery, Case, When, Value, BooleanField
 from rest_framework import generics, status
 from rest_framework import permissions
 from rest_framework.response import Response
@@ -21,9 +21,6 @@ from .serializers import (
     SkillsDoneSerializer,
 )
 
-# from procollab_skills.decorators import (
-#  exclude_sub_check_perm
-# )
 
 from progress.pagination import DefaultPagination
 from .serializers import IntegerListSerializer
@@ -113,18 +110,14 @@ class DoneSkillsList(generics.ListAPIView):
     serializer_class = SkillsDoneSerializer
     pagination_class = DefaultPagination
 
-    def get_queryset(self):
-        current_user = self.request.user
-
-        return Skill.objects.prefetch_related(
-            Prefetch(
-                "done_skills", queryset=UserSkillDone.objects.filter(user=current_user), to_attr="user_done_skills"
-            ),
+    def get_queryset(self) -> Skill:
+        return Skill.objects.annotate(
+            has_user_done_skills=Exists(
+                UserSkillDone.objects.filter(user_profile=self.user_profile, skill_id=OuterRef("id"))
+            )
         ).annotate(
             is_done=Case(
-                When(Q(user_done_skills__isnull=False), then=Value(True)),
-                default=Value(False),
-                output_field=BooleanField(),
+                When(has_user_done_skills=True, then=Value(True)), default=Value(False), output_field=BooleanField()
             )
         )
 
