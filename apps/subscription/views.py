@@ -14,7 +14,7 @@ from rest_framework.response import Response
 # from procollab_skills.decorators import exclude_auth_perm  # , exclude_sub_check_perm
 from yookassa import Payment, Refund
 
-from progress.models import UserProfile
+from progress.models import UserProfile, CustomUser
 from subscription.typing import (
     CreatePaymentData,
     AmountData,
@@ -72,7 +72,9 @@ class CreatePayment(CreateAPIView):
         try:
             self.check_subscription(self.user_profile.last_subscription_date)
 
-            request_data: CreatePaymentViewRequestData = self.get_request_data(self.profile_id)
+            request_data: CreatePaymentViewRequestData = self.get_request_data(
+                self.profile_id
+            )
             subscription = get_object_or_404(SubscriptionType, id=self.subscription_id)
 
             amount = AmountData(value=subscription.price)
@@ -81,7 +83,10 @@ class CreatePayment(CreateAPIView):
             payload = CreatePaymentData(
                 amount=amount,
                 confirmation=request_data.confirmation,
-                metadata={"user_profile_id": self.profile_id, "subscription_id": subscription.id},
+                metadata={
+                    "user_profile_id": self.profile_id,
+                    "subscription_id": subscription.id,
+                },
                 receipt=ReceiptData(
                     customer={"email": self.user.email},
                     items=[ItemData(description=subscription.name, amount=amount)],
@@ -104,33 +109,52 @@ class ViewSubscriptions(ListAPIView):
     queryset = SubscriptionType.objects.all()
     permission_classes = [AllowAny]
     serializer_class = SubscriptionSerializer
-    authentication_classes = []
 
     def list(self, request, *args, **kwargs) -> Response:
-        queryset = self.get_queryset()
-        serializer = self.serializer_class(queryset, many=True)
+        is_logged_in = isinstance(self.user, CustomUser)
+
+        if (not is_logged_in) or (not self.user_profile.bought_trial_subscription):
+            queryset, created = SubscriptionType.objects.get_or_create(
+                name="Пробная",
+                price=1,
+                features="Задания от практикующих специалистов, Нативные задания, Карьерные знания дешевле стакана кофе, Общество единомышленников",
+            )
+        elif is_logged_in and self.user_profile.bought_trial_subscription:
+            queryset, created = SubscriptionType.objects.get_or_create(
+                name="Оптимум",
+                price=120,
+                features="Задания от практикующих специалистов, Нативные задания, Карьерные знания дешевле стакана кофе, Общество единомышленников",
+            )
+
+        serializer = self.serializer_class(queryset)
         return Response(serializer.data, status=200)
 
 
-@extend_schema(summary="НЕ ДЛЯ ФРОНТА. Обновление дат подписки для юзеров.", tags=["Подписка"])
+@extend_schema(
+    summary="НЕ ДЛЯ ФРОНТА. Обновление дат подписки для юзеров.", tags=["Подписка"]
+)
 class NotificationWebHook(CreateAPIView):
     serializer_class = RenewSubDateSerializer
     permission_classes = [AllowAny]
     authentication_classes = []
 
     def get_request_data(self) -> WebHookRequest:
-        return WebHookRequest(event=self.request.data["event"], object=self.request.data["object"])
+        return WebHookRequest(
+            event=self.request.data["event"], object=self.request.data["object"]
+        )
 
     def create(self, request, *args, **kwargs) -> Response:
         # try:
         notification_data = self.get_request_data()
 
-        profile_to_update = UserProfile.objects.select_related("user", "last_subscription_type").filter(
-            id=notification_data.object["metadata"]["user_profile_id"]
-        )
+        profile_to_update = UserProfile.objects.select_related(
+            "user", "last_subscription_type"
+        ).filter(id=notification_data.object["metadata"]["user_profile_id"])
 
-        if notification_data.event == "payment.succeeded" and notification_data.object["status"] == "succeeded":
-
+        if (
+            notification_data.event == "payment.succeeded"
+            and notification_data.object["status"] == "succeeded"
+        ):
             params_to_update = {"last_subscription_date": timezone.now()}
             if sub_id := notification_data.object["metadata"].get(
                 "subscription_id"
@@ -147,10 +171,15 @@ class NotificationWebHook(CreateAPIView):
                 f"subscription date renewed for {profile_to_update[0].user.first_name} "
                 f"{profile_to_update[0].user.last_name}"
             )
-        elif notification_data.event == "refund.succeeded" and notification_data.object["status"] == "succeeded":
+        elif (
+            notification_data.event == "refund.succeeded"
+            and notification_data.object["status"] == "succeeded"
+        ):
             (
                 profile_to_update.update(
-                    last_subscription_date=None, is_autopay_allowed=False, last_subscription_type=None
+                    last_subscription_date=None,
+                    is_autopay_allowed=False,
+                    last_subscription_type=None,
                 )
             )
 
@@ -180,11 +209,17 @@ class CreateRefund(CreateAPIView):
                 }
             )
             last_payment = payments.items[0]
-            if self.user_profile.last_subscription_date >= timezone.now().date() - timedelta(days=15):
+            if (
+                self.user_profile.last_subscription_date
+                >= timezone.now().date() - timedelta(days=15)
+            ):
                 response = Refund.create(
                     {
                         "payment_id": last_payment.id,
-                        "amount": {"value": last_payment.amount.value, "currency": "RUB"},
+                        "amount": {
+                            "value": last_payment.amount.value,
+                            "currency": "RUB",
+                        },
                     }
                 )
                 if response.status == "succeeded":
@@ -204,7 +239,10 @@ class CreateRefund(CreateAPIView):
 
             else:
                 return Response(
-                    {"error": "Вы не можете отменить подписку после 15 дней пользования, извините"}, status=400
+                    {
+                        "error": "Вы не можете отменить подписку после 15 дней пользования, извините"
+                    },
+                    status=400,
                 )
             return Response(status=202)
         except Exception as e:
