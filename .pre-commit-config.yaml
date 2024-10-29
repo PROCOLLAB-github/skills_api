@@ -1,25 +1,25 @@
-#repos:
-#    - repo: https://github.com/ambv/black
-#      rev: 22.10.0
-#      hooks:
-#          - id: black
-#            exclude: ^.*\b(migrations)\b.*$
-#            language_version: python3
-#    - repo: https://github.com/pycqa/flake8
-#      rev: 5.0.4
-#      hooks:
-#          - id: flake8
-#            args: [--max-line-length=120]
-
-
 repos:
+   - repo: https://github.com/ambv/black
+     rev: 22.10.0
+     hooks:
+         - id: black
+           exclude: ^.*\b(migrations)\b.*$
+           language_version: python3
+   - repo: https://github.com/pycqa/flake8
+     rev: 5.0.4
+     hooks:
+         - id: flake8
+           args: [--max-line-length=120]
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.5
-    hooks:
-      - id: ruff
-        args: [ --fix, --exit-non-zero-on-fix, --show-fixes ]
-      - id: ruff-format
+
+# repos:
+
+#   - repo: https://github.com/astral-sh/ruff-pre-commit
+#     rev: v0.1.5
+#     hooks:
+#       - id: ruff
+#         args: [ --fix, --exit-non-zero-on-fix, --show-fixes ]
+#       - id: ruff-format
 
 
 #  - repo: local
@@ -33,7 +33,7 @@ repos:
 #      pass_filenames: false
 #      always_run: true
 
-  - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.385
-    hooks:
-      - id: pyright
+  # - repo: https://github.com/RobertCraigie/pyright-python
+  #   rev: v1.1.385
+  #   hooks:
+  #     - id: pyright
