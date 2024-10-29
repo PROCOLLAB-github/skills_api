@@ -2,7 +2,7 @@
 
 import django.db.models.deletion
 import django.utils.timezone
-import progress.manager
+import progress.managers
 import progress.validators
 from django.conf import settings
 from django.db import migrations, models
@@ -91,7 +91,7 @@ class Migration(migrations.Migration):
                 "verbose_name_plural": "Пользователи",
             },
             managers=[
-                ("objects", progress.manager.CustomUserManager()),
+                ("objects", progress.managers.CustomUserManager()),
             ],
         ),
         migrations.CreateModel(

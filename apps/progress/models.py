@@ -71,6 +71,7 @@ class UserProfile(models.Model):
 
     is_autopay_allowed = models.BooleanField(default=False)
 
+
     last_subscription_type = models.ForeignKey(
         SubscriptionType, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -234,9 +235,8 @@ class UserWeekStat(models.Model):
         ]
 
     def __str__(self):
-        return (
-            f"{self.user_profile.user.first_name}: {self.skill.name} - week {self.week}"
-        )
+        return f"{self.user_profile.user.first_name}: {self.skill.name} - week {self.week}"
+
 
 
 class AbstractMonthFields(models.Model):
@@ -256,9 +256,9 @@ class AbstractMonthFields(models.Model):
         NOV = 11, "Ноябрь"
         DEC = 12, "Декабрь"
 
-    month = models.PositiveSmallIntegerField(
-        choices=Month.choices, verbose_name="Месяц"
-    )
+
+    month = models.PositiveSmallIntegerField(choices=Month.choices, verbose_name="Месяц")
+
     year = models.PositiveSmallIntegerField(verbose_name="Год")
 
     class Meta:
@@ -282,7 +282,8 @@ class UserMonthStat(AbstractMonthFields):
         verbose_name_plural = "Статистика по месяцам"
         constraints = [
             models.UniqueConstraint(
-                fields=["user_profile", "month", "year"], name="unique_month_stat"
+                fields=["user_profile", "month", "year"],
+                name="unique_month_stat"
             )
         ]
 

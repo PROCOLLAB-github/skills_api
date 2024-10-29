@@ -1,7 +1,6 @@
 from enum import Enum
 
-
-from questions.models import InfoSlide, QuestionConnect, QuestionSingleAnswer, QuestionWrite
+from questions.mapping import TypeQuestionPoints
 
 TYPE_TASK_OBJECT: dict[str, str] = {
     "infoslide": "info_slide",
@@ -11,22 +10,12 @@ TYPE_TASK_OBJECT: dict[str, str] = {
 }
 # TODO заменить на Enum
 
-MODEL_TYPES = {10: InfoSlide, 25: QuestionSingleAnswer, 40: QuestionWrite, 50: QuestionConnect}
-
 
 class ModelNameEnum(Enum):
     INFO_SLIDE = "info_slide"
     QUESTION_CONNECT = "question_connect"
     QUESTION_SINGLE_ANSWER = "question_single_answer"
-    QUESTION_EXCLUDE = "question_exlude"
-
-
-class TypeQuestionPoints(Enum):
-    INFO_SLIDE = 10
-    QUESTION_SINGLE_ANSWER = 25
-    QUESTION_WRITE = 40
-    QUESTION_CONNECT = 50
-    QUESTION_EXCLUDE = 60
+    QUESTION_EXCLUDE = "question_exclude"
 
 
 SWAGGER_API_HINTS: dict[str, str] = {
