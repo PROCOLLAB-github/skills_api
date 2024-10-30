@@ -45,7 +45,7 @@ class UserSubscriptionDataSerializer(serializers.ModelSerializer):
         fields = [
             "is_subscribed",
             "last_subscription_type",
-            "last_subscription_date",
+        #    "last_subscription_date",
             "subscription_date_over",
             "is_autopay_allowed",
         ]
