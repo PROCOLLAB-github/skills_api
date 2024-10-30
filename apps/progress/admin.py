@@ -32,7 +32,9 @@ class IntermediateUserSkillsInline(admin.TabularInline):
 
 class UserProfileForm(forms.ModelForm):
     avatar_url_custom = forms.CharField(
-        label="Avatar URL", required=False, widget=forms.TextInput(attrs={"readonly": "readonly"})
+        label="Avatar URL",
+        required=False,
+        widget=forms.TextInput(attrs={"readonly": "readonly"}),
     )
 
     class Meta:
@@ -46,7 +48,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     inlines = (IntermediateUserSkillsInline,)
     list_display = (
         "user",
- #       "last_subscription_date",
+        "last_subscription_date",
     )
 
     def get_name(self):
@@ -79,5 +81,12 @@ class UserMonthStatAdmin(admin.ModelAdmin):
 
 @admin.register(UserMonthTarget)
 class UserMonthTargetAdmin(admin.ModelAdmin):
-    list_display = ("id", "user_profile", "skill", "month", "year", "percentage_of_completion")
+    list_display = (
+        "id",
+        "user_profile",
+        "skill",
+        "month",
+        "year",
+        "percentage_of_completion",
+    )
     list_filter = ["skill", "month", "year"]
