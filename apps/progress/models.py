@@ -71,8 +71,6 @@ class UserProfile(models.Model):
 
     is_autopay_allowed = models.BooleanField(default=False)
 
-
-
     last_subscription_type = models.ForeignKey(
         SubscriptionType, on_delete=models.SET_NULL, null=True, blank=True
     )
