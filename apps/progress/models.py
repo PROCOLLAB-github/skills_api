@@ -69,6 +69,7 @@ class UserProfile(models.Model):
         blank=True,
     )
 
+
     is_autopay_allowed = models.BooleanField(default=False)
 
     # TODO перенести некоторую логику оценок в профиль пользователя, чтобы уменьшить нагрузку на БД
