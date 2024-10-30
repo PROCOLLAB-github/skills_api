@@ -71,6 +71,17 @@ class UserProfile(models.Model):
 
     is_autopay_allowed = models.BooleanField(default=False)
 
+    
+    last_subscription_type = models.ForeignKey(
+        SubscriptionType, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    bought_trial_subscription = models.BooleanField(
+        default=False, help_text="Покупал ли пользователь пробную подписку до этого"
+    )
+    last_subscription_date = models.DateField(
+        null=True, verbose_name="Последний раз когда юзер оформилял подписку"
+    )
+
     # TODO перенести некоторую логику оценок в профиль пользователя, чтобы уменьшить нагрузку на БД
 
     class Meta:
