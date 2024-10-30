@@ -14,7 +14,9 @@ class CustomUser(AbstractUser):
 
     first_name = models.CharField(max_length=255, validators=[user_name_validator])
     last_name = models.CharField(max_length=255, validators=[user_name_validator])
-    patronymic = models.CharField(max_length=255, validators=[user_name_validator], null=True, blank=True)
+    patronymic = models.CharField(
+        max_length=255, validators=[user_name_validator], null=True, blank=True
+    )
     password = models.CharField(max_length=255)
 
     is_active = models.BooleanField(default=True, editable=False)
@@ -22,7 +24,9 @@ class CustomUser(AbstractUser):
     city = models.CharField(max_length=255, null=True, blank=True)
     organization = models.CharField(max_length=255, null=True, blank=True)
     age = models.DateField(null=True, blank=False)
-    specialization = models.CharField(max_length=40, verbose_name="Специальность пользователя", null=True)
+    specialization = models.CharField(
+        max_length=40, verbose_name="Специальность пользователя", null=True
+    )
 
     datetime_updated = models.DateTimeField(auto_now=True)
     datetime_created = models.DateTimeField(auto_now_add=True)
@@ -66,8 +70,6 @@ class UserProfile(models.Model):
     )
 
     is_autopay_allowed = models.BooleanField(default=False)
-    last_subscription_type = models.ForeignKey(SubscriptionType, on_delete=models.SET_NULL, null=True, blank=True)
-    last_subscription_date = models.DateField(null=True, verbose_name="Последний раз когда юзер оформилял подписку")
 
     # TODO перенести некоторую логику оценок в профиль пользователя, чтобы уменьшить нагрузку на БД
 
@@ -120,10 +122,15 @@ class TaskObjUserResult(models.Model):
         verbose_name="Профиль пользователя",
     )
 
-    text = models.TextField(null=False, help_text="Для ответов юзера, которые связаны с вопросами по вводу ответа")
+    text = models.TextField(
+        null=False,
+        help_text="Для ответов юзера, которые связаны с вопросами по вводу ответа",
+    )
     points_gained = models.PositiveIntegerField(verbose_name="Набранные баллы")
 
-    datetime_created = models.DateTimeField(verbose_name="Дата создания", null=False, default=timezone.now)
+    datetime_created = models.DateTimeField(
+        verbose_name="Дата создания", null=False, default=timezone.now
+    )
 
     objects = TaskObjUserResultManager()
 
@@ -168,8 +175,7 @@ class UserSkillDone(models.Model):
         verbose_name_plural = "Завершенные навыки"
         constraints = [
             models.UniqueConstraint(
-                fields=["user_profile", "skill"],
-                name="unique_skill_in_profile"
+                fields=["user_profile", "skill"], name="unique_skill_in_profile"
             )
         ]
 
@@ -214,11 +220,14 @@ class UserWeekStat(models.Model):
             models.UniqueConstraint(
                 fields=["user_profile", "skill", "week"],
                 name="unique_week_stat"
+
             )
         ]
 
     def __str__(self):
+
         return f"{self.user_profile.user.first_name}: {self.skill.name} - week {self.week}"
+
 
 
 class AbstractMonthFields(models.Model):
@@ -238,7 +247,9 @@ class AbstractMonthFields(models.Model):
         NOV = 11, "Ноябрь"
         DEC = 12, "Декабрь"
 
-    month = models.PositiveSmallIntegerField(choices=Month.choices, verbose_name="Месяц")
+    month = models.PositiveSmallIntegerField(
+        choices=Month.choices, verbose_name="Месяц"
+    )
     year = models.PositiveSmallIntegerField(verbose_name="Год")
 
     class Meta:

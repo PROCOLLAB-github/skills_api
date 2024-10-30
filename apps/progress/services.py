@@ -73,7 +73,8 @@ def get_user_profile_skills_progress(user_profile_id: int) -> list[UserSkillsPro
             "skill_id": skill.id,
             "skill_name": skill.name,
             "skill_level": 1,  # TODO Fix захардкоженный уровень, пока не понятно что за уровни навыка.
-            "skill_progress": get_rounded_percentage(skill.total_user_answers, skill.total_num_questions)
+            "skill_progress": get_rounded_percentage(skill.total_user_answers, skill.total_num_questions),
+            "file_link": skill.file.link if skill.file else None,
         }
         for skill in skills_stats
     ]

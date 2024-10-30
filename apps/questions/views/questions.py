@@ -65,11 +65,12 @@ class QuestionSingleAnswerGet(generics.RetrieveAPIView):
         serializer = self.serializer_class(
             QuestionSerializerData(
                 id=self.task_object_id,
-                question_text=question.text,
+                text=question.text,
                 description=question.description,
                 files=[file.link for file in question.files.all()],
                 answers=correct_answer if user_result else answers,
                 is_answered=True if user_result else False,
+                video_url=question.video_url,
             )
         )
         return Response(add_popup_data(serializer.data, self.request_task_object), status=status.HTTP_200_OK)
@@ -108,6 +109,7 @@ class QuestionConnectGet(generics.RetrieveAPIView):
             files=[file.link for file in question.files.all()],
             connect_left=target_left,
             connect_right=target_right,
+            video_url=question.video_url,
         )
 
         if TaskObjUserResult.objects.get_answered(
@@ -145,10 +147,11 @@ class QuestionExcludeAnswerGet(generics.RetrieveAPIView):
 
         data_to_serialize = QuestionSerializerData(
             id=self.task_object_id,
-            question_text=question.text,
+            text=question.text,
             description=question.description,
             files=[file.link for file in question.files.all()],
             answers=answers,
+            video_url=question.video_url,
         )
         if TaskObjUserResult.objects.get_answered(
             self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_EXCLUDE
@@ -176,6 +179,7 @@ class InfoSlideDetails(generics.RetrieveAPIView):
 
         serializer = self.serializer_class(
             data={
+                "title": info_slide.title,
                 "text": info_slide.text,
                 "files": [file.link for file in info_slide.files.all()],
                 "is_done": bool(
@@ -183,6 +187,7 @@ class InfoSlideDetails(generics.RetrieveAPIView):
                         self.task_object_id, self.profile_id, TypeQuestionPoints.INFO_SLIDE
                     )
                 ),
+                "video_url": info_slide.video_url
             }
         )
         if serializer.is_valid():
@@ -209,6 +214,7 @@ class QuestionWriteAnswer(generics.RetrieveAPIView):
             text=question.text,
             description=question.description,
             files=[file.link for file in question.files.all()],
+            video_url=question.video_url
         )
 
         if user_answer := TaskObjUserResult.objects.get_answered(
