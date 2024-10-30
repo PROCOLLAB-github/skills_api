@@ -27,4 +27,3 @@ COPY . /procollab/
 RUN poetry add django-cors-headers
 
 CMD ["bash", "./scripts/startup.sh"]
-

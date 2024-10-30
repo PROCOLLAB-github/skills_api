@@ -21,8 +21,8 @@ app.conf.beat_schedule = {
         "task": "subscription.tasks.daily_resub_users",
         "schedule": crontab(minute=0, hour=0),
     },
-    "profile_month_recache": {
-        "task": "progress.tasks.profile_month_recache",
+    "user_month_stat": {
+        "task": "progress.tasks.monthly_check_user_goals",
         "schedule": crontab(0, 0, day_of_month="1"),
     },
 }
