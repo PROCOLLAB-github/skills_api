@@ -46,7 +46,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     inlines = (IntermediateUserSkillsInline,)
     list_display = (
         "user",
-        "last_subscription_date",
+ #       "last_subscription_date",
     )
 
     def get_name(self):
