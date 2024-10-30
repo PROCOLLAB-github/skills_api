@@ -4,7 +4,7 @@ from datetime import timedelta
 from django_filters import rest_framework as filters
 from django.contrib import admin
 from django.utils import timezone
-from django.db.models import Sum, Q, QuerySet, F
+from django.db.models import Sum, Q, QuerySet
 
 from progress.models import UserProfile
 
