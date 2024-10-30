@@ -1,7 +1,10 @@
-from django.db.models import Sum, Q, QuerySet
 import datetime
+from datetime import timedelta
+
 from django_filters import rest_framework as filters
+from django.contrib import admin
 from django.utils import timezone
+from django.db.models import Sum, Q, QuerySet, F
 
 from progress.models import UserProfile
 
@@ -41,8 +44,30 @@ class UserScoreRatingFilter(filters.FilterSet):
             score_count=Sum(
                 "task_obj_results__points_gained",
                 filter=filter_skills & filter_time_frame,
-                distinct=True,
             )
         ).distinct()
 
         return done_user_queryset.exclude(score_count__isnull=True).order_by("-score_count")
+
+
+class AdminUserSubscriptionFilter(admin.SimpleListFilter):
+    title = ("Подписка")
+    parameter_name = "subscribtion"
+
+    def lookups(self, request, model_admin):
+        return [
+            ("all_subscribers", "Все кто имел подписку"),
+            ("only_active", "Только активные подписки"),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == "all_subscribers":
+            return queryset.exclude(last_subscription_date=None)
+        if self.value() == "only_active":
+            date = timezone.now() - timedelta(days=30)
+            print(date)
+            return (
+                queryset
+                .exclude(last_subscription_date=None)
+                .exclude(last_subscription_date__lte=date)
+            )

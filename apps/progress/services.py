@@ -2,8 +2,9 @@ import datetime
 import math
 from decimal import Decimal, ROUND_HALF_UP
 
-from django.db.models import Count, Q, QuerySet, Sum
 from django.utils import timezone
+from django.contrib.auth import get_user_model
+from django.db.models import Count, Q, QuerySet, Sum
 
 from progress.mapping import MonthMapping
 from courses.models import Skill
@@ -14,12 +15,15 @@ from progress.typing import (
     PreparatoryUserMonthsProgressDict,
 )
 from progress.models import (
+    CustomUser,
     UserMonthStat,
     UserProfile,
     UserWeekStat,
     UserSkillDone,
     TaskObjUserResult,
 )
+
+User = get_user_model()
 
 
 def get_user_data(profile_id: int) -> UserProfileDataDict:
@@ -48,23 +52,28 @@ def get_user_data(profile_id: int) -> UserProfileDataDict:
     }
 
 
-def get_user_profile_skills_progress(user_profile_id: int) -> list[UserSkillsProgressDict]:
+def get_user_profile_skills_progress(
+    user_profile_id: int,
+    request_user: CustomUser | None = None,
+) -> list[UserSkillsProgressDict]:
     """
     Статистика по навыкам пользователя с % прогресса для профиля. 
     """
     # TODO Fix учесть, когда будет выбор только 5 навыков для юзера.
     _, user_skills_ids = get_user_skills(user_profile_id)
+    task_status_filter = DBSubQuryFiltersForUser().get_many_tasks_status_filter_for_user(request_user)
     skills_stats: QuerySet[Skill] = (
         Skill.published
+        .for_user(request_user)
         .filter(id__in=user_skills_ids)
         .annotate(
                 # Общее кол-во опубликованных вопросов навыка.
-                total_num_questions=Count("tasks__task_objects", filter=Q(tasks__status="published")),
+                total_num_questions=Count("tasks__task_objects", filter=task_status_filter),
                 # Общее кол-во ответов юзера на опубликованные вопросы в рамках навыка.
                 total_user_answers=Count(
                     "tasks__task_objects__user_results",
                     filter=(Q(tasks__task_objects__user_results__user_profile_id=user_profile_id)
-                            & Q(tasks__status="published")),
+                            & task_status_filter),
                 ),
             )
     )
@@ -102,22 +111,29 @@ def get_user_profile_months_stats(user_profile_id: int) -> list[UserMonthsProgre
 
 def get_user_skills(user_profile_id: int) -> tuple[QuerySet[Skill], QuerySet]:
     """Получение всех навыков и их id для конкретного пользователя."""
-    user_skills: QuerySet[Skill] = Skill.published.filter(
-        Q(intermediateuserskills__user_profile__id=user_profile_id)
-        | Q(tasks__task_objects__user_results__user_profile__id=user_profile_id),
-    ).distinct()
+    user = UserProfile.objects.get(id=user_profile_id).user
+    user_skills: QuerySet[Skill] = (
+        Skill.published
+        .for_user(user)
+        .filter(
+            Q(intermediateuserskills__user_profile__id=user_profile_id)
+            | Q(tasks__task_objects__user_results__user_profile__id=user_profile_id),
+        )
+        .distinct()
+    )
     user_skills_ids: QuerySet = user_skills.values_list("id", flat=True)
     return user_skills, user_skills_ids
 
 
-def get_user_available_week(profile_id: int) -> int:
+def get_user_available_week(profile_id: int) -> tuple[int, CustomUser]:
     """
     Получение доступных пользователю недель, все что <= `available_week` доступно.
     Если подписка вообще не оформлена, то -> 0, соотв. ничего не доступно.
     Пример запроса для Task:
         `Q(week__lte=available_week)`
     """
-    subscription_date: datetime = UserProfile.objects.get(pk=profile_id).last_subscription_date
+    user_profile = UserProfile.objects.get(pk=profile_id)
+    subscription_date: datetime = user_profile.last_subscription_date
 
     if subscription_date:
         current_date: datetime = timezone.now().date()
@@ -126,8 +142,8 @@ def get_user_available_week(profile_id: int) -> int:
         # Дробный результат преобразуется в бОльшую часть, пример: 2.1 -> 3
         # (т.е. как началась 3 неделя, чтобы она была включительно)
         available_week: int = math.ceil(days_since_subscription / 7)
-        return available_week
-    return 0
+        return available_week, user_profile.user
+    return 0, user_profile.user
 
 
 def get_user_points(profile_id: int) -> int:
@@ -166,3 +182,51 @@ def get_rounded_percentage(dividend: int, divisor: int) -> int:
     percentage: Decimal = Decimal(str((dividend / divisor) * 100))
     rounded_percentage: int = int(percentage.quantize(Decimal("1"), rounding=ROUND_HALF_UP))
     return rounded_percentage
+
+
+class DBSubQuryFiltersForUser:
+    """
+    Икапсуляция логики получения фильтра для подзапросов, отображение определенным ролям:
+        - Все объекты для `superuser`,
+        - Объекты со статусом `published` и `stuff_only` для `staff`,
+        - Только опубликованные объекты для остальных.
+    Инстансы для фильтрации:
+        - Skill
+        - Task
+    """
+
+    @staticmethod
+    def get_many_tasks_status_filter_for_user(user: CustomUser):
+        task_filter = Q(tasks__status="published")
+        if user and user.is_superuser:
+            task_filter = Q()
+        elif user and user.is_staff:
+            task_filter = Q(tasks__status="published") | Q(tasks__status="stuff_only")
+        return task_filter
+
+    @staticmethod
+    def get_task_status_filter_for_user(user: CustomUser):
+        task_filter = Q(task__status="published")
+        if user and user.is_superuser:
+            task_filter = Q()
+        elif user and user.is_staff:
+            task_filter = Q(task__status="published") | Q(task__status="stuff_only")
+        return task_filter
+
+    @staticmethod
+    def get_task_skill_status_for_for_user(user: CustomUser):
+        skill_status = Q(task__skill__status="published")
+        if user and user.is_superuser:
+            skill_status = Q()
+        elif user and user.is_staff:
+            skill_status = Q(task__skill__status="published") | Q(task__skill__status="stuff_only")
+        return skill_status
+
+    @staticmethod
+    def get_skill_status_for_for_user(user: CustomUser):
+        skill_status = Q(skill__status="published")
+        if user and user.is_superuser:
+            skill_status = Q()
+        elif user and user.is_staff:
+            skill_status = Q(skill__status="published") | Q(skill__status="stuff_only")
+        return skill_status
