@@ -33,7 +33,7 @@ class UserScoreRatingFilter(filters.FilterSet):
     def filter_by_time_frame(self, queryset: QuerySet[UserProfile], name, value) -> QuerySet[UserProfile]:
         """Фильтрует пользователей на основе временного промежутка | скиллов."""
         time_frame_param: str | None = self.request.query_params.get("time_frame", None)
-        skill_names_param: list[str | None] = self.request.query_params.get("skills", None)
+        skill_names_param: str | None = self.request.query_params.get("skills", None)
 
         filter_time_frame: Q = self.__get_filter_time_frame(time_frame_param)
         filter_skills: Q = (
