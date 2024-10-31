@@ -9,7 +9,10 @@ from procollab_skills.celery import app
 from courses.models import Skill, Task
 from progress.mapping import AdditionalPoints
 from progress.typing import UserSkillsProgress
-from progress.services import get_user_skills, get_user_available_week
+from progress.services import (
+    DBSubQuryFiltersForUser,
+    get_user_available_week,
+)
 from progress.models import (
     UserProfile,
     TaskObjUserResult,
@@ -34,10 +37,11 @@ def check_week_stat(task_obj_id: int) -> None:
     week: int = task.week
     user_profile: UserProfile = instance.user_profile
 
-    available_week: int = get_user_available_week(user_profile.pk)
+    available_week, _ = get_user_available_week(user_profile.pk)
 
     tasks_by_week: QuerySet[Task] = (
         Task.published
+        .for_user(user_profile.user)
         .filter(skill__pk=skill.pk, week=week)
         .annotate(
             task_objects_count=Count("task_objects"),  # Общее кол-во вопросов.
@@ -80,25 +84,28 @@ def check_skill_done(task_obj_id: int) -> None:
     subscription_date = user_profile.last_subscription_date
     deadline = subscription_date + timedelta(days=30)
 
+    task_status_filter = DBSubQuryFiltersForUser().get_many_tasks_status_filter_for_user(user_profile.user)
+
     skill: Skill = (
         Skill.published
+        .for_user(user_profile.user)
         .annotate(
             total_num_questions=Count(  # Общее количество заданий.
                 "tasks__task_objects",
-                filter=(Q(tasks__status="published")),
+                filter=task_status_filter,
             ),
             total_user_answers=Count(  # Общее количество ответов.
                 "tasks__task_objects__user_results",
                 filter=(
-                    Q(tasks__task_objects__user_results__user_profile_id=user_profile.id)
-                    & Q(tasks__status="published")
+                    task_status_filter
+                    & Q(tasks__task_objects__user_results__user_profile_id=user_profile.id)
                 ),
             ),
             timely_responses=Count(  # Количество ответов вовремя.
                 "tasks__task_objects__user_results",
                 filter=(
-                    Q(tasks__task_objects__user_results__user_profile_id=user_profile.id)
-                    & Q(tasks__status="published")
+                    task_status_filter
+                    & Q(tasks__task_objects__user_results__user_profile_id=user_profile.id)
                     & Q(tasks__task_objects__user_results__datetime_created__gte=subscription_date)
                     & Q(tasks__task_objects__user_results__datetime_created__lte=deadline)
                 ),
@@ -133,19 +140,19 @@ def create_user_monts_target(user_profile_id: int) -> None:
         return
 
     deadline = user_profile.last_subscription_date + timedelta(days=30)
-    current_year: int = user_profile.last_subscription_date.year  # Текущий год.
-    current_month: int = user_profile.last_subscription_date.month  # Текущий месяц.
-    current_day: int = user_profile.last_subscription_date.day  # Текущий день.
-    next_month: int = 1 if current_month == 12 else current_month + 1  # След. месяц
-    next_month_year: int = current_year + 1 if current_month == 12 else current_year  # След. год
-    _, last_day = calendar.monthrange(current_year, current_month)  # Последний день текущего месяца.
+    current_year: int = user_profile.last_subscription_date.year
+    current_month: int = user_profile.last_subscription_date.month
+    current_day: int = user_profile.last_subscription_date.day
+    next_month: int = 1 if current_month == 12 else current_month + 1
+    next_month_year: int = current_year + 1 if current_month == 12 else current_year
+    _, last_day = calendar.monthrange(current_year, current_month)
     days_until_end_month = (last_day - current_day) + 1  # Дней до конца месяца (включая текущий).
 
     percentag_complete: int = int((days_until_end_month / last_day) * 100)  # Остаток отбрасывается.
 
     # user_skills = user_profile.chosen_skills.all()
     # TODO: ↑ вариант, когда будут скиллы только по выбору, логика ↓ будет не нужна.
-    user_skills, _ = get_user_skills(user_profile_id)
+    user_skills = Skill.published.for_user(user_profile.user)
     user_done_skills = UserSkillDone.objects.filter(user_profile=user_profile).values("skill__id")
     user_skills = user_skills.exclude(id__in=user_done_skills)  # Исключение тех навыков, которые завершены.
 
@@ -192,15 +199,21 @@ def monthly_check_user_goals() -> None:
     user_skills_data: UserSkillsProgress = {}
     # Перебор целей для формирования словаря с информацией по комплиту запланированных навыков.
     for user_target in users_targets:
+        task_status_filter = (
+            DBSubQuryFiltersForUser()
+            .get_many_tasks_status_filter_for_user(user_target.user_profile.user)
+        )
         try:
             skill: Skill = (
-                Skill.published.annotate(
-                    total_num_questions=Count("tasks__task_objects", filter=Q(tasks__status="published")),
+                Skill.published
+                .for_user(user_target.user_profile.user)
+                .annotate(
+                    total_num_questions=Count("tasks__task_objects", filter=task_status_filter),
                     total_user_answers=Count(
                         "tasks__task_objects__user_results",
                         filter=(
-                            Q(tasks__task_objects__user_results__user_profile_id=user_target.user_profile.id)
-                            & Q(tasks__status="published")
+                            task_status_filter
+                            & Q(tasks__task_objects__user_results__user_profile_id=user_target.user_profile.id)
                         ),
                     ),
                 )
