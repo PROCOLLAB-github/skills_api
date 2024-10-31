@@ -117,13 +117,15 @@ class ViewSubscriptions(ListAPIView):
             queryset, created = SubscriptionType.objects.get_or_create(
                 name="Пробная",
                 price=1,
-                features="Задания от практикующих специалистов, Нативные задания, Карьерные знания дешевле стакана кофе, Общество единомышленников",
+                features=("Задания от практикующих специалистов, Нативные задания, "
+                          "Карьерные знания дешевле стакана кофе, Общество единомышленников"),
             )
         elif is_logged_in and self.user_profile.bought_trial_subscription:
             queryset, created = SubscriptionType.objects.get_or_create(
                 name="Оптимум",
                 price=120,
-                features="Задания от практикующих специалистов, Нативные задания, Карьерные знания дешевле стакана кофе, Общество единомышленников",
+                features=("Задания от практикующих специалистов, Нативные задания, "
+                          "Карьерные знания дешевле стакана кофе, Общество единомышленников"),
             )
 
         serializer = self.serializer_class(queryset)

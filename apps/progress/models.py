@@ -71,7 +71,6 @@ class UserProfile(models.Model):
 
     is_autopay_allowed = models.BooleanField(default=False)
 
-    
     last_subscription_type = models.ForeignKey(
         SubscriptionType, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -238,7 +237,6 @@ class UserWeekStat(models.Model):
     def __str__(self):
 
         return f"{self.user_profile.user.first_name}: {self.skill.name} - week {self.week}"
-
 
 
 class AbstractMonthFields(models.Model):

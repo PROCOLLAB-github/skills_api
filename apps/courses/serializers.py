@@ -58,7 +58,8 @@ class SkillsBasicSerializer(serializers.ModelSerializer):
 
 
 class SkillsDoneSerializer(serializers.ModelSerializer):
-    file_link = serializers.URLField(source="file.link", required=False)  # Access the link field from the related FileModel
+    # Access the link field from the related FileModel
+    file_link = serializers.URLField(source="file.link", required=False)
     # Просьба захардкодить, статичный 1 уровень для всех навыков
     quantity_of_levels = serializers.SerializerMethodField()
     is_done = serializers.BooleanField()
