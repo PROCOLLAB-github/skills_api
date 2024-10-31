@@ -100,7 +100,8 @@ class SingleCorrectPostErrorResponseSerializerData:
 
 @dataclass
 class InfoSlideSerializerData:
-    text: str
+    title: str | None
+    text: str | None
     files: list[str]
     is_done: bool
     video_url: str | None
