@@ -94,7 +94,7 @@ class CreatePayment(CreateAPIView):
                     type=type,
                 ),
             )
-            print(payload, "\n", asdict(payload))
+
             payment: CreatePaymentResponseData = create_payment(payload)
             return Response(asdict(payment), status=200)
         except Exception as e:
