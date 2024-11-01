@@ -4,6 +4,7 @@ from datetime import timedelta
 from django.utils import timezone
 from yookassa import Payment
 
+from subscription.models import SubscriptionType
 from subscription.typing import AmountData, CreateRecurrentPaymentData
 from subscription.utils.create_payment import create_payment
 
@@ -20,10 +21,17 @@ def daily_resub_users() -> str:
     # для них же ищет данные о платежах
     payments = Payment.list({"created_at.lte": one_month_ago.isoformat()})
 
-    # для платежей. если у юзера в настройках разрешена отмена периодических платежей, то повторяет их
+    subscriptions = SubscriptionType.objects.values('id', 'price')
+    subscriptions_prices: dict[int, str] = dict((item['id'], item['name']) for item in subscriptions)
+
     for payment in payments.items:
         if payment.metadata.get("user_profile_id", None) is None:  # если данных нет почему-то
             continue
+
+        subscription_id = int(payment.metadata["subscription_id"])
+        if subscriptions_prices[subscription_id] == 1:  # если подписка была пробная - не продляем
+            continue
+
         user_id = int(payment.metadata["user_profile_id"])
         if user_id not in autopay_on_profiles_ids:  # включено ли у юзера авто-продление
             continue
@@ -31,7 +39,7 @@ def daily_resub_users() -> str:
         payload = CreateRecurrentPaymentData(
             amount=AmountData(value=payment.amount.value),
             payment_method_id=payment.id,
-            metadata={"user_profile_id": user_id},
+            metadata={"user_profile_id": user_id, "subscription_id": subscription_id, },
         )
 
         create_payment(payload)
