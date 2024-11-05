@@ -2,12 +2,10 @@ import pytest
 from django.urls import reverse
 
 from progress.serializers import CustomObtainPairSerializer
-from subscription.tests.fixtures import user, trying_sub, optimum_sub, user_with_trial_sub
 
 
-
-@pytest.mark.django_db
-def test_get_trying_subscription_should_succeed(client, user, trying_sub) -> None:
+@pytest.mark.usefixtures('trying_sub')
+def test_get_trying_subscription_should_succeed(client, user) -> None:
     get_url = reverse("view-subscriptions")
 
     token = CustomObtainPairSerializer.get_token(user)
@@ -27,8 +25,7 @@ def test_get_trying_subscription_should_succeed(client, user, trying_sub) -> Non
     assert response_data.get("price") == 1, "Выдаётся не тот тип подписки"
 
 
-
-@pytest.mark.django_db
+@pytest.mark.usefixtures('optimum_sub')
 def test_get_optimum_subscription_should_succeed(client, user_with_trial_sub, optimum_sub) -> None:
     get_url = reverse("view-subscriptions")
 
