@@ -11,7 +11,14 @@ class AbstractQuestion(models.Model):
         abstract = True
 
 
-class QuestionSingleAnswer(AbstractQuestion):
+class AbstractVideo(models.Model):
+    video_url = models.URLField(null=True, blank=True)
+
+    class Meta:
+        abstract = True
+
+
+class QuestionSingleAnswer(AbstractQuestion, AbstractVideo):
     files = models.ManyToManyField(FileModel, related_name="single_questions", blank=True)
     is_exclude = models.BooleanField(
         help_text="Если этот вопрос является типом 'исключить неправильное', поставить на True", default=False
@@ -22,7 +29,7 @@ class QuestionSingleAnswer(AbstractQuestion):
         verbose_name_plural = "Вопросы с одним правильным ответом"
 
 
-class QuestionConnect(AbstractQuestion):
+class QuestionConnect(AbstractQuestion, AbstractVideo):
     files = models.ManyToManyField(FileModel, related_name="connect_questions", blank=True)
 
     class Meta:
@@ -30,8 +37,9 @@ class QuestionConnect(AbstractQuestion):
         verbose_name_plural = "Вопросы на соотношение"
 
 
-class InfoSlide(models.Model):
-    text = models.TextField()
+class InfoSlide(AbstractVideo):
+    title = models.CharField(max_length=70, null=True, blank=True)
+    text = models.TextField(blank=True, null=True)
     files = models.ManyToManyField(FileModel, related_name="info_slides", blank=True)
 
     class Meta:
@@ -39,7 +47,7 @@ class InfoSlide(models.Model):
         verbose_name_plural = "Информационные слайды"
 
 
-class QuestionWrite(AbstractQuestion):
+class QuestionWrite(AbstractQuestion, AbstractVideo):
     files = models.ManyToManyField(FileModel, related_name="write_questions", blank=True)
 
     class Meta:

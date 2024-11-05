@@ -12,6 +12,7 @@ class AbstractStatusField(models.Model):
     STATUS_CHOICES = [
         ("draft", "Черновик"),
         ("published", "Опубликован"),
+        ("stuff_only", "Доступ только у персонала"),
     ]
 
     status = models.CharField(choices=STATUS_CHOICES, max_length=15, default="draft", verbose_name="Статус")
