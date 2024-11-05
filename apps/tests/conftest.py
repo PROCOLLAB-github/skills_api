@@ -1,7 +1,11 @@
 import pytest
 
+
 pytest_plugins = [
+    "tests.fixtures.users",
     "tests.fixtures.subscription",
+    "tests.fixtures.coureses",
+    "tests.fixtures.files",
 ]
 
 

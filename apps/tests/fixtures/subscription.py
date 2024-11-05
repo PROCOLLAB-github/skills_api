@@ -1,7 +1,5 @@
 import pytest
 
-from model_bakery import baker
-
 from subscription.models import SubscriptionType
 
 
@@ -27,19 +25,3 @@ def optimum_sub():
             "Карьерные знания дешевле стакана кофе, Общество единомышленников"
         ),
     )
-
-
-@pytest.fixture
-def user():
-    return baker.make('progress.CustomUser')
-
-
-@pytest.fixture
-def user_with_trial_sub():
-    user = baker.make("progress.CustomUser")
-
-    profile = user.profiles
-    profile.bought_trial_subscription = True
-    profile.save()
-
-    return user
