@@ -54,4 +54,6 @@ def daily_resub_users() -> str:
 
         create_payment(payload)
 
-    return f"Users' skills nullified {user_profiles.count()}\n Quantity of resubbed users {len(autopay_on_profiles_ids)}"
+    return (
+        f"Users' skills nullified {user_profiles.count()}\n Quantity of resubbed users {len(autopay_on_profiles_ids)}"
+    )
