@@ -19,7 +19,7 @@ COURSES_ACCESS_PATHS: list[str] = [
     "/courses/all-skills/",
 ]
 
-FULL_FILLED_PUBLISHED_SKILL_RESPONSE = {
+FULL_FILLED_PUBLISHED_SKILL_RESPONSE_NEW_SUB = {
     "count": 2,
     "current_level": 1,
     "next_level": None,

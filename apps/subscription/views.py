@@ -114,7 +114,6 @@ class ViewSubscriptions(ListAPIView):
         is_logged_in = isinstance(self.user, CustomUser)
         profile: UserProfile = self.user_profile
 
-        print(not is_logged_in, not profile.bought_trial_subscription, profile.last_subscription_date)
         if (not is_logged_in) or (not profile.bought_trial_subscription) or (not profile.last_subscription_date):
             queryset, created = SubscriptionType.objects.get_or_create(
                 name="Пробная",
