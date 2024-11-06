@@ -1,8 +1,8 @@
-from datetime import datetime
 from unittest.mock import patch
 
 import pytest
 from model_bakery import baker
+from django.utils import timezone
 
 from progress.models import UserProfile
 from progress.serializers import CustomObtainPairSerializer
@@ -15,7 +15,7 @@ def user_with_trial_sub_token():
         profile: UserProfile = user.profiles
 
         profile.bought_trial_subscription = True
-        profile.last_subscription_date = datetime.now().date()
+        profile.last_subscription_date = timezone.now().date()
         profile.save()
 
         return str(CustomObtainPairSerializer.get_token(user))

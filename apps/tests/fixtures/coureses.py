@@ -32,8 +32,7 @@ def task_wo_questions(skill_wo_tasks):
     )
 
 
-@pytest.fixture
-def full_filled_published_skill(random_file_intance):
+def create_full_skill(random_file_intance, status="published"):
     """
     Полный курс:
         - 4 недели (4 `Task`)
@@ -42,7 +41,7 @@ def full_filled_published_skill(random_file_intance):
     """
     skill = Skill(
         name="Навык 1",
-        status="published",
+        status=status,
         description="Описание",
         who_created="Создатель",
         file=random_file_intance,
@@ -69,7 +68,7 @@ def full_filled_published_skill(random_file_intance):
             week=task_idx,
             level=task_idx,
             skill=skill,
-            status="published",
+            status=status,
             ordinal_number=task_idx,
             name=f"Задача {task_idx}",
         )
@@ -87,3 +86,19 @@ def full_filled_published_skill(random_file_intance):
     Task.objects.bulk_create(tasks_list)
     TaskObject.objects.bulk_create(task_objects_list)
     return skill
+
+
+@pytest.fixture
+def full_filled_published_skill(random_file_intance):
+    skill = create_full_skill(random_file_intance)
+    return skill
+
+
+@pytest.fixture
+def full_filled_only_stuff_skill(random_file_intance):
+    return create_full_skill(random_file_intance, "stuff_only")
+
+
+@pytest.fixture
+def full_filled_draft_skill(random_file_intance):
+    return create_full_skill(random_file_intance, "draft")
