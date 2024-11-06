@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("courses", "0014_alter_skill_status_alter_task_status"),
         ("subscription", "0001_initial"),

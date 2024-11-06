@@ -21,9 +21,6 @@ def user_with_trial_sub_token():
         return str(CustomObtainPairSerializer.get_token(user))
 
 
-
-
-
 @pytest.fixture
 def user_token():
     with patch("progress.tasks.create_user_monts_target.delay"):

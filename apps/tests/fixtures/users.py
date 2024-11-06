@@ -25,7 +25,6 @@ def user_with_trial_sub(user):
     return user
 
 
-
 # @pytest.fixture
 # def user_with_trial_sub_token():
 #     with patch("progress.tasks.create_user_monts_target.delay"):
@@ -37,7 +36,6 @@ def user_with_trial_sub(user):
 #         profile.save()
 #
 #         return str(CustomObtainPairSerializer.get_token(user))
-
 
 
 @pytest.fixture

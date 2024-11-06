@@ -11,19 +11,10 @@ from questions.models import InfoSlide
 
 @pytest.fixture
 def info_question_data() -> None:
-    skill = Skill(
-        name="asd",
-        who_created="123",
-        status="published"
-    )
+    skill = Skill(name="asd", who_created="123", status="published")
     skill.save()
 
-    task = Task(
-        name="asd",
-        skill=skill,
-        status="published"
-
-    )
+    task = Task(name="asd", skill=skill, status="published")
     task.save()
 
     slide = InfoSlide(text="123")
@@ -33,7 +24,6 @@ def info_question_data() -> None:
         task=task,
         content_type=ContentType.objects.get_for_model(InfoSlide),
         object_id=1,
-
     )
     task_obj.save()
 
