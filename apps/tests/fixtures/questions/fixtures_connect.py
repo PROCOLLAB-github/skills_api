@@ -56,7 +56,7 @@ def connect_question_data() -> None:
 
 
 @pytest.fixture
-def connect_question_data_answered(connect_question_data, user_with_trial_sub):
+def connect_question_data_answered(connect_question_data, user_with_trial_sub_token):
     with patch("progress.tasks.check_skill_done.delay"):
         with patch("progress.tasks.check_week_stat.delay"):
             TaskObjUserResult.objects.create_user_result(
@@ -65,4 +65,4 @@ def connect_question_data_answered(connect_question_data, user_with_trial_sub):
                 type_task_obj=TypeQuestionPoints.QUESTION_CONNECT,
             )
 
-            return user_with_trial_sub
+            return user_with_trial_sub_token

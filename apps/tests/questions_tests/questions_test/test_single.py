@@ -1,19 +1,12 @@
 import pytest
 from django.urls import reverse
 
-from courses.models import TaskObject, Task, Skill
-from questions.tests.fixtures.fixtures_single import user_with_subscription_token, question_data,  question_data_answered
-from questions.tests.fixtures.common import user_with_trial_sub
-
-
 get_url = reverse("single-correct-get", kwargs={'task_obj_id': 1})
 
 
-
-
-@pytest.mark.django_db
-def test_single_not_answered_should_succeed(client, question_data, user_with_trial_sub: str) -> None:
-    headers = {"Authorization": f"Bearer {user_with_trial_sub}"}
+@pytest.mark.usefixtures("user_with_trial_sub_token", "question_data")
+def test_single_not_answered_should_succeed(client, user_with_trial_sub_token: str, question_data) -> None:
+    headers = {"Authorization": f"Bearer {user_with_trial_sub_token}"}
 
     response = client.get(get_url, headers=headers)
     response_data = response.json()
@@ -23,7 +16,7 @@ def test_single_not_answered_should_succeed(client, question_data, user_with_tri
     assert len(response_data["answers"]) > 1, "Почему-то выдало всего один правильный ответ. Должно больше"
 
 
-@pytest.mark.django_db
+@pytest.mark.usefixtures("question_data_answered")
 def test_single_answered_should_succeed(client, question_data_answered: str) -> None:
     headers = {"Authorization": f"Bearer {question_data_answered}"}
 

@@ -9,7 +9,7 @@ from progress.serializers import CustomObtainPairSerializer
 
 
 @pytest.fixture
-def user_with_trial_sub():
+def user_with_trial_sub_token():
     with patch("progress.tasks.create_user_monts_target.delay"):
         user = baker.make("progress.CustomUser")
         profile: UserProfile = user.profiles
@@ -17,5 +17,16 @@ def user_with_trial_sub():
         profile.bought_trial_subscription = True
         profile.last_subscription_date = datetime.now().date()
         profile.save()
+
+        return str(CustomObtainPairSerializer.get_token(user))
+
+
+
+
+
+@pytest.fixture
+def user_token():
+    with patch("progress.tasks.create_user_monts_target.delay"):
+        user = baker.make("progress.CustomUser")
 
         return str(CustomObtainPairSerializer.get_token(user))

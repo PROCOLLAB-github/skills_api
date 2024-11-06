@@ -6,6 +6,13 @@ pytest_plugins = [
     "tests.fixtures.subscription",
     "tests.fixtures.coureses",
     "tests.fixtures.files",
+
+    "tests.fixtures.questions.fixtures_connect",
+    "tests.fixtures.questions.fixtures_write",
+    "tests.fixtures.questions.fixtures_exlude",
+    "tests.fixtures.questions.fixtures_single",
+    "tests.fixtures.questions.fixtures_infoslide",
+    "tests.fixtures.questions.common",
 ]
 
 

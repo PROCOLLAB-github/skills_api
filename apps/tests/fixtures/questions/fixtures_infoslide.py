@@ -39,7 +39,7 @@ def info_question_data() -> None:
 
 
 @pytest.fixture
-def info_question_answered_data(info_question_data, user_with_trial_sub):
+def info_question_answered_data(info_question_data, user_with_trial_sub_token):
     with patch("progress.tasks.check_skill_done.delay"):
         with patch("progress.tasks.check_week_stat.delay"):
             TaskObjUserResult.objects.create_user_result(
@@ -48,4 +48,4 @@ def info_question_answered_data(info_question_data, user_with_trial_sub):
                 type_task_obj=TypeQuestionPoints.INFO_SLIDE,
             )
 
-            return user_with_trial_sub
+            return user_with_trial_sub_token

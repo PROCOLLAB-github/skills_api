@@ -2,13 +2,14 @@ import pytest
 from django.urls import reverse
 
 from progress.serializers import CustomObtainPairSerializer
-from subscription.tests.fixtures import user_token
+
+
 
 
 get_url = reverse("single-correct-get", kwargs={'task_obj_id': 1})
 
 
-@pytest.mark.django_db
+@pytest.mark.usefixtures("user_token")
 def test_single_not_answered_should_succeed(client,  user_token: str) -> None:
     headers = {"Authorization": f"Bearer {user_token}"}
 
