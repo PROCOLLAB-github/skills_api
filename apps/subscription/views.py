@@ -154,8 +154,6 @@ class NotificationWebHook(CreateAPIView):
             "user", "last_subscription_type"
         ).filter(id=notification_data.object["metadata"]["user_profile_id"])
 
-
-
         if (
             notification_data.event == "payment.succeeded"
             and notification_data.object["status"] == "succeeded"
