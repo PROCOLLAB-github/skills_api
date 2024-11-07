@@ -167,6 +167,7 @@ class NotificationWebHook(CreateAPIView):
 
                 profile_to_update.update(**params_to_update)
 
+
                 logging.info(
                     f"subscription date renewed for {profile_to_update[0].user.first_name} "
                     f"{profile_to_update[0].user.last_name}"
@@ -175,6 +176,7 @@ class NotificationWebHook(CreateAPIView):
                     f"subscription date renewed for {profile_to_update[0].user.first_name} "
                     f"{profile_to_update[0].user.last_name}"
                 )
+
         elif (
             notification_data.event == "refund.succeeded"
             and notification_data.object["status"] == "succeeded"
