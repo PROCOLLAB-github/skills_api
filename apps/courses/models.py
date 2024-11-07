@@ -6,12 +6,14 @@ from django.db.models import Max
 
 from files.models import FileModel
 from courses.managers import PublishedManager, AvailableForUser
+from subscription.models import SubscriptionType
 
 
 class AbstractStatusField(models.Model):
     STATUS_CHOICES = [
         ("draft", "Черновик"),
         ("published", "Опубликован"),
+        ("stuff_only", "Доступ только у персонала"),
     ]
 
     status = models.CharField(choices=STATUS_CHOICES, max_length=15, default="draft", verbose_name="Статус")
@@ -53,6 +55,14 @@ class Skill(AbstractStatusField):
         blank=True,
     )
     quantity_of_levels = models.IntegerField(default=0)
+    subcription_type = models.ForeignKey(
+        SubscriptionType,
+        blank=True,
+        help_text="Минимальный тип подписки, с которой навык становится доступен",
+        null=True,
+        on_delete=models.SET_NULL,
+        verbose_name="Тип подписки",
+    )
 
     def __str__(self):
         return f"{self.name}"

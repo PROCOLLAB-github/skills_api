@@ -120,7 +120,18 @@ class IntermediateUserSkills(models.Model):
         )
 
 
-class TaskObjUserResult(models.Model):
+class AbstractDateTimeCreated(models.Model):
+    datetime_created = models.DateTimeField(
+        verbose_name="Дата создания",
+        null=False,
+        default=timezone.now,
+    )
+
+    class Meta:
+        abstract = True
+
+
+class TaskObjUserResult(AbstractDateTimeCreated):
     task_object = models.ForeignKey(
         "courses.TaskObject",
         on_delete=models.CASCADE,
@@ -140,9 +151,11 @@ class TaskObjUserResult(models.Model):
     )
     points_gained = models.PositiveIntegerField(verbose_name="Набранные баллы")
 
+
     datetime_created = models.DateTimeField(
         verbose_name="Дата создания", null=False, default=timezone.now
     )
+
 
     objects = TaskObjUserResultManager()
 
@@ -155,7 +168,7 @@ class TaskObjUserResult(models.Model):
         unique_together = ("task_object", "user_profile")
 
 
-class UserSkillDone(models.Model):
+class UserSkillDone(AbstractDateTimeCreated):
     """
     Завершенные навыки пользователя.
     Запись создается сигналом от `TaskObjUserResult` через Celery task.
@@ -192,7 +205,7 @@ class UserSkillDone(models.Model):
         ]
 
 
-class UserWeekStat(models.Model):
+class UserWeekStat(AbstractDateTimeCreated):
     """
     Завершенные недели пользователя.
     Запись создается сигналом от `TaskObjUserResult` через Celery task.
@@ -223,7 +236,6 @@ class UserWeekStat(models.Model):
     )
     week = models.PositiveSmallIntegerField(choices=WEEK_CHOICES, verbose_name="Неделя")
     is_done = models.BooleanField(verbose_name="Неделя завершена")
-    created = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 
     class Meta:
         verbose_name = "Завершенная неделя"
@@ -235,6 +247,7 @@ class UserWeekStat(models.Model):
         ]
 
     def __str__(self):
+
         return f"{self.user_profile.user.first_name}: {self.skill.name} - week {self.week}"
 
 
@@ -256,8 +269,9 @@ class AbstractMonthFields(models.Model):
         NOV = 11, "Ноябрь"
         DEC = 12, "Декабрь"
 
-
-    month = models.PositiveSmallIntegerField(choices=Month.choices, verbose_name="Месяц")
+    month = models.PositiveSmallIntegerField(
+        choices=Month.choices, verbose_name="Месяц"
+    )
 
     year = models.PositiveSmallIntegerField(verbose_name="Год")
 

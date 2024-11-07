@@ -25,7 +25,6 @@ from progress.serializers import (
     SubProclong,
     CustomUserSerializer,
 )
-from procollab_skills.permissions import IfSubscriptionOutdatedPermission
 from subscription.serializers import UserSubscriptionDataSerializer
 
 
@@ -40,7 +39,10 @@ class UserProfile(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
         # TODO подумать над кэшированием.
         user_data: UserProfileDataDict = get_user_data(self.user_profile.id)
-        skills_stats: list[UserSkillsProgressDict] = get_user_profile_skills_progress(self.user_profile.id)
+        skills_stats: list[UserSkillsProgressDict] = get_user_profile_skills_progress(
+            self.user_profile.id,
+            self.request.user,
+        )
         months_stats: list[UserMonthsProgressDict] = get_user_profile_months_stats(self.user_profile.id)
         data = {"user_data": user_data} | {"skills": skills_stats} | {"months": months_stats}
         return Response(data, status=status.HTTP_200_OK)
@@ -58,7 +60,11 @@ class UserChooseSkills(generics.UpdateAPIView):
 
     def update(self, request, *args, **kwargs):
         try:
-            skills = Skill.published.filter(id__in=request.data)
+            skills = (
+                Skill.published
+                .for_user(self.request.user)
+                .filter(id__in=request.data)
+            )
 
             IntermediateUserSkills.objects.bulk_create(
                 [IntermediateUserSkills(user_profile=self.user_profile, skill=skill) for skill in skills]

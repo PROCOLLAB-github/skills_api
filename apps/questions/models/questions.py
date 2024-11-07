@@ -39,7 +39,8 @@ class QuestionConnect(AbstractQuestion, AbstractVideo):
 
 class InfoSlide(AbstractVideo):
     title = models.CharField(max_length=70, null=True, blank=True)
-    text = models.TextField()
+    text = models.TextField(blank=True, null=True)
+
     files = models.ManyToManyField(FileModel, related_name="info_slides", blank=True)
 
     class Meta:

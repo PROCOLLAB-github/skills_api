@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 
-
+from .filters import AdminUserSubscriptionFilter
 from .models import (
     TaskObjUserResult,
     CustomUser,
@@ -22,7 +22,23 @@ class TaskAdmin(admin.ModelAdmin):
 
 @admin.register(CustomUser)
 class UserAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        "id",
+        "email",
+        "first_name",
+        "last_name",
+    )
+    list_display_links = (
+        "id",
+        "email",
+        "first_name",
+        "last_name",
+    )
+    search_fields = (
+        "email",
+        "first_name",
+        "last_name",
+    )
 
 
 class IntermediateUserSkillsInline(admin.TabularInline):
@@ -32,7 +48,9 @@ class IntermediateUserSkillsInline(admin.TabularInline):
 
 class UserProfileForm(forms.ModelForm):
     avatar_url_custom = forms.CharField(
-        label="Avatar URL", required=False, widget=forms.TextInput(attrs={"readonly": "readonly"})
+        label="Avatar URL",
+        required=False,
+        widget=forms.TextInput(attrs={"readonly": "readonly"}),
     )
 
     class Meta:
@@ -48,6 +66,12 @@ class UserProfileAdmin(admin.ModelAdmin):
         "user",
         "last_subscription_date",
     )
+    search_fields = (
+        "user__email",
+        "user__first_name",
+        "user__last_name",
+    )
+    list_filter = [AdminUserSubscriptionFilter]
 
     def get_name(self):
         return f"{self.obj.first_name} {self.obj.last_name}"
@@ -79,5 +103,12 @@ class UserMonthStatAdmin(admin.ModelAdmin):
 
 @admin.register(UserMonthTarget)
 class UserMonthTargetAdmin(admin.ModelAdmin):
-    list_display = ("id", "user_profile", "skill", "month", "year", "percentage_of_completion")
+    list_display = (
+        "id",
+        "user_profile",
+        "skill",
+        "month",
+        "year",
+        "percentage_of_completion",
+    )
     list_filter = ["skill", "month", "year"]

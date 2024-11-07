@@ -94,7 +94,7 @@ class CreatePayment(CreateAPIView):
                     type=type,
                 ),
             )
-            print(payload, "\n", asdict(payload))
+
             payment: CreatePaymentResponseData = create_payment(payload)
             return Response(asdict(payment), status=200)
         except Exception as e:
@@ -112,18 +112,21 @@ class ViewSubscriptions(ListAPIView):
 
     def list(self, request, *args, **kwargs) -> Response:
         is_logged_in = isinstance(self.user, CustomUser)
+        profile: UserProfile = self.user_profile
 
-        if (not is_logged_in) or (not self.user_profile.bought_trial_subscription):
+        if (not is_logged_in) or (not profile.bought_trial_subscription) or (not profile.last_subscription_date):
             queryset, created = SubscriptionType.objects.get_or_create(
                 name="Пробная",
                 price=1,
-                features="Задания от практикующих специалистов, Нативные задания, Карьерные знания дешевле стакана кофе, Общество единомышленников",
+                features=("Задания от практикующих специалистов, Нативные задания, "
+                          "Карьерные знания дешевле стакана кофе, Общество единомышленников"),
             )
-        elif is_logged_in and self.user_profile.bought_trial_subscription:
+        else:
             queryset, created = SubscriptionType.objects.get_or_create(
                 name="Оптимум",
                 price=120,
-                features="Задания от практикующих специалистов, Нативные задания, Карьерные знания дешевле стакана кофе, Общество единомышленников",
+                features=("Задания от практикующих специалистов, Нативные задания, "
+                          "Карьерные знания дешевле стакана кофе, Общество единомышленников"),
             )
 
         serializer = self.serializer_class(queryset)
@@ -158,19 +161,22 @@ class NotificationWebHook(CreateAPIView):
             params_to_update = {"last_subscription_date": timezone.now()}
             if sub_id := notification_data.object["metadata"].get(
                 "subscription_id"
-            ):  # если совершается впервые (не продливается)
+            ):
                 params_to_update["last_subscription_type_id"] = sub_id
+                params_to_update["bought_trial_subscription"] = True
 
-            profile_to_update.update(**params_to_update)
+                profile_to_update.update(**params_to_update)
 
-            logging.info(
-                f"subscription date renewed for {profile_to_update[0].user.first_name} "
-                f"{profile_to_update[0].user.last_name}"
-            )
-            return Response(
-                f"subscription date renewed for {profile_to_update[0].user.first_name} "
-                f"{profile_to_update[0].user.last_name}"
-            )
+
+                logging.info(
+                    f"subscription date renewed for {profile_to_update[0].user.first_name} "
+                    f"{profile_to_update[0].user.last_name}"
+                )
+                return Response(
+                    f"subscription date renewed for {profile_to_update[0].user.first_name} "
+                    f"{profile_to_update[0].user.last_name}"
+                )
+
         elif (
             notification_data.event == "refund.succeeded"
             and notification_data.object["status"] == "succeeded"

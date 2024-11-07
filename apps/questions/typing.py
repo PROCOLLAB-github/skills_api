@@ -17,7 +17,8 @@ class SingleConnectedAnswerData:
 @dataclass
 class QuestionSerializerData:
     id: int
-    question_text: str | None
+    text: str | None
+    video_url: str | None
     description: str
     files: list[str]
     answers: list[SingleAnswerData]
@@ -35,6 +36,7 @@ class QuestionWriteSerializerData:
     id: int
     text: str
     description: str
+    video_url: str | None
     files: list[str]
     answer: AnswerUserWriteData | None = None
 
@@ -44,6 +46,7 @@ class QuestionСonnectSerializerData:
     id: int
     text: str
     description: str
+    video_url: str | None
     connect_left: list[SingleConnectedAnswerData]
     connect_right: list[SingleConnectedAnswerData]
     files: list[str]
@@ -97,6 +100,8 @@ class SingleCorrectPostErrorResponseSerializerData:
 
 @dataclass
 class InfoSlideSerializerData:
-    text: str
+    title: str | None
+    text: str | None
     files: list[str]
     is_done: bool
+    video_url: str | None
