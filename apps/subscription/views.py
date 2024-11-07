@@ -114,7 +114,7 @@ class ViewSubscriptions(ListAPIView):
         is_logged_in = isinstance(self.user, CustomUser)
         profile: UserProfile = self.user_profile
 
-        if (not is_logged_in) or (not profile.bought_trial_subscription) or profile.last_subscription_date:
+        if (not is_logged_in) or (not profile.bought_trial_subscription) or (not profile.last_subscription_date):
             queryset, created = SubscriptionType.objects.get_or_create(
                 name="Пробная",
                 price=1,
@@ -154,8 +154,6 @@ class NotificationWebHook(CreateAPIView):
             "user", "last_subscription_type"
         ).filter(id=notification_data.object["metadata"]["user_profile_id"])
 
-
-
         if (
             notification_data.event == "payment.succeeded"
             and notification_data.object["status"] == "succeeded"
@@ -169,6 +167,7 @@ class NotificationWebHook(CreateAPIView):
 
                 profile_to_update.update(**params_to_update)
 
+
                 logging.info(
                     f"subscription date renewed for {profile_to_update[0].user.first_name} "
                     f"{profile_to_update[0].user.last_name}"
@@ -177,6 +176,7 @@ class NotificationWebHook(CreateAPIView):
                     f"subscription date renewed for {profile_to_update[0].user.first_name} "
                     f"{profile_to_update[0].user.last_name}"
                 )
+
         elif (
             notification_data.event == "refund.succeeded"
             and notification_data.object["status"] == "succeeded"

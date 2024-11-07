@@ -71,6 +71,7 @@ class UserProfile(models.Model):
 
     is_autopay_allowed = models.BooleanField(default=False)
 
+
     last_subscription_type = models.ForeignKey(
         SubscriptionType, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -99,6 +100,7 @@ class UserProfile(models.Model):
             old_instance = UserProfile.objects.get(pk=self.pk)
             if old_instance.last_subscription_date != self.last_subscription_date:
                 from progress.tasks import create_user_monts_target
+
                 create_user_monts_target.delay(old_instance.pk)
         super().save(*args, **kwargs)
 
@@ -148,6 +150,12 @@ class TaskObjUserResult(AbstractDateTimeCreated):
         help_text="Для ответов юзера, которые связаны с вопросами по вводу ответа",
     )
     points_gained = models.PositiveIntegerField(verbose_name="Набранные баллы")
+
+
+    datetime_created = models.DateTimeField(
+        verbose_name="Дата создания", null=False, default=timezone.now
+    )
+
 
     objects = TaskObjUserResultManager()
 
@@ -234,15 +242,14 @@ class UserWeekStat(AbstractDateTimeCreated):
         verbose_name_plural = "Завершенные недели"
         constraints = [
             models.UniqueConstraint(
-                fields=["user_profile", "skill", "week"],
-                name="unique_week_stat"
-
+                fields=["user_profile", "skill", "week"], name="unique_week_stat"
             )
         ]
 
     def __str__(self):
 
         return f"{self.user_profile.user.first_name}: {self.skill.name} - week {self.week}"
+
 
 
 class AbstractMonthFields(models.Model):
@@ -265,6 +272,7 @@ class AbstractMonthFields(models.Model):
     month = models.PositiveSmallIntegerField(
         choices=Month.choices, verbose_name="Месяц"
     )
+
     year = models.PositiveSmallIntegerField(verbose_name="Год")
 
     class Meta:
@@ -324,7 +332,7 @@ class UserMonthTarget(AbstractMonthFields):
         constraints = [
             models.UniqueConstraint(
                 fields=["user_profile", "skill", "month", "year"],
-                name="unique_month_target"
+                name="unique_month_target",
             )
         ]
 
