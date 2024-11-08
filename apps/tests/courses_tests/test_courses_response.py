@@ -6,7 +6,7 @@ from rest_framework.test import APIClient
 from . import constants
 
 
-class TestTaskListPathReponse:
+class TestTaskListPathResponse:
     """
     Тесты пути: `/courses/1`
     """
@@ -157,7 +157,9 @@ class TestTaskResultPathResponse:
         response = api_auth_with_old_sub_client.get(constants.TASK_RESULT)
         respose_dct = response.json()
 
-        assert respose_dct["next_task_id"] == self.OLD_SUB_NEXT_TASK_ID, "У пользователя должна быть открыта 2 неделя"
+        assert respose_dct["next_task_id"] == self.OLD_SUB_NEXT_TASK_ID, (
+            "У пользователя должна быть открыта 2 неделя | 2 задание."
+        )
 
     @pytest.mark.usefixtures("full_filled_published_skill")
     @override_settings(task_always_eager=True)
@@ -186,11 +188,11 @@ class TestTaskOfSkillPathResponse:
     """
     Тесты пути: `/courses/tasks-of-skill/1`
     """
+    NEW_SUB_PROGRESS: int = 50
     OLD_SUB_AVAILABLE_TASKS: int = 4
     OLD_SUB_AVAILABLE_WEEKS: int = 4
-    NEW_SUB_PROGRESS: int = 50
-    NEW_SUB_PROGRESS_1_WEEK_DONE: int = 25
     OLD_SUB_PROGRESS: int = 13
+    OLD_SUB_PROGRESS_1_WEEK_DONE: int = 25
 
     @pytest.mark.usefixtures("full_filled_published_skill")
     def test_task_of_skill_new_sub_data(self, api_auth_with_sub_client: APIClient):
@@ -258,7 +260,7 @@ class TestTaskOfSkillPathResponse:
         response = api_auth_with_old_sub_client.get(constants.TASKS_OF_SKILL)
         response_dct = response.json()
 
-        assert response_dct["progress"] == self.NEW_SUB_PROGRESS_1_WEEK_DONE, "Прогресс старой подписки неверный."
+        assert response_dct["progress"] == self.OLD_SUB_PROGRESS_1_WEEK_DONE, "Прогресс старой подписки неверный."
         assert response_dct["stats_of_weeks"][0]["is_done"] is True, "Засчитало неделю неверно."
         assert response_dct["stats_of_weeks"][0]["done_on_time"] is False, "Засчитало неделю неверно."
         assert response_dct["tasks"][0]["status"] is True, "Засчитало задачу неверно."

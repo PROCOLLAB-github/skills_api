@@ -52,7 +52,7 @@ def api_auth_without_sub_client(user: CustomUser):
 
 @pytest.fixture
 def api_auth_with_old_sub_client(user_with_old_sub: CustomUser):
-    """Клиент с активной подпиской (более 22 дня назад)."""
+    """Клиент с активной подпиской (более 22 дней назад)."""
     client = APIClient()
     token = CustomObtainPairSerializer.get_token(user_with_old_sub)
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
