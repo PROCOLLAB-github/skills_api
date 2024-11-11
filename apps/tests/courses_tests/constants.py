@@ -33,6 +33,13 @@ COURSES_ACCESS_PATHS: list[str] = [
 ]
 
 
+# Tasks только для stuff(в фикстуре статус должен быть указан)
+TASKS_PATH_STUFF_ONLY = [
+    TASK_LIST_PATH,
+    TASK_RESULT,
+]
+
+
 # Response по /courses/1:
 FULL_FILLED_PUBLISHED_SKILL_RESPONSE_NEW_SUB = {
     "count": 2,

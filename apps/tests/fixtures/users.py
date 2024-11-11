@@ -29,12 +29,22 @@ def user(random_file_intance):
 
 @pytest.fixture
 def user_admin():
-    return baker.make("progress.CustomUser", is_superuser=True)
+    return baker.make(
+        "progress.CustomUser",
+        is_superuser=True,
+        first_name="Админ",
+        last_name="Админ",
+    )
 
 
 @pytest.fixture
 def user_staff():
-    return baker.make("progress.CustomUser", is_staff=True)
+    return baker.make(
+        "progress.CustomUser",
+        is_staff=True,
+        first_name="Стафф",
+        last_name="Стафф",
+    )
 
 
 @pytest.fixture
