@@ -103,6 +103,72 @@ class TestSubscriptionDataResponse:
         assert response_dct["is_subscribed"] is False, "Подписка должна быть неактивной (просрочена)"
         assert response_dct["is_autopay_allowed"] is False, "Автопродление не понятно откуда взялось"
 
+
+class TestUserScoreRating:
+    """
+    Тесты пути: `/progress/user-rating/?time_frame=...`
+    """
+    SINGLE_SCORE_COUNT = 5
+
+    @pytest.mark.parametrize("time_frame", ("last_day", "last_month", "last_year"))
+    def test_empty_data_without_answers(self, time_frame: str, api_auth_with_sub_client: APIClient):
+        response = api_auth_with_sub_client.get(constants.USER_SCORE_RATING_PATH + f"?time_frame={time_frame}")
+        response_dct = response.json()
+
+        assert response_dct["count"] == 0, "Не было ответов, в рейтинге кто-то уже есть"
+        assert response_dct["results"] == [], "Не было ответов, в рейтинге кто-то уже есть"
+
+    @pytest.mark.parametrize("time_frame", ("last_day", "last_month", "last_year"))
+    @pytest.mark.usefixtures("full_filled_published_skill")
+    @override_settings(task_always_eager=True)
+    def test_single_answer_by_new_sub(self, time_frame: str, api_auth_with_sub_client: APIClient):
+        api_auth_with_sub_client.post("/questions/info-slide/check/1")
+        response = api_auth_with_sub_client.get(constants.USER_SCORE_RATING_PATH + f"?time_frame={time_frame}")
+        response_dct = response.json()
+
+        assert response_dct["count"] == 1, "После ответа пользователь не появился в рейтинге"
+        assert response_dct["results"][0]["score_count"] == self.SINGLE_SCORE_COUNT, "Баллы в рейтинге некорректны"
+
+    @pytest.mark.parametrize("time_frame", ("last_day", "last_month", "last_year"))
+    @pytest.mark.usefixtures("skill_three_users_answers")
+    @override_settings(task_always_eager=True)
+    def test_user_rating_with_many_answers(self, time_frame: str, api_auth_with_sub_client: APIClient):
+        """Все ответы даны в 1 время, таймлайн не решает, рейтинг по дате должен быть одинаковым."""
+        response = api_auth_with_sub_client.get(constants.USER_SCORE_RATING_PATH + f"?time_frame={time_frame}")
+        response_dct = response.json()
+        user_points: list[int] = [user["score_count"] for user in response_dct["results"]]
+
+        assert user_points == sorted(user_points, reverse=True), "Порядок пользователей в рейтиге не убывает"
+        assert response_dct["count"] == 3, "В рейтинге должно быть 3 пользователя"
+        assert response_dct["results"][0]["score_count"] == self.SINGLE_SCORE_COUNT * 3, (
+            "Неверные баллы у 1го в рейтинге"
+        )
+        assert response_dct["results"][1]["score_count"] == self.SINGLE_SCORE_COUNT * 2, (
+            "Неверные баллы у 2го в рейтинге"
+        )
+        assert response_dct["results"][2]["score_count"] == self.SINGLE_SCORE_COUNT, (
+            "Неверные баллы у 3го в рейтинге"
+        )
+
+    @pytest.mark.parametrize(
+        "time_frame, count_users",
+        (("last_day", 1), ("last_month", 2), ("last_year", 3))
+    )
+    @pytest.mark.usefixtures("skill_three_users_some_old_answers")
+    @override_settings(task_always_eager=True)
+    def test_user_count_in_different_timeline(
+        self,
+        time_frame: str,
+        count_users: int,
+        api_auth_with_sub_client: APIClient
+    ):
+        """В фикстуре на каждый таймлайн по 1му пользователю, где: сегодня - 1, за ласт год - 3 юзера в рейтинге."""
+        response = api_auth_with_sub_client.get(constants.USER_SCORE_RATING_PATH + f"?time_frame={time_frame}")
+        response_dct = response.json()
+
+        assert response_dct["count"] == count_users, "Таймлан фильтра по пользователям отработал некорректно"
+
+
 # TODO Тесты:
 # Они пока в принципе не работают/работают некорректно.
 #   - /progress/add-skills/
