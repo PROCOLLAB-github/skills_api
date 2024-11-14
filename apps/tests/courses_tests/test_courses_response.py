@@ -158,7 +158,7 @@ class TestTaskResultPathResponse:
         respose_dct = response.json()
 
         assert respose_dct["next_task_id"] == self.OLD_SUB_NEXT_TASK_ID, (
-            "У пользователя должна быть открыта 2 неделя | 2 задание."
+            "У пользователя (старая подписка) должна быть открыта 2 неделя | 2 задание."
         )
 
     @pytest.mark.usefixtures("full_filled_published_skill")

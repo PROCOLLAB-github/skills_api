@@ -13,7 +13,6 @@ pytest_plugins = [
     "tests.fixtures.questions.fixtures_exlude",
     "tests.fixtures.questions.fixtures_single",
     "tests.fixtures.questions.fixtures_infoslide",
-    "tests.fixtures.questions.common",
 ]
 
 
