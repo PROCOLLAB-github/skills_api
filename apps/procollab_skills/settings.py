@@ -51,6 +51,7 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 INSTALLED_APPS = [
+   # "django_summernote",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -63,6 +64,8 @@ INSTALLED_APPS = [
     "celery",
     "django_celery_beat",
     "corsheaders",
+    # plugins
+    "django_summernote",
     # apps
     "courses",
     "files",

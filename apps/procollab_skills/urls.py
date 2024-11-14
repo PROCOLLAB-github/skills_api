@@ -1,4 +1,8 @@
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView,
+)
 
 
 from django.contrib import admin
@@ -21,6 +25,7 @@ urlpatterns = [
     path("questions/", include("questions.urls")),
     path("progress/", include("progress.urls")),
     path("subscription/", include("subscription.urls")),
+    path("summernote/", include("django_summernote.urls")),
 ]
 
 if settings.DEBUG:
