@@ -167,7 +167,6 @@ class NotificationWebHook(CreateAPIView):
 
                 profile_to_update.update(**params_to_update)
 
-
                 logging.info(
                     f"subscription date renewed for {profile_to_update[0].user.first_name} "
                     f"{profile_to_update[0].user.last_name}"

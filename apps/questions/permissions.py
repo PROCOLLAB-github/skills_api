@@ -5,7 +5,7 @@ from rest_framework.exceptions import PermissionDenied
 
 from courses.models import TaskObject
 from courses.services import get_user_available_week
-from progress.services import DBSubQuryFiltersForUser
+from progress.services import DBObjectStatusFilters
 from questions.mapping import get_fields_for_answer_type, wrong_endpoint_text
 from questions.services import get_error_message_for_permissions
 
@@ -24,8 +24,8 @@ class CheckQuestionTypePermission(permissions.BasePermission):
         if request.method == "GET":
             prefetch_fields_list.extend(["content_object__files", "popup", "popup__file"])
 
-        task_status_filter = DBSubQuryFiltersForUser().get_task_status_filter_for_user(request.user)
-        task_skill_status = DBSubQuryFiltersForUser().get_task_skill_status_for_for_user(request.user)
+        task_status_filter = DBObjectStatusFilters().get_task_status_filter_for_user(request.user)
+        task_skill_status = DBObjectStatusFilters().get_task_skill_status_for_for_user(request.user)
 
         try:
             request_task_object: TaskObject = get_object_or_404(
@@ -66,8 +66,8 @@ class SimpleCheckQuestionTypePermission(permissions.BasePermission):
     def has_permission(self, request, view):
         task_object_id = view.kwargs.get("task_obj_id")
         available_week, _ = get_user_available_week(view.profile_id)
-        task_status_filter = DBSubQuryFiltersForUser().get_task_status_filter_for_user(request.user)
-        task_skill_status = DBSubQuryFiltersForUser().get_task_skill_status_for_for_user(request.user)
+        task_status_filter = DBObjectStatusFilters().get_task_status_filter_for_user(request.user)
+        task_skill_status = DBObjectStatusFilters().get_task_skill_status_for_for_user(request.user)
         request_task_object: TaskObject = get_object_or_404(
             (TaskObject.objects
              .prefetch_related("content_object")

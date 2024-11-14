@@ -1,41 +1,32 @@
-from unittest.mock import patch
-
 import pytest
+from django.test import override_settings
 from django.contrib.contenttypes.models import ContentType
 
-from courses.models import Task, Skill, TaskObject
+from courses.models import TaskObject
 from progress.models import TaskObjUserResult
 from questions.mapping import TypeQuestionPoints
 from questions.models import InfoSlide
 
 
 @pytest.fixture
-def info_question_data() -> None:
-    skill = Skill(name="asd", who_created="123", status="published")
-    skill.save()
-
-    task = Task(name="asd", skill=skill, status="published")
-    task.save()
-
+def info_question_data(task_wo_questions) -> TaskObject:
     slide = InfoSlide(text="123")
     slide.save()
 
     task_obj = TaskObject(
-        task=task,
+        task=task_wo_questions,
         content_type=ContentType.objects.get_for_model(InfoSlide),
         object_id=1,
     )
     task_obj.save()
+    return task_obj
 
 
 @pytest.fixture
-def info_question_answered_data(info_question_data, user_with_trial_sub_token):
-    with patch("progress.tasks.check_skill_done.delay"):
-        with patch("progress.tasks.check_week_stat.delay"):
-            TaskObjUserResult.objects.create_user_result(
-                task_obj_id=1,
-                user_profile_id=1,
-                type_task_obj=TypeQuestionPoints.INFO_SLIDE,
-            )
-
-            return user_with_trial_sub_token
+@override_settings(task_always_eager=True)
+def info_question_answered_data(info_question_data, user):
+    TaskObjUserResult.objects.create_user_result(
+        task_obj_id=info_question_data.id,
+        user_profile_id=user.profiles.id,
+        type_task_obj=TypeQuestionPoints.INFO_SLIDE,
+    )

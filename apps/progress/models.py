@@ -71,7 +71,6 @@ class UserProfile(models.Model):
 
     is_autopay_allowed = models.BooleanField(default=False)
 
-
     last_subscription_type = models.ForeignKey(
         SubscriptionType, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -144,18 +143,14 @@ class TaskObjUserResult(AbstractDateTimeCreated):
         related_name="task_obj_results",
         verbose_name="Профиль пользователя",
     )
-
     text = models.TextField(
         null=False,
         help_text="Для ответов юзера, которые связаны с вопросами по вводу ответа",
     )
     points_gained = models.PositiveIntegerField(verbose_name="Набранные баллы")
-
-
     datetime_created = models.DateTimeField(
         verbose_name="Дата создания", null=False, default=timezone.now
     )
-
 
     objects = TaskObjUserResultManager()
 
@@ -249,7 +244,6 @@ class UserWeekStat(AbstractDateTimeCreated):
     def __str__(self):
 
         return f"{self.user_profile.user.first_name}: {self.skill.name} - week {self.week}"
-
 
 
 class AbstractMonthFields(models.Model):
