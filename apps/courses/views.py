@@ -13,7 +13,7 @@ from procollab_skills.auth import CustomAuth
 from progress.models import TaskObjUserResult, UserSkillDone
 
 from progress.services import (
-    DBSubQuryFiltersForUser,
+    DBObjectStatusFilters,
     get_user_available_week,
     get_rounded_percentage,
 )
@@ -211,7 +211,7 @@ class TaskStatsGet(generics.RetrieveAPIView):
             ),
             id=task_id,
         )
-        task_status_filter = DBSubQuryFiltersForUser().get_many_tasks_status_filter_for_user(self.request.user)
+        task_status_filter = DBObjectStatusFilters().get_many_tasks_status_filter_for_user(self.request.user)
         skill: Skill = get_object_or_404(
             Skill.published.for_user(self.request.user).annotate(
                 # Общее кол-во опубликованных вопросов навыка.

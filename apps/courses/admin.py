@@ -50,7 +50,7 @@ class TaskObjectForm(forms.ModelForm):
 @admin.register(TaskObject)
 class TaskObjectAdmin(admin.ModelAdmin):
     form = TaskObjectForm
-    ordering = ("-task__id", "ordinal_number")
+    ordering = ("-task__id",)
     filter_horizontal = ("popup",)
     list_display = (
         "id",

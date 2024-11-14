@@ -3,7 +3,7 @@ from django.db.models import Prefetch, Count, QuerySet, Max
 from courses.models import Task
 from courses.typing import GetStatsDict, WeekStatsDict
 from progress.services import (
-    DBSubQuryFiltersForUser,
+    DBObjectStatusFilters,
     get_user_available_week,
 )
 from progress.models import (
@@ -11,11 +11,12 @@ from progress.models import (
     TaskObjUserResult,
     UserWeekStat,
 )
+from progress.services import get_rounded_percentage
 
 
 def get_stats(skill_id: int, profile_id: int, request_user: CustomUser | None = None) -> GetStatsDict:
     available_week, user = get_user_available_week(profile_id)
-    skill_status_filter = DBSubQuryFiltersForUser().get_skill_status_for_for_user(request_user)
+    skill_status_filter = DBObjectStatusFilters().get_skill_status_for_for_user(request_user)
 
     tasks_of_skill: QuerySet[Task] = (
         Task.available
@@ -33,9 +34,12 @@ def get_stats(skill_id: int, profile_id: int, request_user: CustomUser | None = 
     )
 
     data = []
-
+    user_done_task_objects: list[int] = []
+    all_task_objects: list[int] = []
     for task in tasks_of_skill:
         user_results_count = sum(1 for obj in task.task_objects.all() if obj.filtered_user_results)
+        user_done_task_objects.append(user_results_count)
+        all_task_objects.append(task.task_objects_count)
         data.append(
             {
                 "id": task.id,
@@ -45,12 +49,11 @@ def get_stats(skill_id: int, profile_id: int, request_user: CustomUser | None = 
                 "status": user_results_count == task.task_objects_count,
             }
         )
-    count_task_of_skill: int = tasks_of_skill.count()
-    statuses = ((sum(1 for obj in data if obj["status"]) / count_task_of_skill) * 100 if count_task_of_skill else 0)
+    statuses = get_rounded_percentage(sum(user_done_task_objects), sum(all_task_objects))
 
     stats_of_weeks: list[WeekStatsDict] = get_stats_of_weeks(skill_id, profile_id, available_week, request_user)
 
-    new_data = {"progress": int(statuses), "tasks": data, "stats_of_weeks": stats_of_weeks}
+    new_data = {"progress": statuses, "tasks": data, "stats_of_weeks": stats_of_weeks}
     return new_data
 
 

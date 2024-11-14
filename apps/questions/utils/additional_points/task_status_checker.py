@@ -10,9 +10,11 @@ from django.db.models import Prefetch, F, QuerySet
 from courses.models import Task
 from progress.models import IntermediateUserSkills, TaskObjUserResult
 from questions.mapping import UserSkillProgressDict, MONTH_IN_SECONDS, UserTaskProgressDict
-from questions.utils.additional_points.typing_and_constants import AdditionalPointsParams, AdditionalPointsTypes, \
-    TaskDates, WEEK_BEGIN_DAYS
-
+from questions.utils.additional_points.typing_and_constants import (
+    AdditionalPointsTypes,
+    TaskDates,
+    WEEK_BEGIN_DAYS,
+)
 
 
 class TaskStatusAbstractChecker(ABC):
@@ -44,7 +46,6 @@ class TaskStatusAbstractChecker(ABC):
         В ином случае возвращает 0.
         """
 
-
     @property
     def date_today(self) -> Annotated[str, "example: '%Y-%m-%d' or '%Y-%m'"]:
         """Сделано, чтоб можно было менять формат времени в зависимости от класса"""
@@ -62,7 +63,6 @@ class TaskStatusAbstractChecker(ABC):
             begin_date=f"{today.year}-{today.month}-{WEEK_BEGIN_DAYS[week_number - 1]}",
             end_date=f"{today.year}-{today.month}-{week_end_days[week_number - 1]}"
         )
-
 
     @abstractmethod
     def _is_done_in_time_period(self, date_to_compare: str | None = None) -> bool:
@@ -161,7 +161,6 @@ class TaskStatusAbstractChecker(ABC):
         return user_skill_progress
 
 
-
 class TaskStatusWeekChecker(TaskStatusAbstractChecker):
     _quantity_of_additional_points: int = AdditionalPointsTypes.WEEK_DONE.value
 
@@ -176,8 +175,6 @@ class TaskStatusWeekChecker(TaskStatusAbstractChecker):
             self.user_skill_progress["tasks"][self.task_id]["end_date"], "%Y-%m-%d"
         )
         return date_begin <= date_to_compare <= date_end
-
-
 
     def check_needed_tasks_done(self) -> int:
         if self._date_status_check():
