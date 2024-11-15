@@ -25,13 +25,17 @@ def write_question_data(task_wo_questions) -> TaskObject:
 
 
 @pytest.fixture
-@override_settings(task_always_eager=True)
-def write_question_data_answered(write_question_data, user):
-    TaskObjUserResult.objects.create_user_result(
-        task_obj_id=write_question_data.id,
-        user_profile_id=user.id,
-        type_task_obj=TypeQuestionPoints.QUESTION_WRITE,
-    )
-    a = TaskObjUserResult.objects.get(id=1)
-    a.text = "sigma"
-    a.save()
+def write_question_data_answered(write_question_data: QuestionWrite, user_with_trial_sub_token):
+    with patch("progress.tasks.check_skill_done.delay"):
+        with patch("progress.tasks.check_week_stat.delay"):
+            TaskObjUserResult.objects.create_user_result(
+                task_obj_id=1,
+                user_profile_id=1,
+                type_task_obj=TypeQuestionPoints.QUESTION_WRITE,
+            )
+            a = TaskObjUserResult.objects.get(id=1)
+            a.text = "sigma"
+            a.save()
+
+            return user_with_trial_sub_token
+

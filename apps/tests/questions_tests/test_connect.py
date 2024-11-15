@@ -7,6 +7,11 @@ from django.test import override_settings
 from . import constants
 
 
+@pytest.mark.usefixtures("connect_question_data", "user_with_trial_sub_token")
+def test_connect_not_answered_should_succeed(client, connect_question_data, user_with_trial_sub_token: str) -> None:
+    headers = {"Authorization": f"Bearer {user_with_trial_sub_token}"}
+
+
 @pytest.mark.usefixtures("connect_question_data")
 def test_connect_not_answered(api_auth_with_sub_client: APIClient):
     response = api_auth_with_sub_client.get(constants.CONNECT_QUESTION_GET)
@@ -20,15 +25,14 @@ def test_connect_not_answered(api_auth_with_sub_client: APIClient):
 @pytest.mark.usefixtures("connect_question_data_answered")
 def test_connect_answered(api_auth_with_sub_client: APIClient):
     response = api_auth_with_sub_client.get(constants.CONNECT_QUESTION_GET)
+
     response_data = response.json()
 
     assert response.status_code == 200
     assert len(response_data["connect_left"]) == 2
     assert response_data["is_answered"] is True
 
-    for left, right in zip(
-        response_data["connect_left"], response_data["connect_right"]
-    ):
+    for left, right in zip(response_data["connect_left"], response_data["connect_right"]):
         assert left["id"] == right["id"], "порядок вопросов нарушен"
 
 

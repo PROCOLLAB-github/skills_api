@@ -7,18 +7,19 @@ from django.test import override_settings
 from . import constants
 
 
+@pytest.mark.usefixtures("user_with_trial_sub_token", "question_data")
+def test_single_not_answered_should_succeed(client, user_with_trial_sub_token: str, question_data) -> None:
+    headers = {"Authorization": f"Bearer {user_with_trial_sub_token}"}
+
+
 @pytest.mark.usefixtures("question_data")
 def test_single_not_answered(api_auth_with_sub_client: APIClient):
     response = api_auth_with_sub_client.get(constants.SINGLE_CORRECT_GET)
     response_data = response.json()
 
     assert response.status_code == 200
-    assert (
-        response_data["is_answered"] is False
-    ), "Почему-то на вопрос уже ответили, странно, такого быть не должно"
-    assert (
-        len(response_data["answers"]) > 1
-    ), "Почему-то выдало всего один правильный ответ. Должно больше"
+    assert response_data["is_answered"] is False, "Почему-то на вопрос уже ответили, странно, такого быть не должно"
+    assert len(response_data["answers"]) > 1, "Почему-то выдало всего один правильный ответ. Должно больше"
 
 
 @pytest.mark.usefixtures("question_data_answered")
@@ -27,6 +28,7 @@ def test_single_answered(api_auth_with_sub_client: APIClient):
     response_class = response.json()
 
     assert response.status_code == 200
+
     assert (
         response_class["is_answered"] is True
     ), "Почему-то на вопрос не ответили, странно, такого быть не должно"
@@ -49,3 +51,4 @@ def test_single_not_answered_post(api_auth_with_sub_client: APIClient):
 
     assert response.status_code == 201, "Задание (1 правильный) не принимается к ответу"
     assert response_data["is_correct"] is True, "Задание (1 правильный) решено верно, но response некорректный"
+
