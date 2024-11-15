@@ -64,8 +64,6 @@ INSTALLED_APPS = [
     "celery",
     "django_celery_beat",
     "corsheaders",
-    # plugins
-    "django_summernote",
     # apps
     "courses",
     "files",

@@ -10,7 +10,7 @@ from courses.models import Skill, Task
 from progress.mapping import AdditionalPoints
 from progress.typing import UserSkillsProgress
 from progress.services import (
-    DBSubQuryFiltersForUser,
+    DBObjectStatusFilters,
     get_user_available_week,
 )
 from progress.models import (
@@ -84,7 +84,7 @@ def check_skill_done(task_obj_id: int) -> None:
     subscription_date = user_profile.last_subscription_date
     deadline = subscription_date + timedelta(days=30)
 
-    task_status_filter = DBSubQuryFiltersForUser().get_many_tasks_status_filter_for_user(user_profile.user)
+    task_status_filter = DBObjectStatusFilters().get_many_tasks_status_filter_for_user(user_profile.user)
 
     skill: Skill = (
         Skill.published
@@ -200,7 +200,7 @@ def monthly_check_user_goals() -> None:
     # Перебор целей для формирования словаря с информацией по комплиту запланированных навыков.
     for user_target in users_targets:
         task_status_filter = (
-            DBSubQuryFiltersForUser()
+            DBObjectStatusFilters()
             .get_many_tasks_status_filter_for_user(user_target.user_profile.user)
         )
         try:

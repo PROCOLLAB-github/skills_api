@@ -1,34 +1,27 @@
-from unittest.mock import patch
-
 import pytest
+from django.test import override_settings
 from django.contrib.contenttypes.models import ContentType
 
-from courses.models import Skill, Task, TaskObject
+from courses.models import TaskObject
 from progress.models import TaskObjUserResult
 from questions.mapping import TypeQuestionPoints
 from questions.models import QuestionWrite
 
 
 @pytest.fixture
-def write_question_data() -> QuestionWrite:
-    skill = Skill(name="asd", who_created="123", status="published")
-    skill.save()
-
-    task = Task(name="asd", skill=skill, status="published")
-    task.save()
-
+def write_question_data(task_wo_questions) -> TaskObject:
     question = QuestionWrite(
         text="123",
     )
     question.save()
 
     task_obj = TaskObject(
-        task=task,
+        task=task_wo_questions,
         content_type=ContentType.objects.get_for_model(QuestionWrite),
         object_id=1,
     )
     task_obj.save()
-    return question
+    return task_obj
 
 
 @pytest.fixture
@@ -45,3 +38,4 @@ def write_question_data_answered(write_question_data: QuestionWrite, user_with_t
             a.save()
 
             return user_with_trial_sub_token
+
