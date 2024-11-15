@@ -22,12 +22,8 @@ def connect_question_data() -> None:
     )
     question.save()
 
-    answer1 = AnswerConnect(
-        connect_left="left1", connect_right="right1", question=question
-    )
-    answer2 = AnswerConnect(
-        connect_left="left2", connect_right="right2", question=question
-    )
+    answer1 = AnswerConnect(connect_left="left1", connect_right="right1", question=question)
+    answer2 = AnswerConnect(connect_left="left2", connect_right="right2", question=question)
     answer1.save()
     answer2.save()
 

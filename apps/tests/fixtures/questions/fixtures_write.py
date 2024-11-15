@@ -32,9 +32,7 @@ def write_question_data() -> QuestionWrite:
 
 
 @pytest.fixture
-def write_question_data_answered(
-    write_question_data: QuestionWrite, user_with_trial_sub_token
-):
+def write_question_data_answered(write_question_data: QuestionWrite, user_with_trial_sub_token):
     with patch("progress.tasks.check_skill_done.delay"):
         with patch("progress.tasks.check_week_stat.delay"):
             TaskObjUserResult.objects.create_user_result(
