@@ -4,7 +4,7 @@ from files.models import FileModel
 
 
 class AbstractQuestion(models.Model):
-    text = models.TextField(max_length=100)
+    text = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
 
     class Meta:
