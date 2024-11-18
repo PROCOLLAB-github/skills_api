@@ -13,18 +13,23 @@ def test_exclude_not_answered(api_auth_with_sub_client: APIClient):
     response_data = response.json()
 
     assert response.status_code == 200
-    assert response_data["is_answered"] is False, "Почему-то на вопрос уже ответили, странно, такого быть не должно"
-    assert len(response_data["answers"]) > 1, "Почему-то выдало всего один ответ. Должно больше"
+    assert (
+        response_data["is_answered"] is False
+    ), "Почему-то на вопрос уже ответили, странно, такого быть не должно"
+    assert (
+        len(response_data["answers"]) > 1
+    ), "Почему-то выдало всего один ответ. Должно больше"
 
 
 @pytest.mark.usefixtures("exclude_question_data_answered")
 def test_exclude_answered(api_auth_with_sub_client: APIClient):
     response = api_auth_with_sub_client.get(constants.EXCLUDE_QUESTION_GET)
-
     response_data = response.json()
 
     assert response.status_code == 200
-    assert response_data["is_answered"] is True, "Почему-то вопрос не помечен как отвеченый"
+    assert (
+        response_data["is_answered"] is True
+    ), "Почему-то вопрос не помечен как отвеченый"
     assert len(response_data["answers"]) == 1, "Почему-то выдало больше одного ответа"
 
 
