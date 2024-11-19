@@ -112,10 +112,13 @@ class ViewSubscriptions(ListAPIView):
 
     def list(self, request, *args, **kwargs) -> Response:
         is_logged_in = isinstance(self.user, CustomUser)
-        profile: UserProfile = self.user_profile
+        profile: UserProfile = self.user_profile if hasattr(self, "user_profile") else None
 
-        print(not is_logged_in, not profile.bought_trial_subscription, profile.last_subscription_date)
-        if (not is_logged_in) or (not profile.bought_trial_subscription) or (not profile.last_subscription_date):
+        if profile and profile.last_subscription_date and profile.last_subscription_date > timezone.now() - timedelta(days=31):
+            return Response("subscription is active", status=200)
+
+
+        if (not is_logged_in) or (not profile.bought_trial_subscription) or (profile and not profile.last_subscription_date):
             queryset, created = SubscriptionType.objects.get_or_create(
                 name="Пробная",
                 price=1,

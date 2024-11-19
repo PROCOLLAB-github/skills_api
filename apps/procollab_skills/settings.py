@@ -2,7 +2,6 @@ import os
 from datetime import timedelta
 from pathlib import Path
 from decouple import config
-from django_summernote.apps import DjangoSummernoteConfig
 from yookassa import Configuration
 
 import mimetypes
@@ -144,18 +143,18 @@ SELECTEL_UPLOAD_URL = f"https://swift.ru-1.storage.selcloud.ru/v1/{SELECTEL_PROJ
 
 
 SUMMERNOTE_CONFIG = {
-  #  'attachment_upload_to':lambda x: None,
-    'disable_attachment': True,
+    #  'attachment_upload_to':lambda x: None,
+    "disable_attachment": True,
 }
 SELECTEL_STORAGES = {
-    'default': {
-        'USERNAME': SELECTEL_SERVICE_USERNAME,
-        'PASSWORD': SELECTEL_SERVICE_PASSWORD,
-        'CONTAINER_NAME': SELECTEL_CONTAINER_NAME,
+    "default": {
+        "USERNAME": SELECTEL_SERVICE_USERNAME,
+        "PASSWORD": SELECTEL_SERVICE_PASSWORD,
+        "CONTAINER_NAME": SELECTEL_CONTAINER_NAME,
     },
 }
 
-if 0:
+if 1:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
