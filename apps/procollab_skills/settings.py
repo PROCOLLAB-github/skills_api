@@ -138,10 +138,7 @@ SELECTEL_NEW_AUTH_TOKEN = "https://cloud.api.selcloud.ru/identity/v3/auth/tokens
 SELECTEL_UPLOAD_URL = f"https://swift.ru-1.storage.selcloud.ru/v1/{SELECTEL_PROJECT_ID}/{SELECTEL_CONTAINER_NAME}/"
 
 
-SUMMERNOTE_CONFIG = {
-    #  'attachment_upload_to':lambda x: None,
-    "disable_attachment": True,
-}
+
 SELECTEL_STORAGES = {
     "default": {
         "USERNAME": SELECTEL_SERVICE_USERNAME,
@@ -150,7 +147,7 @@ SELECTEL_STORAGES = {
     },
 }
 
-if 0:
+if 1:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",

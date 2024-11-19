@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 
 from django.db import models
+from django_summernote.admin import SummernoteModelAdmin
 from django_summernote.widgets import SummernoteWidget
 
 from questions.models import (
@@ -75,19 +76,12 @@ class ConnectAnswersInline(
     )
 
 
-class TextEditorMixin:
-    formfield_overrides = {
-        models.CharField: {"widget": SummernoteWidget},
-    }
-
 
 @admin.register(QuestionConnect)
-class QuestionConnectAdmin(AbstractQuestionShowcase, TextEditorMixin):
+class QuestionConnectAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
     inlines = [ConnectAnswersInline]
 
-    formfield_overrides = {
-        models.CharField: {"widget": SummernoteWidget},
-    }
+
 
 
 class SingleAnswersInline(admin.StackedInline):
@@ -96,12 +90,14 @@ class SingleAnswersInline(admin.StackedInline):
 
 
 @admin.register(QuestionSingleAnswer)
-class QuestionSingleAnswerAdmin(AbstractQuestionShowcase, TextEditorMixin):
+class QuestionSingleAnswerAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
     inlines = [SingleAnswersInline]
 
 
+
+
 @admin.register(InfoSlide)
-class InfoSlideAdmin(AbstractQuestionShowcase, TextEditorMixin):
+class InfoSlideAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
     def short_description(self, obj) -> str:
         """Сокращенное описание вопроса."""
         return obj.text[:50] + "..." if len(obj.text) > 50 else obj.text
@@ -110,5 +106,5 @@ class InfoSlideAdmin(AbstractQuestionShowcase, TextEditorMixin):
 
 
 @admin.register(QuestionWrite)
-class QuestionWriteAdmin(AbstractQuestionShowcase, TextEditorMixin):
+class QuestionWriteAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
     pass
