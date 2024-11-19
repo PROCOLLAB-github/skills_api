@@ -111,9 +111,7 @@ REST_FRAMEWORK = {
         "procollab_skills.auth.CustomAuth",
         "rest_framework.authentication.BasicAuthentication",
     ],
-    "DEFAULT_PERMISSION_CLASSES": [
-        "procollab_skills.permissions.IfSubscriptionOutdatedPermission"
-    ],
+    "DEFAULT_PERMISSION_CLASSES": ["procollab_skills.permissions.IfSubscriptionOutdatedPermission"],
 }
 
 CACHES = {
@@ -133,9 +131,7 @@ SELECTEL_CONTAINER_NAME = config("SELECTEL_CONTAINER_NAME", cast=str, default="a
 SELECTEL_SERVICE_USERNAME = config("SELECTEL_SERVICE_USERNAME", cast=str, default="PWD")
 SELECTEL_SERVICE_PASSWORD = config("SELECTEL_SERVICE_PASSWORD", cast=str, default="PWD")
 SELECTEL_PROJECT_NAME = config("SELECTEL_PROJECT_NAME", cast=str, default="PWD")
-SELECTEL_READ_FILES_DOMAIN = config(
-    "SELECTEL_READ_FILES_DOMAIN", cast=str, default="PWD"
-)
+SELECTEL_READ_FILES_DOMAIN = config("SELECTEL_READ_FILES_DOMAIN", cast=str, default="PWD")
 SELECTEL_PROJECT_ID = config("SELECTEL_PROJECT_ID", cast=str, default="PWD")
 
 SELECTEL_NEW_AUTH_TOKEN = "https://cloud.api.selcloud.ru/identity/v3/auth/tokens"
