@@ -142,7 +142,6 @@ class AdminUserSubscriptionFilter(admin.SimpleListFilter):
             return queryset.exclude(last_subscription_date=None)
         if self.value() == "only_active":
             date = timezone.now() - datetime.timedelta(days=30)
-            print(date)
             return (
                 queryset
                 .exclude(last_subscription_date=None)
