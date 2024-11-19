@@ -18,6 +18,7 @@ services:
 
   nginx:
     container_name: skills_nginx
+    restart: unless-stopped
     build:
       context: ./nginx
       dockerfile: ./Dockerfile_prod
@@ -29,6 +30,7 @@ services:
 
   redis:
     container_name: skills_redis
+    restart: unless-stopped
     image: redis:latest
     expose:
       - 6379

@@ -61,7 +61,7 @@ def get_user_profile_skills_progress(
     """
     # TODO Fix учесть, когда будет выбор только 5 навыков для юзера.
     _, user_skills_ids = get_user_skills(user_profile_id)
-    task_status_filter = DBSubQuryFiltersForUser().get_many_tasks_status_filter_for_user(request_user)
+    task_status_filter = DBObjectStatusFilters().get_many_tasks_status_filter_for_user(request_user)
     skills_stats: QuerySet[Skill] = (
         Skill.published
         .for_user(request_user)
@@ -185,7 +185,7 @@ def get_rounded_percentage(dividend: int, divisor: int) -> int:
     return rounded_percentage
 
 
-class DBSubQuryFiltersForUser:
+class DBObjectStatusFilters:
     """
     Икапсуляция логики получения фильтра для подзапросов, отображение определенным ролям:
         - Все объекты для `superuser`,

@@ -1,28 +1,36 @@
 import pytest
-from django.urls import reverse
+from django.test import override_settings
+from rest_framework.test import APIClient
 
-get_url = reverse("info-slide-get", kwargs={"task_obj_id": 1})
+from . import constants
 
 
-@pytest.mark.usefixtures("user_with_trial_sub_token", "info_question_data")
-def test_infoslide_not_answered_should_succeed(client, user_with_trial_sub_token, info_question_data) -> None:
-    headers = {"Authorization": f"Bearer {user_with_trial_sub_token}"}
-
-    response = client.get(get_url, headers=headers)
+@pytest.mark.usefixtures("info_question_data")
+def test_infoslide_not_answered(api_auth_with_sub_client: APIClient):
+    response = api_auth_with_sub_client.get(constants.INFO_SLIDE_GET)
     response_data = response.json()
 
     assert response.status_code == 200
-    assert response_data["text"] == "123", "почему-то текст не такой, какой задан в текстуре"
+    assert (
+        response_data["text"] == "123"
+    ), "почему-то текст не такой, какой задан в текстуре"
     assert response_data["is_done"] is False, "почему-то задание сделано"
 
 
 @pytest.mark.usefixtures("info_question_answered_data")
-def test_infoslide_answered_should_succeed(client, info_question_answered_data: str) -> None:
-    headers = {"Authorization": f"Bearer {info_question_answered_data}"}
-
-    response = client.get(get_url, headers=headers)
+def test_infoslide_answered(api_auth_with_sub_client: APIClient):
+    response = api_auth_with_sub_client.get(constants.INFO_SLIDE_GET)
     response_data = response.json()
 
     assert response.status_code == 200
-    assert response_data["text"] == "123", "почему-то текст не такой, какой задан в текстуре"
+    assert (
+        response_data["text"] == "123"
+    ), "почему-то текст не такой, какой задан в текстуре"
     assert response_data["is_done"] is True, "почему-то задание не сделано"
+
+
+@pytest.mark.usefixtures("info_question_data")
+@override_settings(task_always_eager=True)
+def test_infoslide_not_answered_post(api_auth_with_sub_client: APIClient):
+    response = api_auth_with_sub_client.post(constants.INFO_SLIDE_POST)
+    assert response.status_code == 204, "Задание (инфо слайд) не принимается к ответу"

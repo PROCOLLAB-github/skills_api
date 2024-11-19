@@ -1,28 +1,51 @@
+import json
+
 import pytest
-from django.urls import reverse
+from rest_framework.test import APIClient
+from django.test import override_settings
 
-get_url = reverse("single-correct-get", kwargs={"task_obj_id": 1})
+from . import constants
 
 
-@pytest.mark.usefixtures("user_with_trial_sub_token", "question_data")
-def test_single_not_answered_should_succeed(client, user_with_trial_sub_token: str, question_data) -> None:
-    headers = {"Authorization": f"Bearer {user_with_trial_sub_token}"}
-
-    response = client.get(get_url, headers=headers)
+@pytest.mark.usefixtures("question_data")
+def test_single_not_answered(api_auth_with_sub_client: APIClient):
+    response = api_auth_with_sub_client.get(constants.SINGLE_CORRECT_GET)
     response_data = response.json()
 
     assert response.status_code == 200
-    assert response_data["is_answered"] is False, "Почему-то на вопрос уже ответили, странно, такого быть не должно"
-    assert len(response_data["answers"]) > 1, "Почему-то выдало всего один правильный ответ. Должно больше"
+    assert (
+        response_data["is_answered"] is False
+    ), "Почему-то на вопрос уже ответили, странно, такого быть не должно"
+    assert (
+        len(response_data["answers"]) > 1
+    ), "Почему-то выдало всего один правильный ответ. Должно больше"
 
 
 @pytest.mark.usefixtures("question_data_answered")
-def test_single_answered_should_succeed(client, question_data_answered: str) -> None:
-    headers = {"Authorization": f"Bearer {question_data_answered}"}
-
-    response = client.get(get_url, headers=headers)
+def test_single_answered(api_auth_with_sub_client: APIClient):
+    response = api_auth_with_sub_client.get(constants.SINGLE_CORRECT_GET)
     response_class = response.json()
 
     assert response.status_code == 200
-    assert response_class["is_answered"] is True, "Почему-то на вопрос не ответили, странно, такого быть не должно"
-    assert len(response_class["answers"]) == 1, "Почему-то выдало больше одного правильного ответа"
+    assert (
+        response_class["is_answered"] is True
+    ), "Почему-то на вопрос не ответили, странно, такого быть не должно"
+    assert (
+        len(response_class["answers"]) == 1
+    ), "Почему-то выдало больше одного правильного ответа"
+
+
+@pytest.mark.usefixtures("question_data")
+@override_settings(task_always_eager=True)
+def test_single_not_answered_post(api_auth_with_sub_client: APIClient):
+    data = {"answer_id": 1}
+
+    response = api_auth_with_sub_client.post(
+        constants.SINGLE_CORRECT_POST,
+        data=json.dumps(data),
+        content_type="application/json"
+    )
+    response_data = response.json()
+
+    assert response.status_code == 201, "Задание (1 правильный) не принимается к ответу"
+    assert response_data["is_correct"] is True, "Задание (1 правильный) решено верно, но response некорректный"
