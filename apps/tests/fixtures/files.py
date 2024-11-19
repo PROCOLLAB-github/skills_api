@@ -8,4 +8,7 @@ from files.models import FileModel
 @pytest.fixture
 def random_file_intance():
     """Рандомный файл."""
-    return baker.make(FileModel)
+    return baker.make(
+        FileModel,
+        link="http://some.com/",
+    )

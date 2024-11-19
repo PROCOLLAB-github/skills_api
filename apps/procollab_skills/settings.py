@@ -63,8 +63,6 @@ INSTALLED_APPS = [
     "celery",
     "django_celery_beat",
     "corsheaders",
-    # plugins
-    "django_summernote",
     # apps
     "courses",
     "files",
@@ -139,6 +137,10 @@ SELECTEL_UPLOAD_URL = f"https://swift.ru-1.storage.selcloud.ru/v1/{SELECTEL_PROJ
 
 
 
+
+SUMMERNOTE_CONFIG = {
+    "disable_attachment": True,
+}
 SELECTEL_STORAGES = {
     "default": {
         "USERNAME": SELECTEL_SERVICE_USERNAME,
@@ -147,7 +149,9 @@ SELECTEL_STORAGES = {
     },
 }
 
+
 if 0:
+
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -215,10 +219,7 @@ SPECTACULAR_SETTINGS = {
     "REDOC_DIST": "SIDECAR",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
-    "SERVE_AUTHENTICATION": [
-        "rest_framework.authentication.SessionAuthentication",
-        "procollab_skills.auth.CustomAuth",
-    ],
+    "SERVE_AUTHENTICATION": ["rest_framework.authentication.SessionAuthentication", "procollab_skills.auth.CustomAuth"],
     # OTHER SETTINGS
     "SECURITY_DEFINITIONS": {
         "Bearer": {
