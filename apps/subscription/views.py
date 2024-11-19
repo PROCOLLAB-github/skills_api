@@ -112,6 +112,7 @@ class ViewSubscriptions(ListAPIView):
         is_logged_in = isinstance(self.user, CustomUser)
         profile: UserProfile = self.user_profile if hasattr(self, "user_profile") else None
 
+
         if (
             profile
             and profile.last_subscription_date
@@ -159,11 +160,16 @@ class NotificationWebHook(CreateAPIView):
         # try:
         notification_data = self.get_request_data()
 
-        profile_to_update = UserProfile.objects.select_related("user", "last_subscription_type").filter(
-            id=notification_data.object["metadata"]["user_profile_id"]
-        )
 
-        if notification_data.event == "payment.succeeded" and notification_data.object["status"] == "succeeded":
+        profile_to_update = UserProfile.objects.select_related(
+            "user", "last_subscription_type"
+        ).filter(id=notification_data.object["metadata"]["user_profile_id"])
+
+        if (
+            notification_data.event == "payment.succeeded"
+            and notification_data.object["status"] == "succeeded"
+        ):
+
             params_to_update = {"last_subscription_date": timezone.now()}
             if sub_id := notification_data.object["metadata"].get("subscription_id"):
                 params_to_update["last_subscription_type_id"] = sub_id
@@ -179,7 +185,13 @@ class NotificationWebHook(CreateAPIView):
                     f"subscription date renewed for {profile_to_update[0].user.first_name} "
                     f"{profile_to_update[0].user.last_name}"
                 )
-        elif notification_data.event == "refund.succeeded" and notification_data.object["status"] == "succeeded":
+
+
+        elif (
+            notification_data.event == "refund.succeeded"
+            and notification_data.object["status"] == "succeeded"
+        ):
+
             (
                 profile_to_update.update(
                     last_subscription_date=None,

@@ -4,7 +4,7 @@ from files.models import FileModel
 
 
 class AbstractQuestion(models.Model):
-    text = models.TextField(max_length=100)
+    text = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
 
     class Meta:
@@ -40,6 +40,7 @@ class QuestionConnect(AbstractQuestion, AbstractVideo):
 class InfoSlide(AbstractVideo):
     title = models.CharField(max_length=70, null=True, blank=True)
     text = models.TextField(blank=True, null=True)
+
     files = models.ManyToManyField(FileModel, related_name="info_slides", blank=True)
 
     class Meta:
