@@ -19,7 +19,7 @@ WORKDIR /procollab
 COPY poetry.lock pyproject.toml /procollab/
 
 RUN poetry config virtualenvs.create false \
-    && poetry lock --no-update
+    && poetry install  --no-root
 
 RUN mkdir /procollab/static
 
