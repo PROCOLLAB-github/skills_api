@@ -149,7 +149,8 @@ SELECTEL_STORAGES = {
     },
 }
 
-if 1:
+
+if 0:
 
     DATABASES = {
         "default": {
