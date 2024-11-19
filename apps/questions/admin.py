@@ -1,6 +1,11 @@
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 
+
+from django.db import models
+from django_summernote.admin import SummernoteModelAdmin
+from django_summernote.widgets import SummernoteWidget
+
 from questions.models import (
     QuestionSingleAnswer,
     AnswerSingle,
@@ -55,9 +60,14 @@ class ConnectAnswersInline(admin.StackedInline):  # Или TabularInline для 
     )
 
 
+
+
 @admin.register(QuestionConnect)
-class QuestionConnectAdmin(AbstractQuestionShowcase):
+class QuestionConnectAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
     inlines = [ConnectAnswersInline]
+
+
+
 
 
 class SingleAnswersInline(admin.StackedInline):
@@ -66,12 +76,15 @@ class SingleAnswersInline(admin.StackedInline):
 
 
 @admin.register(QuestionSingleAnswer)
-class QuestionSingleAnswerAdmin(AbstractQuestionShowcase):
+class QuestionSingleAnswerAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
     inlines = [SingleAnswersInline]
 
 
+
+
 @admin.register(InfoSlide)
-class InfoSlideAdmin(AbstractQuestionShowcase):
+
+class InfoSlideAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
 
     def short_description(self, obj) -> str:
         """Сокращенное описание вопроса."""
@@ -80,5 +93,5 @@ class InfoSlideAdmin(AbstractQuestionShowcase):
 
 
 @admin.register(QuestionWrite)
-class QuestionWriteAdmin(AbstractQuestionShowcase):
+class QuestionWriteAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
     pass

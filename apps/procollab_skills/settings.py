@@ -137,8 +137,8 @@ SELECTEL_UPLOAD_URL = f"https://swift.ru-1.storage.selcloud.ru/v1/{SELECTEL_PROJ
 
 
 
+
 SUMMERNOTE_CONFIG = {
-    #  'attachment_upload_to':lambda x: None,
     "disable_attachment": True,
 }
 SELECTEL_STORAGES = {
