@@ -112,11 +112,10 @@ class ViewSubscriptions(ListAPIView):
         is_logged_in = isinstance(self.user, CustomUser)
         profile: UserProfile = self.user_profile if hasattr(self, "user_profile") else None
 
-
         if (
             profile
             and profile.last_subscription_date
-            and profile.last_subscription_date > timezone.now() - timedelta(days=31)
+            and profile.last_subscription_date > (timezone.now() - timedelta(days=31)).date()
         ):
             return Response("subscription is active", status=200)
 
@@ -160,7 +159,6 @@ class NotificationWebHook(CreateAPIView):
         # try:
         notification_data = self.get_request_data()
 
-
         profile_to_update = UserProfile.objects.select_related(
             "user", "last_subscription_type"
         ).filter(id=notification_data.object["metadata"]["user_profile_id"])
@@ -185,7 +183,6 @@ class NotificationWebHook(CreateAPIView):
                     f"subscription date renewed for {profile_to_update[0].user.first_name} "
                     f"{profile_to_update[0].user.last_name}"
                 )
-
 
         elif (
             notification_data.event == "refund.succeeded"
