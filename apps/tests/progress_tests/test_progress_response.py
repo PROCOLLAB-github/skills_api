@@ -132,22 +132,15 @@ class TestUserScoreRating:
     @pytest.mark.parametrize("time_frame", ("last_day", "last_month", "last_year"))
     @pytest.mark.usefixtures("skill_three_users_answers")
     @override_settings(task_always_eager=True)
-    def test_user_rating_with_many_answers(self, time_frame: str, api_auth_with_sub_client: APIClient):
+    def test_user_rating_with_different_roles(self, time_frame: str, api_auth_with_sub_client: APIClient):
         """Все ответы даны в 1 время, таймлайн не решает, рейтинг по дате должен быть одинаковым."""
         response = api_auth_with_sub_client.get(constants.USER_SCORE_RATING_PATH + f"?time_frame={time_frame}")
         response_dct = response.json()
-        user_points: list[int] = [user["score_count"] for user in response_dct["results"]]
-
-        assert user_points == sorted(user_points, reverse=True), "Порядок пользователей в рейтиге не убывает"
-        assert response_dct["count"] == 3, "В рейтинге должно быть 3 пользователя"
-        assert response_dct["results"][0]["score_count"] == self.SINGLE_SCORE_COUNT * 3, (
+        assert response_dct["count"] == 1, (
+            "В рейтинге должeн быть 1 пользователь (Стафф и админ не должны отображаться)"
+        )
+        assert response_dct["results"][0]["score_count"] == self.SINGLE_SCORE_COUNT * 1, (
             "Неверные баллы у 1го в рейтинге"
-        )
-        assert response_dct["results"][1]["score_count"] == self.SINGLE_SCORE_COUNT * 2, (
-            "Неверные баллы у 2го в рейтинге"
-        )
-        assert response_dct["results"][2]["score_count"] == self.SINGLE_SCORE_COUNT, (
-            "Неверные баллы у 3го в рейтинге"
         )
 
     @pytest.mark.parametrize(
@@ -165,8 +158,10 @@ class TestUserScoreRating:
         """В фикстуре на каждый таймлайн по 1му пользователю, где: сегодня - 1, за ласт год - 3 юзера в рейтинге."""
         response = api_auth_with_sub_client.get(constants.USER_SCORE_RATING_PATH + f"?time_frame={time_frame}")
         response_dct = response.json()
+        user_points: list[int] = [user["score_count"] for user in response_dct["results"]]
 
         assert response_dct["count"] == count_users, "Таймлан фильтра по пользователям отработал некорректно"
+        assert user_points == sorted(user_points, reverse=True), "Порядок пользователей в рейтиге не убывает"
 
 
 # TODO Тесты:

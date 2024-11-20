@@ -28,6 +28,20 @@ def user(random_file_intance):
 
 
 @pytest.fixture
+@override_settings(task_always_eager=True)
+def three_random_user_with_sub():
+    users = []
+    for _ in range(3):
+        user = baker.make("progress.CustomUser")
+        profile: UserProfile = user.profiles
+        profile.bought_trial_subscription = True
+        profile.last_subscription_date = timezone.now().date()
+        profile.save()
+        users.append(user)
+    return users
+
+
+@pytest.fixture
 def user_admin():
     return baker.make(
         "progress.CustomUser",
