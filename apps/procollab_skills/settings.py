@@ -63,6 +63,8 @@ INSTALLED_APPS = [
     "celery",
     "django_celery_beat",
     "corsheaders",
+    # plugins
+    "django_summernote",
     # apps
     "courses",
     "files",
@@ -139,7 +141,7 @@ SELECTEL_UPLOAD_URL = f"https://swift.ru-1.storage.selcloud.ru/v1/{SELECTEL_PROJ
 
 SUMMERNOTE_CONFIG = {
     #  'attachment_upload_to':lambda x: None,
-    "disable_attachment": True,
+    "disable_attachment": False,
 }
 SELECTEL_STORAGES = {
     "default": {
