@@ -5,11 +5,12 @@ from questions.models import QuestionSingleAnswer, InfoSlide, QuestionConnect, Q
 
 
 class TypeQuestionPoints(Enum):
-    INFO_SLIDE = 5
-    QUESTION_SINGLE_ANSWER = 5
-    QUESTION_WRITE = 5
-    QUESTION_CONNECT = 5
-    QUESTION_EXCLUDE = 5
+    INFO_SLIDE: int = 5
+    QUESTION_SINGLE_ANSWER: int = 5
+    QUESTION_WRITE: int = 5
+    QUESTION_CONNECT: int = 5
+    QUESTION_EXCLUDE: int = 5
+    QUESTION_WO_POINTS: int = 0
 
 
 TaskObjs = Union[
@@ -17,6 +18,7 @@ TaskObjs = Union[
     TypeQuestionPoints.QUESTION_SINGLE_ANSWER,
     TypeQuestionPoints.QUESTION_CONNECT,
     TypeQuestionPoints.QUESTION_EXCLUDE,
+    TypeQuestionPoints.QUESTION_WO_POINTS,
 ]
 
 

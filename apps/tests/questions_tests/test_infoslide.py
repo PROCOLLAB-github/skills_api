@@ -33,4 +33,4 @@ def test_infoslide_answered(api_auth_with_sub_client: APIClient):
 @override_settings(task_always_eager=True)
 def test_infoslide_not_answered_post(api_auth_with_sub_client: APIClient):
     response = api_auth_with_sub_client.post(constants.INFO_SLIDE_POST)
-    assert response.status_code == 204, "Задание (инфо слайд) не принимается к ответу"
+    assert response.status_code == 201, "Задание (инфо слайд) не принимается к ответу"

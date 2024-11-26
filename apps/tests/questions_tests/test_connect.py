@@ -45,4 +45,4 @@ def test_connect_not_answered_post(api_auth_with_sub_client: APIClient):
     response_data = response.json()
 
     assert response.status_code == 201, "Задание (соотношение) не принимается к ответу"
-    assert response_data["text"] == "success", "Задание (соотношение) решено верно, но response некорректный"
+    assert response_data["is_correct"] is True, "Задание (соотношение) решено верно, но response некорректный"

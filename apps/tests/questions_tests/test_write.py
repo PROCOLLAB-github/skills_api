@@ -44,4 +44,4 @@ def test_write_not_answered_post(api_auth_with_sub_client: APIClient):
     response_data = response.json()
 
     assert response.status_code == 201, "Задание (write) не принимается к ответу"
-    assert response_data["text"] == "success", "Задание (write) решено верно, но response некорректный"
+    assert response_data["is_correct"] is True, "Задание (write) решено верно, но response некорректный"

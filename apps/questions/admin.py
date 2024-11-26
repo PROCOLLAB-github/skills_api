@@ -59,6 +59,29 @@ class ConnectAnswersInline(admin.StackedInline):  # Или TabularInline для 
 @admin.register(QuestionConnect)
 class QuestionConnectAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
     inlines = [ConnectAnswersInline]
+    fieldsets = (
+        (
+            "Вопрос",
+            {
+                "fields": (
+                    "text",
+                    "description",
+                    "video_url",
+                    "files",
+                )
+            },
+        ),
+        (
+            "Подсказка (если не требуется, необходимо `Attempts before hint` оставить пустым)",
+            {
+                "fields": (
+                    "hint_text",
+                    "attempts_before_hint",
+                    "attempts_after_hint",
+                )
+            }
+        ),
+    )
 
 
 class SingleAnswersInline(admin.StackedInline):
@@ -69,6 +92,30 @@ class SingleAnswersInline(admin.StackedInline):
 @admin.register(QuestionSingleAnswer)
 class QuestionSingleAnswerAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
     inlines = [SingleAnswersInline]
+    fieldsets = (
+        (
+            "Вопрос",
+            {
+                "fields": (
+                    "text",
+                    "description",
+                    "video_url",
+                    "files",
+                    "is_exclude",
+                )
+            },
+        ),
+        (
+            "Подсказка (если не требуется, необходимо `Attempts before hint` оставить пустым)",
+            {
+                "fields": (
+                    "hint_text",
+                    "attempts_before_hint",
+                    "attempts_after_hint",
+                )
+            }
+        ),
+    )
 
 
 @admin.register(InfoSlide)
