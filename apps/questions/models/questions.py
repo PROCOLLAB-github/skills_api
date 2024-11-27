@@ -1,6 +1,30 @@
 from django.db import models
+from django.core.validators import MinValueValidator
 
 from files.models import FileModel
+
+
+class AbstractHint(models.Model):
+    hint_text = models.TextField(
+        null=True,
+        blank=True,
+        help_text="Текст подсказки",
+    )
+    attempts_before_hint = models.SmallIntegerField(
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(1)],
+        help_text="Количество попыток до показа подсказки",
+    )
+    attempts_after_hint = models.SmallIntegerField(
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(1)],
+        help_text="Количество попыток после подсказки",
+    )
+
+    class Meta:
+        abstract = True
 
 
 class AbstractQuestion(models.Model):
@@ -18,7 +42,7 @@ class AbstractVideo(models.Model):
         abstract = True
 
 
-class QuestionSingleAnswer(AbstractQuestion, AbstractVideo):
+class QuestionSingleAnswer(AbstractQuestion, AbstractVideo, AbstractHint):
     files = models.ManyToManyField(FileModel, related_name="single_questions", blank=True)
     is_exclude = models.BooleanField(
         help_text="Если этот вопрос является типом 'исключить неправильное', поставить на True", default=False
@@ -29,7 +53,7 @@ class QuestionSingleAnswer(AbstractQuestion, AbstractVideo):
         verbose_name_plural = "Вопросы с одним правильным ответом"
 
 
-class QuestionConnect(AbstractQuestion, AbstractVideo):
+class QuestionConnect(AbstractQuestion, AbstractVideo, AbstractHint):
     files = models.ManyToManyField(FileModel, related_name="connect_questions", blank=True)
 
     class Meta:

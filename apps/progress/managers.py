@@ -25,12 +25,19 @@ class TaskObjUserResultManager(Manager):
             .first()
         )
 
-    def create_user_result(self, task_obj_id: int, user_profile_id: int, type_task_obj: TaskObjs):
+    def create_user_result(
+        self,
+        task_obj_id: int,
+        user_profile_id: int,
+        type_task_obj: TaskObjs,
+        text: str = "",
+    ):
         try:
             self.get_queryset().create(
                 task_object_id=task_obj_id,
                 user_profile_id=user_profile_id,
                 points_gained=type_task_obj.value,
+                text=text
             )
         except IntegrityError as e:
             if "unique constraint" in str(e.args).lower():

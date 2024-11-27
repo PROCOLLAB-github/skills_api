@@ -25,7 +25,7 @@ from questions.models import (
 )
 from questions.serializers import InfoSlideSerializer
 from questions.permissions import CheckQuestionTypePermission
-from questions.services import add_popup_data
+from questions.services.helpers import add_popup_data
 from questions.typing import (
     QuestionSerializerData,
     SingleAnswerData,

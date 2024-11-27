@@ -3,10 +3,34 @@ from drf_spectacular.utils import OpenApiExample
 
 SUCCESS_RESPONSE = OpenApiExample(
     "Success Response",
-    value={"text": "success"},
+    value={"is_correct": True},
     status_codes=["201"],
     response_only=True,
 )
+
+
+SUCCESS_RESPONSE_WO_POINTS = OpenApiExample(
+    "Success Response wo points",
+    value={"is_correct": False},
+    status_codes=["201"],
+    response_only=True,
+)
+
+WRONG_ANSWER_RESPONSE = OpenApiExample(
+    "Wrong Answer",
+    value={"is_correct": False},
+    status_codes=["400"],
+    response_only=True,
+)
+
+
+WRONG_ANSWER_RESPONSE_WITH_HINT = OpenApiExample(
+    "Wrong Answer with hint",
+    value={"is_correct": False, "hint": "Some text"},
+    status_codes=["400"],
+    response_only=True,
+)
+
 
 QUERY_DOES_NOT_EXISTS = OpenApiExample(
     "Query does not exist",
@@ -14,6 +38,7 @@ QUERY_DOES_NOT_EXISTS = OpenApiExample(
     status_codes=["400"],
     response_only=True,
 )
+
 
 WRONG_TASKOBJECT = OpenApiExample(
     "Wrong Taskobject",
@@ -25,12 +50,14 @@ WRONG_TASKOBJECT = OpenApiExample(
     response_only=True,
 )
 
+
 USER_ALREADY_DONE_TASK = OpenApiExample(
     "Already done",
     value={"error": "User has already done this 'task'!"},
     status_codes=["400"],
     response_only=True,
 )
+
 
 NEED_MORE_QUESTION_EXCLUDE_RESPONSE = OpenApiExample(
     "Need More Response",
@@ -39,26 +66,24 @@ NEED_MORE_QUESTION_EXCLUDE_RESPONSE = OpenApiExample(
     response_only=True,
 )
 
-WRONG_ANSWERS_QUESTION_EXCLUDE_RESPONSE = OpenApiExample(
-    "Wrong Answers",
-    value={"is_correct": False, "wrong_answers": [0]},
-    status_codes=["400"],
+
+SINGLE_RESPONSE_WITH_ANSWER = OpenApiExample(
+    "Wrong with answer",
+    value={"is_correct": False, "answer_ids": 1},
+    status_codes=["201"],
     response_only=True,
 )
 
-WRONG_ANSWERS_QUESTION_CONNECT_RESPONSE = OpenApiExample(
-    "Wrong Answers",
-    value=[
-        {"left_id": 1, "right_id": 2, "is_correct": False},
-        {"left_id": 2, "right_id": 1, "is_correct": False},
-    ],
-    status_codes=["400"],
+EXCLUDE_RESPONSE_WITH_ANSWER = OpenApiExample(
+    "Wrong with answer",
+    value={"is_correct": False, "answer_ids": [1, 2, 3]},
+    status_codes=["201"],
     response_only=True,
 )
 
-WRONG_SINGLE_CORECT_QUESTION_RESPONSE = OpenApiExample(
-    "Wrong Answer",
-    value={"is_correct": False, "correct_answer": 1},
-    status_codes=["400"],
+CONNECT_RESPONSE_WITH_ANSWER = OpenApiExample(
+    "Wrong with answer",
+    value={"is_correct": False, "answer_ids": [{"left_id": 1, "right_id": 1}]},
+    status_codes=["201"],
     response_only=True,
 )

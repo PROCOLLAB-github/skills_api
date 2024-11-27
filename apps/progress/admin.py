@@ -11,6 +11,7 @@ from .models import (
     UserWeekStat,
     UserMonthStat,
     UserMonthTarget,
+    UserAnswersAttemptCounter,
 )
 
 
@@ -18,6 +19,11 @@ from .models import (
 class TaskAdmin(admin.ModelAdmin):
     ordering = ("-datetime_created",)
     list_display = ("id", "task_object", "user_profile", "datetime_created")
+    search_fields = (
+        "user_profile__user__email",
+        "user_profile__user__first_name",
+        "user_profile__user__last_name",
+    )
 
 
 @admin.register(CustomUser)
@@ -112,3 +118,13 @@ class UserMonthTargetAdmin(admin.ModelAdmin):
         "percentage_of_completion",
     )
     list_filter = ["skill", "month", "year"]
+
+
+@admin.register(UserAnswersAttemptCounter)
+class UserAnswersAttemptCountertAdmin(admin.ModelAdmin):
+    list_display = ("id", "user_profile", "attempts_made_before", "is_take_hint", "attempts_made_after")
+    search_fields = (
+        "user_profile__user__email",
+        "user_profile__user__first_name",
+        "user_profile__user__last_name",
+    )

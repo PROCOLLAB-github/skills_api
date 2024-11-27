@@ -1,3 +1,4 @@
+from typing import Any
 from django.urls import reverse
 
 # All get `questions` url paths:
@@ -31,3 +32,47 @@ ALL_POST_PATHS: list[str] = [
     SINGLE_CORRECT_POST,
     WRITE_QUESTION_POST,
 ]
+
+
+INCORRECT_ANSWER_RESPONSE = {"is_correct": False}
+INCORRECT_ANSWER_RESPONSE_HINT = {
+    "is_correct": False,
+    "hint": "Подсказка",
+}
+
+
+# где key - № попытки, value - response при неверных ответах
+CONNECT_WRONG_ANSWER_RESPONSE: dict[int, Any] = {
+    1: INCORRECT_ANSWER_RESPONSE,
+    2: INCORRECT_ANSWER_RESPONSE_HINT,
+    3: INCORRECT_ANSWER_RESPONSE_HINT,
+    4: {
+        "is_correct": False,
+        "answer_ids": [
+            {"left_id": 1, "right_id": 1},
+            {"left_id": 2, "right_id": 2}
+        ],
+    },
+}
+
+# где key - № попытки, value - response при неверных ответах
+EXCLUDE_WRONG_ANSWER_RESPONSE: dict[int, Any] = {
+    1: INCORRECT_ANSWER_RESPONSE,
+    2: INCORRECT_ANSWER_RESPONSE_HINT,
+    3: INCORRECT_ANSWER_RESPONSE_HINT,
+    4: {
+        "is_correct": False,
+        "answer_ids": [2, 3],
+    },
+}
+
+# где key - № попытки, value - response при неверных ответах
+SINGLE_WRONG_ANSWER_RESPONSE: dict[int, Any] = {
+    1: INCORRECT_ANSWER_RESPONSE,
+    2: INCORRECT_ANSWER_RESPONSE_HINT,
+    3: INCORRECT_ANSWER_RESPONSE_HINT,
+    4: {
+        "is_correct": False,
+        "answer_ids": 1,
+    },
+}
