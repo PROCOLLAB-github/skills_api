@@ -83,7 +83,7 @@ class AbstractAnswersService(ABC):
         """
         Если у вопроса указан `attempts_before_hint` формируется counter по ответам.
         После `attempts_before_hint` max значения в reponse появляется подсказка.
-        После `attempts_after_hint` max значения, ответ принимается без баллов.
+        После `attempts_after_hint` max значения, ответ принимается без баллов, response с ответом.
         """
         counter = UserAnswersAttemptCounter.objects.filter(
             user_profile_id=self.request_profile_id,
@@ -140,6 +140,7 @@ class AbstractAnswersService(ABC):
         )
 
     def _delete_self_counter(self):
+        """Удаление `UserAnswersAttemptCounter` сущности."""
         counter = UserAnswersAttemptCounter.objects.filter(
             user_profile_id=self.request_profile_id,
             task_object=self.request_task_object,
@@ -213,7 +214,7 @@ class QuestionConnectAnswerService(AbstractAnswersService):
         all_answer_options: QuerySet[AnswerConnect] = self.request_question.connect_answers.all()
 
         answers_ids: list[int] = set(all_answer_options.values_list("id", flat=True))
-        user_answer_ids = (
+        user_answer_ids: set[int] = (
             {answer["right_id"] for answer in self.request_data}
             | {answer["left_id"] for answer in self.request_data}
         )

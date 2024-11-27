@@ -37,7 +37,7 @@ def connect_question_data(task_wo_questions) -> TaskObject:
 def connect_question_data_with_hint(task_wo_questions) -> TaskObject:
     question = QuestionConnect(
         text="123",
-        hint_text="подсказка",
+        hint_text="Подсказка",
         attempts_before_hint=2,
         attempts_after_hint=2,
     )

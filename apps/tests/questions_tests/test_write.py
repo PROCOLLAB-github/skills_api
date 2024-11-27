@@ -45,3 +45,19 @@ def test_write_not_answered_post(api_auth_with_sub_client: APIClient):
 
     assert response.status_code == 201, "Задание (write) не принимается к ответу"
     assert response_data["is_correct"] is True, "Задание (write) решено верно, но response некорректный"
+
+
+@pytest.mark.usefixtures("write_question_data")
+@override_settings(task_always_eager=True)
+def test_write_empty_answer(api_auth_with_sub_client: APIClient):
+    data = {"text": ""}
+
+    response = api_auth_with_sub_client.post(
+        constants.WRITE_QUESTION_POST,
+        data=json.dumps(data),
+        content_type="application/json"
+    )
+    response_data = response.json()
+
+    assert response.status_code == 400, "Пустой ответ принялся"
+    assert response_data["is_correct"] is False, "Неверный response для неверного ответа"
