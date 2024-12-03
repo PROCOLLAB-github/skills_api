@@ -46,4 +46,23 @@ def test_exclude_not_answered_post(api_auth_with_sub_client: APIClient):
     response_data = response.json()
 
     assert response.status_code == 201, "Задание (исключ) не принимается к ответу"
-    assert response_data["text"] == "success", "Задание (исключ) решено верно, но response некорректный"
+    assert response_data["is_correct"] is True, "Задание (исключ) решено верно, но response некорректный"
+
+
+@pytest.mark.usefixtures("exclude_question_data_with_hint")
+@override_settings(task_always_eager=True)
+def test_exclude_wrong_answers_with_hint(api_auth_with_sub_client: APIClient):
+    data = [1, 2]
+
+    for answer_try in range(1, 5):
+        response = api_auth_with_sub_client.post(
+            constants.EXCLUDE_QUESTION_POST,
+            data=json.dumps(data),
+            content_type="application/json"
+        )
+        response_data = response.json()
+
+        assert response_data == constants.EXCLUDE_WRONG_ANSWER_RESPONSE[answer_try], (
+            "Запрос с неправильным ответом на вопрос вернул неверный reponse. "
+            "Возможно отсутствует подсказка или ответ в конце."
+        )

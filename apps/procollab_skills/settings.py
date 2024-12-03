@@ -63,6 +63,8 @@ INSTALLED_APPS = [
     "celery",
     "django_celery_beat",
     "corsheaders",
+    # plugins
+    "django_summernote",
     # apps
     "courses",
     "files",
@@ -136,7 +138,21 @@ SELECTEL_NEW_AUTH_TOKEN = "https://cloud.api.selcloud.ru/identity/v3/auth/tokens
 SELECTEL_UPLOAD_URL = f"https://swift.ru-1.storage.selcloud.ru/v1/{SELECTEL_PROJECT_ID}/{SELECTEL_CONTAINER_NAME}/"
 
 
+SUMMERNOTE_CONFIG = {
+    #  'attachment_upload_to':lambda x: None,
+    "disable_attachment": False,
+}
+SELECTEL_STORAGES = {
+    "default": {
+        "USERNAME": SELECTEL_SERVICE_USERNAME,
+        "PASSWORD": SELECTEL_SERVICE_PASSWORD,
+        "CONTAINER_NAME": SELECTEL_CONTAINER_NAME,
+    },
+}
+
+
 if 0:
+
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -192,7 +208,7 @@ USE_TZ = True
 # statics settings
 
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "/static"
+STATIC_ROOT = BASE_DIR / "static"
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 

@@ -54,13 +54,6 @@ class QuestionСonnectSerializerData:
 
 
 @dataclass
-class ScoredConnectAnswerSerializerData:
-    left_id: int
-    right_id: int
-    is_correct: bool
-
-
-@dataclass
 class ConnectAnswerSerializerData:
     left_id: int
     right_id: int
@@ -74,28 +67,6 @@ class WriteAnswerTextSerializerData:
 @dataclass
 class CustomTextErrorSerializerData:
     error: str
-
-
-@dataclass
-class CustomTextSucessSerializerData:
-    text: str
-
-
-@dataclass
-class QuestionExcludePostResponseSerializer:
-    is_correct: bool
-    wrong_answers: list[int]
-
-
-@dataclass
-class SingleCorrectPostSuccessResponseSerializerData:
-    is_correct: bool
-
-
-@dataclass
-class SingleCorrectPostErrorResponseSerializerData:
-    is_correct: bool
-    correct_answer: int
 
 
 @dataclass

@@ -1,6 +1,7 @@
-from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
+from django.core.validators import MinValueValidator
+from django.contrib.auth.models import AbstractUser
 
 from progress.managers import TaskObjUserResultManager, CustomUserManager
 
@@ -332,3 +333,37 @@ class UserMonthTarget(AbstractMonthFields):
 
     def __str__(self):
         return f"{self.user_profile.user.first_name}: {self.month}.{self.year} - {self.percentage_of_completion}"
+
+
+class UserAnswersAttemptCounter(models.Model):
+    user_profile = models.ForeignKey(
+        UserProfile,
+        on_delete=models.CASCADE,
+        related_name="attemps_counter",
+        verbose_name="Пользователь",
+    )
+    task_object = models.ForeignKey(
+        "courses.TaskObject",
+        on_delete=models.CASCADE,
+        related_name="users_attempts",
+        verbose_name="Объект задачи",
+    )
+    attempts_made_before = models.SmallIntegerField(
+        default=1,
+        validators=[MinValueValidator(0)],
+        help_text="Количество попыток ответа до подсказки",
+    )
+    is_take_hint = models.BooleanField(
+        default=False,
+        help_text="Получил ли подсказку",
+    )
+    attempts_made_after = models.SmallIntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        help_text="Количество попыток ответа после подсказки",
+    )
+
+    class Meta:
+        verbose_name = "Попытки ответа пользователя"
+        verbose_name_plural = "Попытки ответа пользователя"
+        unique_together = ("user_profile", "task_object")

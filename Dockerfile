@@ -21,9 +21,8 @@ COPY poetry.lock pyproject.toml /procollab/
 RUN poetry config virtualenvs.create false \
     && poetry install  --no-root
 
-RUN mkdir /procollab/static
-
 COPY . /procollab/
+
 RUN poetry add django-cors-headers
 
 CMD ["bash", "./scripts/startup.sh"]

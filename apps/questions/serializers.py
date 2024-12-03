@@ -55,27 +55,6 @@ class QuestionTextSerializer(serializers.Serializer):
     answer_id = serializers.IntegerField()
 
 
-class SingleCorrectPostSerializer(serializers.Serializer):
-    """POST: Вопрос с 1 правильным ответом - ответ пользователя (response)."""
-
-    is_correct = serializers.BooleanField(allow_null=False)
-    correct_answer = serializers.IntegerField(required=False)
-
-
-class SingleCorrectPostErrorResponseSerializer(DataclassSerializer):
-    """POST: Вопрос с 1 правильным ответом если пользователь ошибся (response)."""
-
-    class Meta:
-        dataclass = typing.SingleCorrectPostErrorResponseSerializerData
-
-
-class SingleCorrectPostSuccessResponseSerializer(DataclassSerializer):
-    """POST: Вопрос с 1 правильным ответом если пользователь прав (response)."""
-
-    class Meta:
-        dataclass = typing.SingleCorrectPostSuccessResponseSerializerData
-
-
 class ConnectAnswerSerializer(DataclassSerializer):
     """Вопрос на соотношение: 1 ответ пользователя."""
 
@@ -89,19 +68,6 @@ class ConnectQuestionPostRequestSerializer(serializers.ListSerializer):
     child = ConnectAnswerSerializer()
 
 
-class ScoredConnectAnswerSerializer(DataclassSerializer):
-    """Вопрос на соотношение: 1 ответ с результатом если пользователь ошибся."""
-
-    class Meta:
-        dataclass = typing.ScoredConnectAnswerSerializerData
-
-
-class ConnectQuestionPostResponseSerializer(serializers.ListSerializer):
-    """POST: Вопрос на соотношение - список из ответов с результатом если пользователь ошибся (response)."""
-
-    child = ScoredConnectAnswerSerializer()
-
-
 class WriteAnswerTextSerializer(DataclassSerializer):
     """POST: Вопрос на ввод ответа - ответ пользователя (request)."""
 
@@ -109,28 +75,20 @@ class WriteAnswerTextSerializer(DataclassSerializer):
         dataclass = typing.WriteAnswerTextSerializerData
 
 
-class QuestionExcludePostResponseSerializer(DataclassSerializer):
-    """POST: Вопрос на исключение - ответ если пользователь ошибся (response)."""
-
-    class Meta:
-        dataclass = typing.QuestionExcludePostResponseSerializer
-
-
-class SimpleNumberListSerializer(serializers.Serializer):
-    """Словарь 'numbers' со списком int чисел."""
-
-    numbers = serializers.ListSerializer(child=serializers.IntegerField(), allow_empty=False)
-
-
-class CustomTextSucessSerializer(DataclassSerializer):
-    """Словарь 'text' с str описанием."""
-
-    class Meta:
-        dataclass = typing.CustomTextSucessSerializerData
-
-
 class CustomTextErrorSerializer(DataclassSerializer):
     """Словарь 'error' с str описанием."""
 
     class Meta:
         dataclass = typing.CustomTextErrorSerializerData
+
+
+class CorrectAnswerResponse(serializers.Serializer):
+    is_correct = serializers.BooleanField(default=True)
+
+
+class IncorrectAnswerResponse(serializers.Serializer):
+    is_correct = serializers.BooleanField(default=False)
+
+
+class EmptySerializer(serializers.Serializer):
+    pass

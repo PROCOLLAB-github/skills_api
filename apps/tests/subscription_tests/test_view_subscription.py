@@ -22,5 +22,4 @@ def test_get_optimum_subscription_should_succeed(api_auth_with_sub_client: APICl
     response_data: dict = response.json()
 
     assert response.status_code == 200, "Ошибка при получении подписки"
-    assert response_data.get("name") == "Оптимум", "Ошибка при получении подписки"
-    assert response_data.get("price") == 120, "Выдаётся не тот тип подписки"
+    assert response_data == "subscription is active", "При наличии подписки неверный reponse"

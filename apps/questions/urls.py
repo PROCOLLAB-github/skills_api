@@ -11,7 +11,7 @@ from questions.views import (
     QuestionExcludeAnswerGet,
 )
 from questions.views.answers import QuestionWritePost, InfoSlidePost
-from questions.views.questions import QuestionWriteAnswer
+from questions.views.questions_views import QuestionWriteAnswer
 
 urlpatterns = [
     path(

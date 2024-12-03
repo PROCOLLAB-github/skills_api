@@ -25,8 +25,6 @@ def skill_three_users_answers(
     - Дефолт юзер: 1 задание -> 5 баллов
     - Стафф: 2 задания -> 10 баллов
     - Админ: 3 задания -> 15 баллов 
-    Функционал аналогичен для каждого типа пользователей, просто, чтбы не плодить 
-    сущности, взяты готовые стафф и админ.
     Замоканы доп баллы за месяц.
     """
     with patch("progress.tasks.check_week_stat.delay"):
@@ -54,24 +52,22 @@ def skill_three_users_answers(
 @override_settings(task_always_eager=True)
 def skill_three_users_some_old_answers(
     full_filled_published_skill: Skill,
-    user_with_trial_sub: CustomUser,
-    user_staff_with_trial_sub: CustomUser,
-    user_admin_with_trial_sub: CustomUser,
+    three_random_user_with_sub: list[CustomUser, CustomUser, CustomUser],
 ):
     """
     Для рейтинга (разные таймлайн), где 3 пользователя ответили на соотв. TaskObj
-    - Админ: делал задания более месяца назад (но в этом году) 
-    - Стафф: делал в прошлом месяце
-    - Юзер: делал день в день
-    Функционал аналогичен для каждого типа пользователей, просто, чтобы не плодить 
-    сущности, взяты готовые стафф и админ.
+    - Юзер1: делал задания более месяца назад (но в этом году) 
+    - Юзер2: делал в прошлом месяце
+    - Юзер3: делал день в день
     Замоканы доп баллы за месяц.
     """
+    user1, user2, user3 = three_random_user_with_sub
+
     with patch("progress.tasks.check_week_stat.delay"):
         for task_obj_idx in range(1, 4):
             TaskObjUserResult.objects.create(
                 task_object_id=task_obj_idx,
-                user_profile=user_admin_with_trial_sub.profiles,
+                user_profile=user1.profiles,
                 points_gained=5,
                 datetime_created=timezone.now() - timedelta(days=32)
 
@@ -79,13 +75,13 @@ def skill_three_users_some_old_answers(
         for task_obj_idx in range(1, 3):
             TaskObjUserResult.objects.create(
                 task_object_id=task_obj_idx,
-                user_profile=user_staff_with_trial_sub.profiles,
+                user_profile=user2.profiles,
                 points_gained=5,
                 datetime_created=timezone.now() - timedelta(days=2)
             )
 
         TaskObjUserResult.objects.create(
             task_object_id=1,
-            user_profile=user_with_trial_sub.profiles,
+            user_profile=user3.profiles,
             points_gained=5
         )

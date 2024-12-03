@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
+from django_summernote.admin import SummernoteModelAdmin
 
 from questions.models import (
     QuestionSingleAnswer,
@@ -56,8 +57,31 @@ class ConnectAnswersInline(admin.StackedInline):  # Или TabularInline для 
 
 
 @admin.register(QuestionConnect)
-class QuestionConnectAdmin(AbstractQuestionShowcase):
+class QuestionConnectAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
     inlines = [ConnectAnswersInline]
+    fieldsets = (
+        (
+            "Вопрос",
+            {
+                "fields": (
+                    "text",
+                    "description",
+                    "video_url",
+                    "files",
+                )
+            },
+        ),
+        (
+            "Подсказка (если не требуется, необходимо `Attempts before hint` оставить пустым)",
+            {
+                "fields": (
+                    "hint_text",
+                    "attempts_before_hint",
+                    "attempts_after_hint",
+                )
+            }
+        ),
+    )
 
 
 class SingleAnswersInline(admin.StackedInline):
@@ -66,12 +90,36 @@ class SingleAnswersInline(admin.StackedInline):
 
 
 @admin.register(QuestionSingleAnswer)
-class QuestionSingleAnswerAdmin(AbstractQuestionShowcase):
+class QuestionSingleAnswerAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
     inlines = [SingleAnswersInline]
+    fieldsets = (
+        (
+            "Вопрос",
+            {
+                "fields": (
+                    "text",
+                    "description",
+                    "video_url",
+                    "files",
+                    "is_exclude",
+                )
+            },
+        ),
+        (
+            "Подсказка (если не требуется, необходимо `Attempts before hint` оставить пустым)",
+            {
+                "fields": (
+                    "hint_text",
+                    "attempts_before_hint",
+                    "attempts_after_hint",
+                )
+            }
+        ),
+    )
 
 
 @admin.register(InfoSlide)
-class InfoSlideAdmin(AbstractQuestionShowcase):
+class InfoSlideAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
 
     def short_description(self, obj) -> str:
         """Сокращенное описание вопроса."""
@@ -80,5 +128,5 @@ class InfoSlideAdmin(AbstractQuestionShowcase):
 
 
 @admin.register(QuestionWrite)
-class QuestionWriteAdmin(AbstractQuestionShowcase):
+class QuestionWriteAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
     pass
