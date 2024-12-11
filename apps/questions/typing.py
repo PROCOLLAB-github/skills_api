@@ -71,8 +71,8 @@ class CustomTextErrorSerializerData:
 
 @dataclass
 class InfoSlideSerializerData:
-    title: str | None
     text: str | None
+    description: str | None
     files: list[str]
     is_done: bool
     video_url: str | None

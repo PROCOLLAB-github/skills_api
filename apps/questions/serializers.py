@@ -15,7 +15,7 @@ class AbstractPopupField(DataclassSerializer):
 
 class InfoSlideSerializer(AbstractPopupField):
     """GET: инфо-слайд (response)."""
-    text = serializers.CharField(allow_blank=True, allow_null=True)
+    description = serializers.CharField(allow_blank=True, allow_null=True)
 
     class Meta:
         dataclass = typing.InfoSlideSerializerData

@@ -53,8 +53,8 @@ def create_full_skill(random_file_intance, status="published"):
 
     InfoSlide.objects.bulk_create([
         InfoSlide(
-            title=f"Заголовок {idx}",
-            text=f"Текст {idx}",
+            text=f"Заголовок {idx}",
+            description=f"Текст {idx}",
         )
         for idx in range(1, 9)
     ])

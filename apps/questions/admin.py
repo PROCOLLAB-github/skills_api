@@ -123,7 +123,7 @@ class InfoSlideAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
 
     def short_description(self, obj) -> str:
         """Сокращенное описание вопроса."""
-        return obj.text[:50] + "..." if len(obj.text) > 50 else obj.text
+        return obj.description[:50] + "..." if len(obj.description) > 50 else obj.description
     short_description.short_description = "Описание"
 
 
