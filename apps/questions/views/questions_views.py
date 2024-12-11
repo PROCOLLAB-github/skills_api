@@ -179,8 +179,8 @@ class InfoSlideDetails(generics.RetrieveAPIView):
 
         serializer = self.serializer_class(
             data={
-                "title": info_slide.title,
                 "text": info_slide.text,
+                "description": info_slide.description,
                 "files": [file.link for file in info_slide.files.all()],
                 "is_done": bool(
                     TaskObjUserResult.objects.get_answered(
