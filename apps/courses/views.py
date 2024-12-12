@@ -1,6 +1,18 @@
 from django.shortcuts import get_object_or_404
 
-from django.db.models import Count, Sum, Q, Exists, OuterRef, Subquery, Case, When, Value, BooleanField
+from django.db.models import (
+    Sum, Q,
+    BooleanField,
+    Case,
+    Count,
+    Exists,
+    OuterRef,
+    Prefetch,
+    QuerySet,
+    Value,
+    Subquery,
+    When,
+)
 
 from rest_framework import generics, status
 from rest_framework import permissions
@@ -211,33 +223,38 @@ class TaskStatsGet(generics.RetrieveAPIView):
             ),
             id=task_id,
         )
-        task_status_filter = DBObjectStatusFilters().get_many_tasks_status_filter_for_user(self.request.user)
-        skill: Skill = get_object_or_404(
-            Skill.published.for_user(self.request.user).annotate(
-                # Общее кол-во опубликованных вопросов навыка.
-                total_num_questions=Count(
-                    "tasks__task_objects", filter=(task_status_filter & Q(tasks__week__lte=available_week))
-                ),
-                # Общее кол-во ответов юзера на опубликованные вопросы в рамках навыка.
-                total_user_answers=Count(
-                    "tasks__task_objects__user_results",
-                    filter=(
-                        task_status_filter
-                        & Q(tasks__task_objects__user_results__user_profile_id=self.profile_id)
-                        & Q(tasks__week__lte=available_week)  # Только доступыне недели.
-                    ),
-                ),
-            ),
-            id=task.skill.id,
+        skill_status_filter = DBObjectStatusFilters().get_skill_status_for_for_user(self.request.user)
+        tasks_of_skill: QuerySet[Task] = (
+            Task.available
+            .only_awailable_weeks(available_week, self.request.user)
+            .prefetch_related(
+                Prefetch(
+                    "task_objects__user_results",
+                    queryset=TaskObjUserResult.objects.filter(user_profile_id=self.profile_id),
+                    to_attr="filtered_user_results",
+                )
+            ).prefetch_related("task_objects")
+            .annotate(task_objects_count=Count("task_objects"))
+            .filter(skill_id=task.skill.id)
+            .filter(skill_status_filter)
         )
-        progress: int = get_rounded_percentage(skill.total_user_answers, skill.total_num_questions)
+
+        user_done_task_objects: list[int] = []
+        all_task_objects: list[int] = []
+        for task_on_skill in tasks_of_skill:
+            user_results_count = sum(1 for obj in task_on_skill.task_objects.all() if obj.filtered_user_results)
+            user_done_task_objects.append(user_results_count)
+            all_task_objects.append(task_on_skill.task_objects_count)
+
+        progress = get_rounded_percentage(sum(user_done_task_objects), sum(all_task_objects))
+
         data = TaskResultData(
             points_gained=task.points_gained if task.points_gained else 0,
             quantity_done_correct=task.total_answers,
             quantity_all=task.total_questions,
             level=task.level,
             progress=progress,
-            skill_name=skill.name,
+            skill_name=task.skill.name,
             next_task_id=task.next_task_id if task.next_task_id else None,
         )
 
