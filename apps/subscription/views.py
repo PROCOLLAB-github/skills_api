@@ -112,6 +112,9 @@ class ViewSubscriptions(ListAPIView):
         is_logged_in = isinstance(self.user, CustomUser)
         profile: UserProfile = self.user_profile if hasattr(self, "user_profile") else None
 
+        if request.user and (request.user.is_superuser or request.user.is_staff):
+            return Response("subscription is active", status=200)
+
         if (
             profile
             and profile.last_subscription_date

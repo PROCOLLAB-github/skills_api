@@ -33,4 +33,6 @@ class AvailableForUser(PublishedManager):
 
     def only_awailable_weeks(self, available_week: int, user: CustomUser = None) -> QuerySet:
         """Фильтрация по доступным для пользователя неделям."""
+        if user and (user.is_superuser or user.is_staff):
+            return super().for_user(user)
         return super().for_user(user).filter(Q(week__lte=available_week))

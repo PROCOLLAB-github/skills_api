@@ -16,7 +16,7 @@ from progress.services import get_rounded_percentage
 
 def get_stats(skill_id: int, profile_id: int, request_user: CustomUser | None = None) -> GetStatsDict:
     available_week, user = get_user_available_week(profile_id)
-    skill_status_filter = DBObjectStatusFilters().get_skill_status_for_for_user(request_user)
+    skill_status_filter = DBObjectStatusFilters().get_skill_status_for_user(request_user)
 
     tasks_of_skill: QuerySet[Task] = (
         Task.available

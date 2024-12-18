@@ -130,10 +130,15 @@ def get_user_available_week(profile_id: int) -> tuple[int, CustomUser]:
     """
     Получение доступных пользователю недель, все что <= `available_week` доступно.
     Если подписка вообще не оформлена, то -> 0, соотв. ничего не доступно.
+    Для `superuser` и `staff` доступно все (4 недели).
     Пример запроса для Task:
         `Q(week__lte=available_week)`
     """
-    user_profile = UserProfile.objects.get(pk=profile_id)
+    user_profile = UserProfile.objects.select_related("user").get(pk=profile_id)
+
+    if user_profile.user.is_superuser or user_profile.user.is_staff:
+        return 4, user_profile.user
+
     subscription_date: datetime = user_profile.last_subscription_date
 
     if subscription_date:
@@ -224,7 +229,7 @@ class DBObjectStatusFilters:
         return skill_status
 
     @staticmethod
-    def get_skill_status_for_for_user(user: CustomUser):
+    def get_skill_status_for_user(user: CustomUser):
         skill_status = Q(skill__status="published")
         if user and user.is_superuser:
             skill_status = Q()
