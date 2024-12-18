@@ -51,6 +51,9 @@ class UserSubscriptionDataSerializer(serializers.ModelSerializer):
         ]
 
     def get_is_subscribed(self, obj: UserProfile) -> bool:
+        if obj.user.is_superuser or obj.user.is_staff:
+            return True
+
         user_sub_date = obj.last_subscription_date
         thirty_days_ago = datetime.now().date() - timedelta(days=30)
 
