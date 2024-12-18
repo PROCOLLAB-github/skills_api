@@ -223,7 +223,7 @@ class TaskStatsGet(generics.RetrieveAPIView):
             ),
             id=task_id,
         )
-        skill_status_filter = DBObjectStatusFilters().get_skill_status_for_for_user(self.request.user)
+        skill_status_filter = DBObjectStatusFilters().get_skill_status_for_user(self.request.user)
         tasks_of_skill: QuerySet[Task] = (
             Task.available
             .only_awailable_weeks(available_week, self.request.user)

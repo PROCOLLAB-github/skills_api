@@ -44,7 +44,7 @@ def check_week_stat(task_obj_id: int) -> None:
         .for_user(user_profile.user)
         .filter(skill__pk=skill.pk, week=week)
         .annotate(
-            task_objects_count=Count("task_objects"),  # Общее кол-во вопросов.
+            task_objects_count=Count("task_objects", distinct=True),  # Общее кол-во вопросов.
             task_objects_done=Count(  # Общее кол-во ответов.
                 "task_objects__user_results",
                 filter=Q(task_objects__user_results__user_profile_id=user_profile.id),
@@ -57,7 +57,10 @@ def check_week_stat(task_obj_id: int) -> None:
 
     # Баллы начисляются только при условии, что все сделано
     # и сделано вовремя (текущая доступная неделя == неделя задания).
-    additional_points: int = AdditionalPoints.MONTH.value if (all_done and week == available_week) else 0
+    if user_profile.user.is_superuser or user_profile.user.is_staff:
+        additional_points: int = AdditionalPoints.MONTH.value
+    else:
+        additional_points: int = AdditionalPoints.MONTH.value if (all_done and week == available_week) else 0
 
     # Создание/Обновление записи результата недели.
     UserWeekStat.objects.update_or_create(
@@ -81,8 +84,8 @@ def check_skill_done(task_obj_id: int) -> None:
     skill: Skill = task.skill
     user_profile: UserProfile = instance.user_profile
     # Данные для проверки ответа вовремя от даты начала подписки, до + 30 дней.
-    subscription_date = user_profile.last_subscription_date
-    deadline = subscription_date + timedelta(days=30)
+    subscription_date = user_profile.last_subscription_date if user_profile.last_subscription_date else timezone.now()
+    deadline = subscription_date + timedelta(days=30) if subscription_date else timezone.now()
 
     task_status_filter = DBObjectStatusFilters().get_many_tasks_status_filter_for_user(user_profile.user)
 
@@ -93,6 +96,7 @@ def check_skill_done(task_obj_id: int) -> None:
             total_num_questions=Count(  # Общее количество заданий.
                 "tasks__task_objects",
                 filter=task_status_filter,
+                distinct=True,
             ),
             total_user_answers=Count(  # Общее количество ответов.
                 "tasks__task_objects__user_results",
@@ -114,8 +118,14 @@ def check_skill_done(task_obj_id: int) -> None:
         .get(pk=skill.pk)
     )
     # Навык считается пройденным если сделаны все части задачи, доп. баллы - если сделан вовремя.
+    # Для `superuser` и `staff` таймлайн не учитывается.
     if skill.total_user_answers == skill.total_num_questions:
-        additional_points = AdditionalPoints.SKILL.value if skill.total_num_questions == skill.timely_responses else 0
+        if user_profile.user.is_superuser or user_profile.user.is_staff:
+            additional_points = AdditionalPoints.SKILL.value
+        else:
+            additional_points = (
+                AdditionalPoints.SKILL.value if skill.total_num_questions == skill.timely_responses else 0
+            )
         UserSkillDone.objects.update_or_create(
             user_profile=user_profile,
             skill=skill,
