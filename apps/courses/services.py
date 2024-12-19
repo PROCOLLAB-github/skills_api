@@ -50,7 +50,11 @@ def get_stats(skill_id: int, profile_id: int, request_user: CustomUser | None = 
             }
         )
     statuses = get_rounded_percentage(sum(user_done_task_objects), sum(all_task_objects))
-
+    if data:
+        try:
+            data.sort(key=lambda x: x["week"])
+        except KeyError:
+            pass
     stats_of_weeks: list[WeekStatsDict] = get_stats_of_weeks(skill_id, profile_id, available_week, request_user)
 
     new_data = {"progress": statuses, "tasks": data, "stats_of_weeks": stats_of_weeks}
@@ -102,4 +106,9 @@ def get_stats_of_weeks(
                         "done_on_time": None,
                     }
                 )
+    if stats_of_weeks:
+        try:
+            stats_of_weeks.sort(key=lambda x: x["week"])
+        except KeyError:
+            pass
     return stats_of_weeks
