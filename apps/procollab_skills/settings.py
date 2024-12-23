@@ -111,7 +111,7 @@ REST_FRAMEWORK = {
         "procollab_skills.auth.CustomAuth",
         "rest_framework.authentication.BasicAuthentication",
     ],
-    "DEFAULT_PERMISSION_CLASSES": ["procollab_skills.permissions.IfSubscriptionOutdatedPermission"],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
 }
 
 CACHES = {
@@ -152,7 +152,6 @@ SELECTEL_STORAGES = {
 
 
 if 0:
-
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",

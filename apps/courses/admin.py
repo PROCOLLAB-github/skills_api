@@ -15,6 +15,7 @@ class SkillAdmin(admin.ModelAdmin):
         "name",
         "quantity_of_levels",
         "status",
+        "free_access",
     )
 
 
@@ -27,6 +28,7 @@ class TaskAdmin(admin.ModelAdmin):
         "level",
         "status",
         "week",
+        "free_access",
     )
     list_filter = ["week"]
 
@@ -74,10 +76,6 @@ class TaskObjectAdmin(admin.ModelAdmin):
     def has_popups(self, obj):
         return obj.popup.exists()
     has_popups.boolean = True
-
-    #
-    # question_type.short_description = "тип единицы задачи"
-    # task_name.short_description = "наименование задачи"
 
 
 @admin.register(Popup)

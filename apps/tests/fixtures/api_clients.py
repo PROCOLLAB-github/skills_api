@@ -7,9 +7,27 @@ from progress.serializers import CustomObtainPairSerializer
 
 @pytest.fixture
 def api_auth_with_sub_client(user_with_trial_sub: CustomUser):
-    """Клиент с активной НЕ просроченной подпиской."""
+    """Клиент с активной НЕ просроченной пробной подпиской."""
     client = APIClient()
     token = CustomObtainPairSerializer.get_token(user_with_trial_sub)
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    return client
+
+
+@pytest.fixture
+def api_auth_with_optimum_sub_client(user_with_optimum_sub: CustomUser):
+    """Клиент с активной НЕ просроченной оптимум подпиской (покупавший пробную)."""
+    client = APIClient()
+    token = CustomObtainPairSerializer.get_token(user_with_optimum_sub)
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    return client
+
+
+@pytest.fixture
+def api_auth_with_overdue_optimum_sub_client(user_with_overdue_optimum_sub: CustomUser):
+    """Клиент с активной НЕ просроченной пробной подпиской (покупавший пробную)."""
+    client = APIClient()
+    token = CustomObtainPairSerializer.get_token(user_with_overdue_optimum_sub)
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
     return client
 
@@ -25,9 +43,18 @@ def api_auth_with_sub_client_admin(user_admin_with_trial_sub: CustomUser):
 
 @pytest.fixture
 def api_auth_with_sub_client_staff(user_staff_with_trial_sub: CustomUser):
-    """Клиент(Админ) с активной НЕ просроченной подпиской."""
+    """Клиент(Стафф) с активной НЕ просроченной подпиской."""
     client = APIClient()
     token = CustomObtainPairSerializer.get_token(user_staff_with_trial_sub)
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    return client
+
+
+@pytest.fixture
+def api_auth_with_overdue_sub_client_staff(user_staff_with_overdue_sub: CustomUser):
+    """Клиент(Стафф) с активной ПРОСТРОЧЕННОЙ подпиской."""
+    client = APIClient()
+    token = CustomObtainPairSerializer.get_token(user_staff_with_overdue_sub)
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
     return client
 

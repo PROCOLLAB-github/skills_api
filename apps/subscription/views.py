@@ -1,3 +1,4 @@
+import logging
 from dataclasses import asdict
 from datetime import datetime, timedelta
 from typing import Literal
@@ -5,16 +6,14 @@ from typing import Literal
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
-
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-# from procollab_skills.decorators import exclude_auth_perm  # , exclude_sub_check_perm
 from yookassa import Payment, Refund
 
-from progress.models import UserProfile, CustomUser
+from progress.models import UserProfile
 from subscription.typing import (
     CreatePaymentData,
     AmountData,
@@ -34,7 +33,6 @@ from subscription.serializers import (
     BuySubSerializer,
 )
 from subscription.utils.create_payment import create_payment
-import logging
 
 
 @extend_schema(
@@ -46,15 +44,15 @@ import logging
     responses={201: CreatePaymentResponseSerializer},
 )
 class CreatePayment(CreateAPIView):
-    permission_classes = [AllowAny]
 
     @staticmethod
-    def check_subscription(user_sub_date):
+    def check_can_subscribe(user_profile: UserProfile, subscription: SubscriptionType):
         try:
             thirty_days_ago = datetime.now().date() - timedelta(days=30)
-            if user_sub_date and user_sub_date >= thirty_days_ago:
+            if user_profile.last_subscription_date and user_profile.last_subscription_date >= thirty_days_ago:
                 raise PermissionDenied("Подписка уже оформлена.")
-
+            if subscription.name == "Пробная" and subscription.price == 1 and user_profile.bought_trial_subscription:
+                raise PermissionDenied("Пробная подписка уже оформлялась.")
         except PermissionDenied as e:
             return Response({"error": str(e)}, status=403)
 
@@ -70,10 +68,9 @@ class CreatePayment(CreateAPIView):
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
-            self.check_subscription(self.user_profile.last_subscription_date)
-
             request_data: CreatePaymentViewRequestData = self.get_request_data(self.profile_id)
             subscription = get_object_or_404(SubscriptionType, id=self.subscription_id)
+            self.check_can_subscribe(self.user_profile, subscription)
 
             amount = AmountData(value=subscription.price)
             type: Literal["payment"] = "payment"
@@ -109,43 +106,12 @@ class ViewSubscriptions(ListAPIView):
     serializer_class = SubscriptionSerializer
 
     def list(self, request, *args, **kwargs) -> Response:
-        is_logged_in = isinstance(self.user, CustomUser)
-        profile: UserProfile = self.user_profile if hasattr(self, "user_profile") else None
-
-        if request.user and (request.user.is_superuser or request.user.is_staff):
-            return Response("subscription is active", status=200)
-
-        if (
-            profile
-            and profile.last_subscription_date
-            and profile.last_subscription_date > (timezone.now() - timedelta(days=31)).date()
-        ):
-            return Response("subscription is active", status=200)
-
-        if (
-            (not is_logged_in)
-            or (not profile.bought_trial_subscription)
-            or (profile and not profile.last_subscription_date)
-        ):
-            queryset, created = SubscriptionType.objects.get_or_create(
-                name="Пробная",
-                price=1,
-                features=(
-                    "Задания от практикующих специалистов, Нативные задания, "
-                    "Карьерные знания дешевле стакана кофе, Общество единомышленников"
-                ),
-            )
-        else:
-            queryset, created = SubscriptionType.objects.get_or_create(
-                name="Оптимум",
-                price=120,
-                features=(
-                    "Задания от практикующих специалистов, Нативные задания, "
-                    "Карьерные знания дешевле стакана кофе, Общество единомышленников"
-                ),
-            )
-
-        serializer = self.serializer_class(queryset)
+        subscriptions = SubscriptionType.objects.all()
+        serializer = self.serializer_class(
+            subscriptions,
+            many=True,
+            context={"request": request}
+        )
         return Response(serializer.data, status=200)
 
 
@@ -210,9 +176,6 @@ class NotificationWebHook(CreateAPIView):
             )
 
         return Response({"error": "event is not yet succeeded"}, status=400)
-
-    # except Exception as e:
-    #     return Response({"error": str(e)}, status=400)
 
 
 @extend_schema(summary="Запрос возврата", tags=["Подписка"])

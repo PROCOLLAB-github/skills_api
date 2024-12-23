@@ -46,7 +46,6 @@ class TestRegistrationResponse:
 class TestProgressProfileResponse:
     """
     Тесты пути: `/progress/profile/`
-    После выбора навыков, скорее всего надо будет вноситьправки в тесты.
     """
 
     POINTS_IN_PROFILE: int = 5
@@ -68,6 +67,30 @@ class TestProgressProfileResponse:
         assert response_dct["user_data"]["points"] == self.POINTS_IN_PROFILE, "После ответа не дали поинтов в профиль"
         assert len(response_dct["skills"]) == 1, "После ответа скилл не перешел в профиль"
         assert response_dct["skills"][0]["skill_progress"] == self.SKILL_PERCENT_DONE, "Прогресс в профиле некорректный"
+
+    @pytest.mark.usefixtures("full_filled_free_published_skill")
+    @override_settings(task_always_eager=True)
+    def test_progress_profile_new_sub_after_free_answer(self, api_auth_with_sub_client: APIClient):
+        api_auth_with_sub_client.post("/questions/info-slide/check/1")
+        response = api_auth_with_sub_client.get(constants.USER_PROFILE_PATH)
+        response_dct = response.json()
+
+        assert response_dct["user_data"]["points"] == 0, "Бесплтаный курс не должен давать поинтов"
+        assert len(response_dct["skills"]) == 1, "После ответа скилл не перешел в профиль"
+        assert response_dct["skills"][0]["skill_progress"] == self.SKILL_PERCENT_DONE, "Прогресс в профиле некорректный"
+
+    @pytest.mark.usefixtures("full_filled_free_published_skill")
+    @override_settings(task_always_eager=True)
+    def test_progress_profile_wo_sub_after_free_answer(self, api_auth_without_sub_client: APIClient):
+        api_auth_without_sub_client.post("/questions/info-slide/check/1")
+        response = api_auth_without_sub_client.get(constants.USER_PROFILE_PATH)
+        response_dct = response.json()
+
+        assert response_dct["user_data"]["points"] == 0, "(Без подп.) Бесплтаный курс не должен давать поинтов"
+        assert len(response_dct["skills"]) == 1, "(Без подп.) После ответа скилл не перешел в профиль"
+        assert response_dct["skills"][0]["skill_progress"] == self.SKILL_PERCENT_DONE, (
+            "(Без подп.) Прогресс в профиле некорректный"
+        )
 
 
 class TestSubscriptionDataResponse:
@@ -128,6 +151,17 @@ class TestUserScoreRating:
 
         assert response_dct["count"] == 1, "После ответа пользователь не появился в рейтинге"
         assert response_dct["results"][0]["score_count"] == self.SINGLE_SCORE_COUNT, "Баллы в рейтинге некорректны"
+
+    @pytest.mark.parametrize("time_frame", ("last_day", "last_month", "last_year"))
+    @pytest.mark.usefixtures("full_filled_free_published_skill")
+    @override_settings(task_always_eager=True)
+    def test_free_single_answer_by_new_sub(self, time_frame: str, api_auth_with_sub_client: APIClient):
+        api_auth_with_sub_client.post("/questions/info-slide/check/1")
+        response = api_auth_with_sub_client.get(constants.USER_SCORE_RATING_PATH + f"?time_frame={time_frame}")
+        response_dct = response.json()
+
+        assert response_dct["count"] == 0, "Бесплатные навыки не дают баллов, соотв не должны быть в рейтинге"
+        assert response_dct["results"] == [], "Бесплатного навыка не должно быть в рейтинге"
 
     @pytest.mark.parametrize("time_frame", ("last_day", "last_month", "last_year"))
     @pytest.mark.usefixtures("skill_three_users_answers")

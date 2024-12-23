@@ -131,7 +131,13 @@ class AbstractAnswersService(ABC):
         return self._SUCCESS_RESPONSE_BODY, status.HTTP_201_CREATED
 
     def _create_tast_obj_result(self, point_type: TypeQuestionPoints, text: str = ""):
-        """Формирование результата."""
+        """
+        Формирование результата.
+        Если навык Task бесплатный, то без поинтов.
+        """
+        if self.request_task_object.task.free_access:
+            point_type = TypeQuestionPoints.QUESTION_WO_POINTS
+
         TaskObjUserResult.objects.create_user_result(
             self.request_task_object.id,
             self.request_profile_id,

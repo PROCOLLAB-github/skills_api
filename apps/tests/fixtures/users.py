@@ -9,6 +9,7 @@ from progress.models import (
     UserProfile,
     CustomUser,
 )
+from subscription.models import SubscriptionType
 
 
 @pytest.fixture
@@ -63,10 +64,11 @@ def user_staff():
 
 @pytest.fixture
 @override_settings(task_always_eager=True)
-def user_with_trial_sub(user: CustomUser):
-    """Пользователь с активной НЕ просроченной подпиской."""
+def user_with_trial_sub(user: CustomUser, trying_sub: SubscriptionType):
+    """Пользователь с активной пробной НЕ просроченной подпиской."""
     profile: UserProfile = user.profiles
     profile.bought_trial_subscription = True
+    profile.last_subscription_type = trying_sub
     profile.last_subscription_date = timezone.now().date()
     profile.save()
     return user
@@ -74,10 +76,35 @@ def user_with_trial_sub(user: CustomUser):
 
 @pytest.fixture
 @override_settings(task_always_eager=True)
-def user_with_overdue_trial_sub(user: CustomUser):
-    """Пользователь с активной ПРОСРОЧЕННОЙ подпиской."""
+def user_with_optimum_sub(user: CustomUser, optimum_sub: SubscriptionType):
+    """Пользователь с активной оптимум НЕ просроченной подпиской (покупавший пробную)."""
     profile: UserProfile = user.profiles
     profile.bought_trial_subscription = True
+    profile.last_subscription_type = optimum_sub
+    profile.last_subscription_date = timezone.now().date()
+    profile.save()
+    return user
+
+
+@pytest.fixture
+@override_settings(task_always_eager=True)
+def user_with_overdue_optimum_sub(user: CustomUser, optimum_sub: SubscriptionType):
+    """Пользователь с активной оптимум просроченной подпиской (покупавший пробную)."""
+    profile: UserProfile = user.profiles
+    profile.bought_trial_subscription = True
+    profile.last_subscription_type = optimum_sub
+    profile.last_subscription_date = timezone.now().date() - timedelta(days=31)
+    profile.save()
+    return user
+
+
+@pytest.fixture
+@override_settings(task_always_eager=True)
+def user_with_overdue_trial_sub(user: CustomUser, trying_sub: SubscriptionType):
+    """Пользователь с активной пробной ПРОСРОЧЕННОЙ подпиской."""
+    profile: UserProfile = user.profiles
+    profile.bought_trial_subscription = True
+    profile.last_subscription_type = trying_sub
     profile.last_subscription_date = timezone.now().date() - timedelta(days=31)
     profile.save()
     return user
@@ -112,5 +139,16 @@ def user_staff_with_trial_sub(user_staff: CustomUser):
     profile: UserProfile = user_staff.profiles
     profile.bought_trial_subscription = True
     profile.last_subscription_date = timezone.now().date()
+    profile.save()
+    return user_staff
+
+
+@pytest.fixture
+@override_settings(task_always_eager=True)
+def user_staff_with_overdue_sub(user_staff: CustomUser):
+    """Персонал с активной НЕ просроченной подпиской."""
+    profile: UserProfile = user_staff.profiles
+    profile.bought_trial_subscription = True
+    profile.last_subscription_date = timezone.now().date() - timedelta(days=31)
     profile.save()
     return user_staff

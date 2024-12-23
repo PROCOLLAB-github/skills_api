@@ -1,6 +1,6 @@
 from django.db.models import Prefetch, Count, QuerySet, Max
 
-from courses.models import Task
+from courses.models import Skill, Task
 from courses.typing import GetStatsDict, WeekStatsDict
 from progress.services import (
     DBObjectStatusFilters,
@@ -14,9 +14,10 @@ from progress.models import (
 from progress.services import get_rounded_percentage
 
 
-def get_stats(skill_id: int, profile_id: int, request_user: CustomUser | None = None) -> GetStatsDict:
+def get_stats(skill: Skill, profile_id: int, request_user: CustomUser | None = None) -> GetStatsDict:
     available_week, user = get_user_available_week(profile_id)
     skill_status_filter = DBObjectStatusFilters().get_skill_status_for_user(request_user)
+    available_week: int = available_week if not skill.free_access else 4
 
     tasks_of_skill: QuerySet[Task] = (
         Task.available
@@ -29,7 +30,7 @@ def get_stats(skill_id: int, profile_id: int, request_user: CustomUser | None = 
             )
         ).prefetch_related("task_objects")
         .annotate(task_objects_count=Count("task_objects"))
-        .filter(skill_id=skill_id)
+        .filter(skill_id=skill.id)
         .filter(skill_status_filter)
     )
 
@@ -47,22 +48,27 @@ def get_stats(skill_id: int, profile_id: int, request_user: CustomUser | None = 
                 "level": task.level,
                 "week": task.week,
                 "status": user_results_count == task.task_objects_count,
+                "free_access": task.free_access,
             }
         )
     statuses = get_rounded_percentage(sum(user_done_task_objects), sum(all_task_objects))
     if data:
         try:
-            data.sort(key=lambda x: x["week"])
+            data.sort(key=lambda x: x["level"])
         except KeyError:
             pass
-    stats_of_weeks: list[WeekStatsDict] = get_stats_of_weeks(skill_id, profile_id, available_week, request_user)
+
+    if skill.free_access:
+        stats_of_weeks = []
+    else:
+        stats_of_weeks: list[WeekStatsDict] = get_stats_of_weeks(skill, profile_id, available_week, request_user)
 
     new_data = {"progress": statuses, "tasks": data, "stats_of_weeks": stats_of_weeks}
     return new_data
 
 
 def get_stats_of_weeks(
-    skill_id: int,
+    skill: Skill,
     profile_id: int,
     available_week: int,
     request_user: CustomUser | None = None,
@@ -79,7 +85,7 @@ def get_stats_of_weeks(
             "is_done": week.is_done,
             "done_on_time": bool(week.additional_points) if week.is_done else None,
         }
-        for week in UserWeekStat.objects.filter(user_profile__id=profile_id, skill__id=skill_id)
+        for week in UserWeekStat.objects.filter(user_profile__id=profile_id, skill__id=skill.id)
     ]
 
     # TODO Временная мера(2 строчки ниже), как будет нормальное деление по неделям, необходимо убрать.
@@ -88,7 +94,7 @@ def get_stats_of_weeks(
     max_skill_week: dict[str:int] = (
         Task.published
         .for_user(request_user)
-        .filter(skill__id=skill_id)
+        .filter(skill__id=skill.id)
         .aggregate(Max("week"))
     )
     available_week = min(available_week, max_skill_week["week__max"])

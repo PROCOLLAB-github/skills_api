@@ -20,6 +20,7 @@ class TaskResponseSerializerData:
     level: int
     week: int
     status: bool
+    free_access: bool
 
 
 @dataclass

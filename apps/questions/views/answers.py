@@ -1,6 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from questions.services.check_questions_answers import (
@@ -11,8 +12,6 @@ from questions.services.check_questions_answers import (
     SingleCorrectAnswerService,
 )
 from courses.serializers import IntegerListSerializer
-from procollab_skills.permissions import IfSubscriptionOutdatedPermission
-
 from questions import serializers
 from questions import api_examples
 from questions.exceptions import (
@@ -29,6 +28,7 @@ from questions.models import (
     QuestionWrite,
     InfoSlide,
 )
+from subscription.permissions import SubscriptionTaskObjectPermission
 
 
 @extend_schema(
@@ -53,7 +53,11 @@ from questions.models import (
 )
 class SingleCorrectPost(generics.CreateAPIView):
     expected_question_model = QuestionSingleAnswer
-    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
+    permission_classes = [
+        IsAuthenticated,
+        CheckQuestionTypePermission,
+        SubscriptionTaskObjectPermission,
+    ]
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
@@ -89,7 +93,11 @@ class SingleCorrectPost(generics.CreateAPIView):
     ],
 )
 class ConnectQuestionPost(generics.CreateAPIView):
-    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
+    permission_classes = [
+        IsAuthenticated,
+        CheckQuestionTypePermission,
+        SubscriptionTaskObjectPermission,
+    ]
     expected_question_model = QuestionConnect
 
     def create(self, request, *args, **kwargs) -> Response:
@@ -109,7 +117,7 @@ class ConnectQuestionPost(generics.CreateAPIView):
 @extend_schema(
     summary="Проверка вопроса на исключение",
     tags=["Вопросы и инфо-слайд"],
-    description="В request - список ответов, которые пользователь исключает\n В response - количество отв",
+    description="В request - список ответов, которые пользователь исключает",
     request=IntegerListSerializer,
     responses={
         201: serializers.CorrectAnswerResponse,
@@ -127,7 +135,11 @@ class ConnectQuestionPost(generics.CreateAPIView):
     ],
 )
 class QuestionExcludePost(generics.CreateAPIView):
-    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
+    permission_classes = [
+        IsAuthenticated,
+        CheckQuestionTypePermission,
+        SubscriptionTaskObjectPermission,
+    ]
     expected_question_model = QuestionSingleAnswer
 
     def create(self, request, *args, **kwargs) -> Response:
@@ -163,7 +175,11 @@ class QuestionExcludePost(generics.CreateAPIView):
 class QuestionWritePost(generics.CreateAPIView):
     serializer_class = serializers.WriteAnswerTextSerializer
     expected_question_model = QuestionWrite
-    permission_classes = [IfSubscriptionOutdatedPermission, SimpleCheckQuestionTypePermission]
+    permission_classes = [
+        IsAuthenticated,
+        SimpleCheckQuestionTypePermission,
+        SubscriptionTaskObjectPermission,
+    ]
 
     def create(self, request, *args, **kwargs) -> Response:
         try:
@@ -197,7 +213,11 @@ class QuestionWritePost(generics.CreateAPIView):
 )
 class InfoSlidePost(generics.CreateAPIView):
     expected_question_model = InfoSlide
-    permission_classes = [IfSubscriptionOutdatedPermission, SimpleCheckQuestionTypePermission]
+    permission_classes = [
+        IsAuthenticated,
+        SimpleCheckQuestionTypePermission,
+        SubscriptionTaskObjectPermission,
+    ]
 
     def create(self, request, *args, **kwargs) -> Response:
         try:

@@ -10,6 +10,7 @@ from questions.models import AnswerSingle, QuestionSingleAnswer
 
 @pytest.fixture
 def question_data(task_wo_questions) -> TaskObject:
+    """Вопрос из ПЛАТНОГО навыка."""
     question = QuestionSingleAnswer(
         text="123",
     )
@@ -34,7 +35,34 @@ def question_data(task_wo_questions) -> TaskObject:
 
 
 @pytest.fixture
+def free_question_data(free_task_wo_questions) -> TaskObject:
+    """Вопрос из БЕСПЛАТНОГО навыка."""
+    question = QuestionSingleAnswer(
+        text="123",
+    )
+    question.save()
+
+    answer = AnswerSingle(text="asd", is_correct=True, question=question)
+    answer.save()
+
+    answer1 = AnswerSingle(text="asd2", is_correct=False, question=question)
+    answer1.save()
+
+    answer2 = AnswerSingle(text="asd1", is_correct=False, question=question)
+    answer2.save()
+
+    task_obj = TaskObject(
+        task=free_task_wo_questions,
+        content_type=ContentType.objects.get_for_model(QuestionSingleAnswer),
+        object_id=1,
+    )
+    task_obj.save()
+    return task_obj
+
+
+@pytest.fixture
 def single_question_data_with_hint(task_wo_questions) -> TaskObject:
+    """Вопрос из ПЛАТНОГО навыка с подсказкой."""
     question = QuestionSingleAnswer(
         text="123",
         hint_text="Подсказка",

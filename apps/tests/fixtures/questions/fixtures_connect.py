@@ -10,6 +10,7 @@ from questions.models import QuestionConnect, AnswerConnect
 
 @pytest.fixture
 def connect_question_data(task_wo_questions) -> TaskObject:
+    """Вопрос из ПЛАТНОГО навыка."""
     question = QuestionConnect(
         text="123",
     )
@@ -34,7 +35,34 @@ def connect_question_data(task_wo_questions) -> TaskObject:
 
 
 @pytest.fixture
+def free_connect_question_data(free_task_wo_questions) -> TaskObject:
+    """Вопрос из БЕСПЛАТНОГО навыка."""
+    question = QuestionConnect(
+        text="123",
+    )
+    question.save()
+
+    answer1 = AnswerConnect(
+        connect_left="left1", connect_right="right1", question=question
+    )
+    answer2 = AnswerConnect(
+        connect_left="left2", connect_right="right2", question=question
+    )
+    answer1.save()
+    answer2.save()
+
+    task_obj = TaskObject(
+        task=free_task_wo_questions,
+        content_type=ContentType.objects.get_for_model(QuestionConnect),
+        object_id=1,
+    )
+    task_obj.save()
+    return task_obj
+
+
+@pytest.fixture
 def connect_question_data_with_hint(task_wo_questions) -> TaskObject:
+    """Вопрос из ПЛАТНОГО навыка с подсказкой."""
     question = QuestionConnect(
         text="123",
         hint_text="Подсказка",
