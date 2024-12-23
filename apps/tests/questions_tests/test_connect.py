@@ -17,6 +17,26 @@ def test_connect_not_answered(api_auth_with_sub_client: APIClient):
     assert response_data["is_answered"] is False
 
 
+@pytest.mark.usefixtures("free_connect_question_data")
+def test_free_connect_not_answered_with_sub(api_auth_with_sub_client: APIClient):
+    response = api_auth_with_sub_client.get(constants.CONNECT_QUESTION_GET)
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert len(response_data["connect_left"]) == 2
+    assert response_data["is_answered"] is False
+
+
+@pytest.mark.usefixtures("free_connect_question_data")
+def test_free_connect_not_answered_wo_sub(api_auth_without_sub_client: APIClient):
+    response = api_auth_without_sub_client.get(constants.CONNECT_QUESTION_GET)
+    response_data = response.json()
+
+    assert response.status_code == 200
+    assert len(response_data["connect_left"]) == 2
+    assert response_data["is_answered"] is False
+
+
 @pytest.mark.usefixtures("connect_question_data_answered")
 def test_connect_answered(api_auth_with_sub_client: APIClient):
     response = api_auth_with_sub_client.get(constants.CONNECT_QUESTION_GET)
@@ -46,6 +66,42 @@ def test_connect_not_answered_post(api_auth_with_sub_client: APIClient):
 
     assert response.status_code == 201, "Задание (соотношение) не принимается к ответу"
     assert response_data["is_correct"] is True, "Задание (соотношение) решено верно, но response некорректный"
+
+
+@pytest.mark.usefixtures("free_connect_question_data")
+@override_settings(task_always_eager=True)
+def test_free_connect_not_answered_post(api_auth_with_sub_client: APIClient):
+    data = [{"left_id": 1, "right_id": 1}, {"left_id": 2, "right_id": 2}]
+
+    response = api_auth_with_sub_client.post(
+        constants.CONNECT_QUESTION_POST,
+        data=json.dumps(data),
+        content_type="application/json"
+    )
+    response_data = response.json()
+
+    assert response.status_code == 201, "(Бесплатно)Задание (соотношение) не принимается к ответу"
+    assert response_data["is_correct"] is True, (
+        "(Бесплатно)Задание (соотношение) решено верно, но response некорректный"
+    )
+
+
+@pytest.mark.usefixtures("free_connect_question_data")
+@override_settings(task_always_eager=True)
+def test_free_connect_not_answered_post_wo_sub(api_auth_without_sub_client: APIClient):
+    data = [{"left_id": 1, "right_id": 1}, {"left_id": 2, "right_id": 2}]
+
+    response = api_auth_without_sub_client.post(
+        constants.CONNECT_QUESTION_POST,
+        data=json.dumps(data),
+        content_type="application/json"
+    )
+    response_data = response.json()
+
+    assert response.status_code == 201, "(Бесплатно)(Без подп.)Задание (соотношение) не принимается к ответу"
+    assert response_data["is_correct"] is True, (
+        "(Бесплатно)(Без подп.)Задание (соотношение) решено верно, но response некорректный"
+    )
 
 
 @pytest.mark.usefixtures("connect_question_data_with_hint")

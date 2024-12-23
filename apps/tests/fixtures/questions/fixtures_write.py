@@ -10,6 +10,7 @@ from questions.models import QuestionWrite
 
 @pytest.fixture
 def write_question_data(task_wo_questions) -> TaskObject:
+    """Вопрос из ПЛАТНОГО навыка."""
     question = QuestionWrite(
         text="123",
     )
@@ -17,6 +18,23 @@ def write_question_data(task_wo_questions) -> TaskObject:
 
     task_obj = TaskObject(
         task=task_wo_questions,
+        content_type=ContentType.objects.get_for_model(QuestionWrite),
+        object_id=1,
+    )
+    task_obj.save()
+    return task_obj
+
+
+@pytest.fixture
+def free_write_question_data(free_task_wo_questions) -> TaskObject:
+    """Вопрос из БЕСПЛАТНОГО навыка."""
+    question = QuestionWrite(
+        text="123",
+    )
+    question.save()
+
+    task_obj = TaskObject(
+        task=free_task_wo_questions,
         content_type=ContentType.objects.get_for_model(QuestionWrite),
         object_id=1,
     )

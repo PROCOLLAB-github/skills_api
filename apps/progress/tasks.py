@@ -29,6 +29,7 @@ def check_week_stat(task_obj_id: int) -> None:
         После сохранения `TaskObjUserResult`, начинается проверка все ли выполнено в рамках недели.
         В результате создается/обновляется запись в `UserWeekStat`.
         Дополнительные баллы начилсяются если все было сделано в срок.
+        Бесплатные Task не дают баллы.
     """
     instance: TaskObjUserResult = TaskObjUserResult.objects.get_with_related_fields(task_obj_id)
 
@@ -40,8 +41,7 @@ def check_week_stat(task_obj_id: int) -> None:
     available_week, _ = get_user_available_week(user_profile.pk)
 
     tasks_by_week: QuerySet[Task] = (
-        Task.published
-        .for_user(user_profile.user)
+        Task.objects
         .filter(skill__pk=skill.pk, week=week)
         .annotate(
             task_objects_count=Count("task_objects", distinct=True),  # Общее кол-во вопросов.
@@ -59,6 +59,8 @@ def check_week_stat(task_obj_id: int) -> None:
     # и сделано вовремя (текущая доступная неделя == неделя задания).
     if user_profile.user.is_superuser or user_profile.user.is_staff:
         additional_points: int = AdditionalPoints.MONTH.value
+    elif task.free_access:
+        additional_points: int = 0
     else:
         additional_points: int = AdditionalPoints.MONTH.value if (all_done and week == available_week) else 0
 
@@ -77,6 +79,7 @@ def check_skill_done(task_obj_id: int) -> None:
         После сохранения `TaskObjUserResult`, начинается проверка все ли выполнено в рамках навыка.
         Если выполнено все, то создается запись `UserSkillDone`.
         Дополнительные баллы начилсяются если все было сделано в срок (Ответы в рамках 30 дней подписки).
+        Бесплатные Skill не дают баллы.
     """
     instance: TaskObjUserResult = TaskObjUserResult.objects.get_with_related_fields(task_obj_id)
 
@@ -122,6 +125,8 @@ def check_skill_done(task_obj_id: int) -> None:
     if skill.total_user_answers == skill.total_num_questions:
         if user_profile.user.is_superuser or user_profile.user.is_staff:
             additional_points = AdditionalPoints.SKILL.value
+        elif skill.free_access:
+            additional_points: int = 0
         else:
             additional_points = (
                 AdditionalPoints.SKILL.value if skill.total_num_questions == skill.timely_responses else 0
