@@ -40,13 +40,12 @@ jobs:
           echo "SELECTEL_PROJECT_NAME=${{ secrets.SELECTEL_PROJECT_NAME }}" >> .env &&
           echo "SELECTEL_READ_FILES_DOMAIN=${{ secrets.SELECTEL_READ_FILES_DOMAIN }}" >> .env &&
 
+          echo "UNISENDER_GO_API_KEY=${{ secrets.UNISENDER_GO_API_KEY }}" >> .env &&
+          echo "EMAIL_USER=${{ secrets.EMAIL_USER }}" >> .env &&
+          echo "EMAIL_PORT=${{ secrets.EMAIL_PORT }}" >> .env &&
+
           echo "YOOKASSA_API_KEY=${{ secrets.PROD_YOOKASSA_API_KEY }}" >> .env &&
           echo "YOOKASSA_SHOP_ID=${{ secrets.PROD_YOOKASSA_SHOP_ID }}" >> .env &&
 
           docker compose -f docker-compose.prod-ci.yml stop &&
           docker compose -f docker-compose.prod-ci.yml up --build -d
-
-
-
-#          echo "DEBUG=${{ secrets.DJANGO_DEBUG }}" >> .env &&
-#          echo "DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}" >> .env &&

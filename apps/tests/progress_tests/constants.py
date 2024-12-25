@@ -61,7 +61,7 @@ PROGRESS_USER_PROFILE_RESPONSE = {
         "last_name": "Юзер",
         "file_link": "http://some.com/",
         "specialization": "Специальность",
-        "age": 23 + (timezone.now().year - 2024),
+        "age": 24 + (timezone.now().year - 2024),
         "geo_position": "Москва",
         "points": 0
     },

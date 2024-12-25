@@ -1,11 +1,18 @@
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
-
-
 from django.contrib import admin
 from django.urls import path, include
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView,
+)
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+)
 from django.conf.urls.static import static
+
 from procollab_skills import settings
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -23,6 +30,7 @@ urlpatterns = [
     path("questions/", include("questions.urls")),
     path("progress/", include("progress.urls")),
     path("subscription/", include("subscription.urls")),
+    path("webinars/", include("webinars.urls")),
 ]
 
 if settings.DEBUG:
