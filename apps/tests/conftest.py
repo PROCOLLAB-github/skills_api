@@ -8,6 +8,7 @@ pytest_plugins = [
     "tests.fixtures.files",
     "tests.fixtures.subscription",
     "tests.fixtures.skill_answers",
+    "tests.fixtures.webinars",
     "tests.fixtures.questions.fixtures_connect",
     "tests.fixtures.questions.fixtures_write",
     "tests.fixtures.questions.fixtures_exlude",

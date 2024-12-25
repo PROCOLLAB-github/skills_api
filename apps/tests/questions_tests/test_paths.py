@@ -49,7 +49,7 @@ class TestAllPostQUestionsPaths:
     def test_post_questions_path_by_anonymous(self, path: str, api_anonymous_client: APIClient):
         response = api_anonymous_client.post(path)
         response_data = response.json()
-        print(response_data)
+
         assert response.status_code == 403, "Аноним получил не тот статус код"
         assert response_data["error"] == "User credentials are not given", "Неверный response для анона"
 
