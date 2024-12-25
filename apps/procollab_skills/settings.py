@@ -12,9 +12,9 @@ mimetypes.add_type("text/html", ".html", True)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config("DJANGO_SECRET_KEY", cast=str)
+SECRET_KEY = config("DJANGO_SECRET_KEY", cast=str, default="some_key")
 
-DEBUG = config("DEBUG", default=False, cast=bool)
+DEBUG = config("DEBUG", cast=bool, default=False)
 
 # ALLOWED_HOSTS = [
 #     "127.0.0.1:8001",
