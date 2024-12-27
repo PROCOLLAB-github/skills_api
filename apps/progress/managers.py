@@ -31,13 +31,15 @@ class TaskObjUserResultManager(Manager):
         user_profile_id: int,
         type_task_obj: TaskObjs,
         text: str = "",
+        correct_answer: bool = True,
     ):
         try:
             self.get_queryset().create(
                 task_object_id=task_obj_id,
                 user_profile_id=user_profile_id,
                 points_gained=type_task_obj.value,
-                text=text
+                text=text,
+                correct_answer=correct_answer,
             )
         except IntegrityError as e:
             if "unique constraint" in str(e.args).lower():

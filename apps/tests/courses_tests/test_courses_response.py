@@ -1,9 +1,11 @@
+import json
 import pytest
 from django.test import override_settings
 
 from rest_framework.test import APIClient
 
 from . import constants
+from tests.questions_tests import constants as questions_constants
 
 
 class TestTaskListPathResponse:
@@ -297,6 +299,41 @@ class TestTaskResultPathResponse:
         assert respose_dct["points_gained"] == 0, "(Бесплатно) Должно быть 0 баллов"
         assert respose_dct["quantity_done_correct"] == self.DONE_CORRECT, "(Бесплатно)Не засчитало выполненное задание"
         assert respose_dct["progress"] == self.OLD_SUB_PERCENT_PROGRESS, "(Бесплатно)Не засчитало прогресс пользователю"
+
+    @pytest.mark.usefixtures("single_question_data_with_tryes")
+    @override_settings(task_always_eager=True)
+    def test_task_result_user_with_sub_after_wrong_answer(self, api_auth_with_sub_client: APIClient):
+        """
+        Делается 2 запроса (2 попытки к ответу) с проверкой результата.
+        Оба запроса совершаются с неправильным ответом (для проверки посчета).
+        """
+        data = {"answer_id": 2}
+
+        api_auth_with_sub_client.post(
+            questions_constants.SINGLE_CORRECT_POST,
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+        response = api_auth_with_sub_client.get(constants.TASK_RESULT)
+        respose_dct = response.json()
+
+        assert respose_dct["points_gained"] == 0, "Должно быть 0 баллов (неверный ответ)"
+        assert respose_dct["quantity_done"] == 0, "Должно быть 0 отвеченных (неверный ответ)"
+        assert respose_dct["quantity_done_correct"] == 0, "Должно быть 0 отвеченных верно (неверный ответ)"
+        assert respose_dct["progress"] == 0, "Должно быть 0, еще 1 попытка для ответа"
+
+        api_auth_with_sub_client.post(
+            questions_constants.SINGLE_CORRECT_POST,
+            data=json.dumps(data),
+            content_type="application/json",
+        )
+        response = api_auth_with_sub_client.get(constants.TASK_RESULT)
+        respose_dct = response.json()
+
+        assert respose_dct["points_gained"] == 0, "Должно быть 0 баллов (неверный ответ)"
+        assert respose_dct["quantity_done"] == 1, "1 ответ должен быть засчитан"
+        assert respose_dct["quantity_done_correct"] == 0, "Должно быть 0 отвеченных верно (неверный ответ)"
+        assert respose_dct["progress"] == 100, "Должно быть 0, еще 1 попытка для ответа"
 
 
 class TestTaskOfSkillPathResponse:

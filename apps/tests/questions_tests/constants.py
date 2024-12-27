@@ -52,6 +52,7 @@ CONNECT_WRONG_ANSWER_RESPONSE: dict[int, Any] = {
             {"left_id": 1, "right_id": 1},
             {"left_id": 2, "right_id": 2}
         ],
+        "hint": "Подсказка",
     },
 }
 
@@ -63,6 +64,7 @@ EXCLUDE_WRONG_ANSWER_RESPONSE: dict[int, Any] = {
     4: {
         "is_correct": False,
         "answer_ids": [2, 3],
+        "hint": "Подсказка",
     },
 }
 
@@ -74,5 +76,6 @@ SINGLE_WRONG_ANSWER_RESPONSE: dict[int, Any] = {
     4: {
         "is_correct": False,
         "answer_ids": 1,
+        "hint": "Подсказка",
     },
 }

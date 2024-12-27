@@ -232,7 +232,8 @@ class TaskStatsGet(generics.RetrieveAPIView):
 
         data = TaskResultData(
             points_gained=task.points_gained if task.points_gained else 0,
-            quantity_done_correct=task.total_answers,
+            quantity_done_correct=task.total_correct_answers,
+            quantity_done=task.total_answers,
             quantity_all=task.total_questions,
             level=task.level,
             progress=progress,
@@ -262,10 +263,17 @@ class TaskStatsGet(generics.RetrieveAPIView):
                         filter=Q(task_objects__user_results__user_profile_id=self.profile_id),
                         distinct=True,
                     ),
+                    total_correct_answers=Count(  # Всего ответов пользователя в задании.
+                        "task_objects__user_results",
+                        filter=(
+                            Q(task_objects__user_results__user_profile_id=self.profile_id)
+                            & Q(task_objects__user_results__correct_answer=True)
+                        ),
+                        distinct=True,
+                    ),
                     points_gained=Sum(  # Кол-во полученных поинтов юзером в рамках задания.
                         "task_objects__user_results__points_gained",
                         filter=Q(task_objects__user_results__user_profile_id=self.profile_id),
-                        distinct=True,
                     ),
                     next_task_id=Subquery(  # ID следующего задания.
                         Task.available.only_awailable_weeks(available_week, self.request.user)

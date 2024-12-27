@@ -148,6 +148,13 @@ class TaskObjUserResult(AbstractDateTimeCreated):
         null=False,
         help_text="Для ответов юзера, которые связаны с вопросами по вводу ответа",
     )
+    correct_answer = models.BooleanField(
+        default=True,
+        null=False,
+        blank=False,
+        verbose_name="Правильный ответ",
+        help_text="Дан верный/не верный ответ на задание",
+    )
     points_gained = models.PositiveIntegerField(verbose_name="Набранные баллы")
     datetime_created = models.DateTimeField(
         verbose_name="Дата создания", null=False, default=timezone.now
