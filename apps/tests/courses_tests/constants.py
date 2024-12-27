@@ -149,6 +149,7 @@ TASK_RESULT_RESPONSE_NEW_SUB = {
   "quantity_all": 2,
   "level": 1,
   "progress": 0,
+  "quantity_done": 0,
   "skill_name": "Навык 1",
   "next_task_id": None
 }
@@ -161,6 +162,7 @@ TASK_RESULT_RESPONSE_FREE = {
   "quantity_all": 2,
   "level": 1,
   "progress": 0,
+  "quantity_done": 0,
   "skill_name": "Навык 1",
   "next_task_id": 2
 }

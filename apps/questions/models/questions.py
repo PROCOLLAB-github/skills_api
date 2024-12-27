@@ -14,13 +14,13 @@ class AbstractHint(models.Model):
         blank=True,
         null=True,
         validators=[MinValueValidator(1)],
-        help_text="Количество попыток до показа подсказки",
+        verbose_name="Попытки до подсказки",
     )
     attempts_after_hint = models.SmallIntegerField(
         blank=True,
         null=True,
         validators=[MinValueValidator(1)],
-        help_text="Количество попыток после подсказки",
+        verbose_name="Попытки после подсказки",
     )
 
     class Meta:

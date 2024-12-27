@@ -6,6 +6,7 @@ from typing import TypedDict
 class TaskResultData:
     points_gained: int
     quantity_done_correct: int
+    quantity_done: int
     quantity_all: int
     level: int
     progress: int

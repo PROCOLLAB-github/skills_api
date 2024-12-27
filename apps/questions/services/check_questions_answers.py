@@ -76,7 +76,7 @@ class AbstractAnswersService(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _create_correct_answer_response_body(self) -> dict[str, Any]:
+    def _create_answer_response_body(self) -> dict[str, Any]:
         raise NotImplementedError
 
     def _process_answer_attempt_counter(self, question_answers: Any):
@@ -104,17 +104,29 @@ class AbstractAnswersService(ABC):
         # Проверка после подсказки, если counter `after` max, то сохранение без баллов:
         if counter.is_take_hint and counter.attempts_made_after >= self.request_question.attempts_after_hint:
             counter.delete()
-            self._create_tast_obj_result(TypeQuestionPoints.QUESTION_WO_POINTS)
-            question_answer_body = self._create_correct_answer_response_body(question_answers)
+            self._create_tast_obj_result(TypeQuestionPoints.QUESTION_WO_POINTS, correct_answer=False)
+            question_answer_body = self._create_answer_response_body(question_answers)
+            question_answer_body["hint"] = self.request_question.hint_text
             return question_answer_body, status.HTTP_201_CREATED
 
-        # Проверка до подсказки, если counter `before` max, то в response будет подсказка:
+        # Проверка до подсказки:
+        #   - если counter `before` max, то в response будет подсказка.
+        #   - если `after` нет, то засчитывается неверный ответ.
         if counter.attempts_made_before >= self.request_question.attempts_before_hint:
             counter.is_take_hint = True
             counter.save()
             response_body = deepcopy(self._UNSUCCESS_RESPONSE_BODY)
-            response_body["hint"] = self.request_question.hint_text
-            return response_body, status.HTTP_400_BAD_REQUEST
+
+            if self.request_question.attempts_after_hint and self.request_question.hint_text:
+                response_body["hint"] = self.request_question.hint_text
+                return response_body, status.HTTP_400_BAD_REQUEST
+            else:
+                counter.delete()
+                self._create_tast_obj_result(TypeQuestionPoints.QUESTION_WO_POINTS, correct_answer=False)
+                question_answer_body = self._create_answer_response_body(question_answers)
+                if self.request_question.hint_text:
+                    question_answer_body["hint"] = self.request_question.hint_text
+                return question_answer_body, status.HTTP_201_CREATED
 
         counter.save()
         return self._UNSUCCESS_RESPONSE_BODY, status.HTTP_400_BAD_REQUEST
@@ -130,7 +142,12 @@ class AbstractAnswersService(ABC):
         self._create_tast_obj_result(point_type)
         return self._SUCCESS_RESPONSE_BODY, status.HTTP_201_CREATED
 
-    def _create_tast_obj_result(self, point_type: TypeQuestionPoints, text: str = ""):
+    def _create_tast_obj_result(
+        self,
+        point_type: TypeQuestionPoints,
+        text: str = "",
+        correct_answer: bool = True,
+    ):
         """
         Формирование результата.
         Если навык Task бесплатный, то без поинтов.
@@ -143,6 +160,7 @@ class AbstractAnswersService(ABC):
             self.request_profile_id,
             point_type,
             text=text,
+            correct_answer=correct_answer,
         )
 
     def _delete_self_counter(self):
@@ -178,7 +196,7 @@ class SingleCorrectAnswerService(AbstractAnswersService):
             return self._process_answer_attempt_counter(question_answer)
         return self._UNSUCCESS_RESPONSE_BODY, status.HTTP_400_BAD_REQUEST
 
-    def _create_correct_answer_response_body(self, question_answer: AnswerSingle):
+    def _create_answer_response_body(self, question_answer: AnswerSingle):
         response_body = deepcopy(self._UNSUCCESS_RESPONSE_BODY)
         response_body["answer_ids"] = question_answer.id
         return response_body
@@ -205,7 +223,7 @@ class QuestionExcludeAnswerService(AbstractAnswersService):
 
         return self._UNSUCCESS_RESPONSE_BODY, status.HTTP_400_BAD_REQUEST
 
-    def _create_correct_answer_response_body(self, question_answer: AnswerSingle):
+    def _create_answer_response_body(self, question_answer: AnswerSingle):
         response_body = deepcopy(self._UNSUCCESS_RESPONSE_BODY)
         response_body["answer_ids"] = list(question_answer)
         return response_body
@@ -239,7 +257,7 @@ class QuestionConnectAnswerService(AbstractAnswersService):
 
         return self._UNSUCCESS_RESPONSE_BODY, status.HTTP_400_BAD_REQUEST
 
-    def _create_correct_answer_response_body(self, question_answer: AnswerSingle):
+    def _create_answer_response_body(self, question_answer: AnswerSingle):
         response_body = deepcopy(self._UNSUCCESS_RESPONSE_BODY)
         response_body["answer_ids"] = [
             {
@@ -265,7 +283,7 @@ class QuestionWriteAnswerService(AbstractAnswersService):
     def _check_correct_answer(self) -> tuple[dict[str, Any], int]:
         raise NotImplementedError
 
-    def _create_correct_answer_response_body(self) -> dict[str, Any]:
+    def _create_answer_response_body(self) -> dict[str, Any]:
         raise NotImplementedError
 
 
@@ -280,5 +298,5 @@ class InfoSlideAnswerService(AbstractAnswersService):
     def _check_correct_answer(self) -> tuple[dict[str, Any], int]:
         raise NotImplementedError
 
-    def _create_correct_answer_response_body(self) -> dict[str, Any]:
+    def _create_answer_response_body(self) -> dict[str, Any]:
         raise NotImplementedError
