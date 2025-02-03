@@ -1,9 +1,9 @@
 from django.urls import reverse
 
 # All `courses` url paths:
-TASK_LIST_PATH: str = reverse("task_list", kwargs={"task_id": 1})
 ALL_SKILLS_PATH: str = reverse("all-skills")
 CHOOSE_SKILLS_PATH: str = reverse("choose-skills")
+TASK_LIST_PATH: str = reverse("task_list", kwargs={"task_id": 1})
 SKILL_DETAILS_PATH: str = reverse("skill-details", kwargs={"skill_id": 1})
 TASK_RESULT: str = reverse("task-result", kwargs={"task_id": 1})
 TASKS_OF_SKILL: str = reverse("tasks-of-skill", kwargs={"skill_id": 1})
@@ -18,6 +18,13 @@ COURSES_ALL_PATHS: list[str] = [
     TASK_RESULT,
 ]
 
+COURSES_FREE_AUTH_PATHS: list[str] = [
+    TASK_LIST_PATH,
+    ALL_SKILLS_PATH,
+    SKILL_DETAILS_PATH,
+    TASKS_OF_SKILL,
+    TASK_RESULT,
+]
 
 COURSES_NO_ACCESS_PATHS: list[str] = [
     TASK_LIST_PATH,
@@ -28,11 +35,6 @@ COURSES_NO_ACCESS_PATHS: list[str] = [
 ]
 
 
-COURSES_ACCESS_PATHS: list[str] = [
-    ALL_SKILLS_PATH,
-]
-
-
 # Tasks только для stuff(в фикстуре статус должен быть указан)
 TASKS_PATH_STUFF_ONLY = [
     TASK_LIST_PATH,
@@ -40,7 +42,7 @@ TASKS_PATH_STUFF_ONLY = [
 ]
 
 
-# Response по /courses/1:
+# Response по /courses/1 с новой подпиской ПЛАТНЫЙ СКИЛЛ:
 FULL_FILLED_PUBLISHED_SKILL_RESPONSE_NEW_SUB = {
     "count": 2,
     "current_level": 1,
@@ -49,6 +51,7 @@ FULL_FILLED_PUBLISHED_SKILL_RESPONSE_NEW_SUB = {
     "skill_name": "Навык 1",
     "skill_point_logo": "http://some.com/",
     "skill_preview": "http://some.com/",
+    "free_access": False,
     "stats_of_weeks": [{"done_on_time": None, "is_done": False, "week": 1}],
     "step_data": [
         {
@@ -70,6 +73,7 @@ FULL_FILLED_PUBLISHED_SKILL_RESPONSE_NEW_SUB = {
             "level": 1,
             "name": "Задача 1",
             "status": False,
+            "free_access": False,
             "week": 1
         }
     ]
@@ -87,6 +91,7 @@ ALL_SKILLS_RESPONSE_NEW_SUB = {
             "name": "Навык 1",
             "who_created": "Создатель",
             "file_link": "http://some.com/",
+            "free_access": False,
             "quantity_of_levels": 1,
             "description": "Описание"
         }
@@ -105,6 +110,7 @@ CHOOSE_SKILLS_RESPONSE_NEW_SUB = {
             "name": "Навык 1",
             "who_created": "Создатель",
             "file_link": "http://some.com/",
+            "free_access": False,
             "quantity_of_levels": 1,
             "description": "Описание",
             "is_done": False
@@ -120,6 +126,18 @@ SKILL_DETAILS_RESPONSE_NEW_SUB = {
     "skill_preview": "http://some.com/",
     "skill_point_logo": "http://some.com/",
     "description": "Описание",
+    "free_access": False,
+    "level": 1
+}
+
+# Response по /courses/skill-details/1:
+SKILL_DETAILS_RESPONSE_FREE = {
+    "skill_name": "Навык 1",
+    "file": "http://some.com/",
+    "skill_preview": "http://some.com/",
+    "skill_point_logo": "http://some.com/",
+    "description": "Описание",
+    "free_access": True,
     "level": 1
 }
 
@@ -131,8 +149,22 @@ TASK_RESULT_RESPONSE_NEW_SUB = {
   "quantity_all": 2,
   "level": 1,
   "progress": 0,
+  "quantity_done": 0,
   "skill_name": "Навык 1",
   "next_task_id": None
+}
+
+
+# Response по /courses/task-result/1 бесплтано:
+TASK_RESULT_RESPONSE_FREE = {
+  "points_gained": 0,
+  "quantity_done_correct": 0,
+  "quantity_all": 2,
+  "level": 1,
+  "progress": 0,
+  "quantity_done": 0,
+  "skill_name": "Навык 1",
+  "next_task_id": 2
 }
 
 
@@ -145,7 +177,8 @@ TASKS_OF_SKILL_RESPONSE_NEW_SUB = {
       "name": "Задача 1",
       "level": 1,
       "week": 1,
-      "status": False
+      "status": False,
+      "free_access": False
     }
   ],
   "stats_of_weeks": [

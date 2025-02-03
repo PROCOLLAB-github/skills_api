@@ -11,7 +11,7 @@ class PublishedManager(models.Manager):
     def get_queryset(self) -> QuerySet:
         return super().get_queryset().filter(status="published")
 
-    def for_user(self, user: CustomUser = None):
+    def for_user(self, user: CustomUser = None) -> QuerySet:
         """
         Возвращает:
             - Все объекты для `superuser`,
@@ -35,4 +35,6 @@ class AvailableForUser(PublishedManager):
         """Фильтрация по доступным для пользователя неделям."""
         if user and (user.is_superuser or user.is_staff):
             return super().for_user(user)
+        if available_week == 0:
+            return super().for_user(user).filter(free_access=True)
         return super().for_user(user).filter(Q(week__lte=available_week))

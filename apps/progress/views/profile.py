@@ -2,21 +2,33 @@ import json
 import requests
 
 from django.core.exceptions import ValidationError
-from rest_framework import generics, status, permissions
+from rest_framework import (
+    generics,
+    status,
+    permissions,
+)
 from rest_framework.response import Response
-from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView, get_object_or_404
+from rest_framework.generics import (
+    CreateAPIView,
+    ListAPIView,
+    UpdateAPIView,
+    get_object_or_404,
+)
 from drf_spectacular.utils import extend_schema
 
 from courses.models import Skill
 from procollab_skills import settings
-
-from procollab_skills.permissions import IfSubscriptionOutdatedPermission
-
 from progress.models import CustomUser, IntermediateUserSkills
-
-from progress.services import get_user_data, get_user_profile_skills_progress, get_user_profile_months_stats
-from progress.typing import UserProfileDataDict, UserSkillsProgressDict, UserMonthsProgressDict
-
+from progress.services import (
+    get_user_data,
+    get_user_profile_skills_progress,
+    get_user_profile_months_stats,
+)
+from progress.typing import (
+    UserProfileDataDict,
+    UserSkillsProgressDict,
+    UserMonthsProgressDict,
+)
 from progress.serializers import (
     ProfileResponseSerializer,
     HollowSerializer,
@@ -30,7 +42,6 @@ from subscription.serializers import UserSubscriptionDataSerializer
 
 class UserProfile(generics.RetrieveAPIView):
     serializer_class = ProfileResponseSerializer
-    permission_classes = [permissions.AllowAny]
 
     @extend_schema(
         summary="""Выводит все данные для страницы профиля пользователя""",
@@ -49,14 +60,13 @@ class UserProfile(generics.RetrieveAPIView):
 
 
 @extend_schema(
-    summary="""Выбор навыков из тех, которые юзерв  прошлом трогал""",
+    summary="""Выбор навыков из тех, которые юзер в прошлом трогал""",
     request=IntegerListSerializer,
     responses={204: HollowSerializer},
     tags=["Профиль"],
 )
 class UserChooseSkills(generics.UpdateAPIView):
     serializer_class = ...
-    permission_classes = [IfSubscriptionOutdatedPermission, permissions.AllowAny]
 
     def update(self, request, *args, **kwargs):
         try:
@@ -92,10 +102,9 @@ class CreateUserView(CreateAPIView):
 )
 class SubscriptionUserData(ListAPIView):
     serializer_class = UserSubscriptionDataSerializer
-    permission_classes = [permissions.AllowAny]
 
     def get(self, request, *args, **kwargs):
-        serializer = self.serializer_class(self.user_profile)
+        serializer = self.serializer_class(self.user_profile, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -105,7 +114,6 @@ class SubscriptionUserData(ListAPIView):
 )
 class UpdateAutoRenewal(UpdateAPIView):
     serializer_class = SubProclong
-    permission_classes = [permissions.AllowAny]
 
     def patch(self, request, *args, **kwargs):
         new_status = request.data.get("is_autopay_allowed")

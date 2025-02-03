@@ -3,11 +3,10 @@ from dataclasses import asdict
 
 from django.db.models import QuerySet
 from drf_spectacular.utils import extend_schema
-
 from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from procollab_skills.permissions import IfSubscriptionOutdatedPermission
 from progress.models import TaskObjUserResult
 from questions.mapping import TypeQuestionPoints
 from questions.serializers import (
@@ -15,7 +14,6 @@ from questions.serializers import (
     ConnectQuestionSerializer,
     WriteQuestionSerializer,
 )
-
 from questions.models import (
     QuestionSingleAnswer,
     QuestionConnect,
@@ -34,12 +32,17 @@ from questions.typing import (
     QuestionСonnectSerializerData,
     SingleConnectedAnswerData,
 )
+from subscription.permissions import SubscriptionTaskObjectPermission
 
 
 class QuestionSingleAnswerGet(generics.RetrieveAPIView):
     serializer_class = SingleQuestionAnswerSerializer
     expected_question_model = QuestionSingleAnswer
-    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
+    permission_classes = [
+        IsAuthenticated,
+        CheckQuestionTypePermission,
+        SubscriptionTaskObjectPermission,
+    ]
 
     @extend_schema(
         summary="Выводит данные для трёх видов вопросов (см. описание)",
@@ -79,7 +82,11 @@ class QuestionSingleAnswerGet(generics.RetrieveAPIView):
 class QuestionConnectGet(generics.RetrieveAPIView):
     serializer_class = ConnectQuestionSerializer
     expected_question_model = QuestionConnect
-    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
+    permission_classes = [
+        IsAuthenticated,
+        CheckQuestionTypePermission,
+        SubscriptionTaskObjectPermission,
+    ]
 
     @extend_schema(
         summary="Получить данные для вопроса на соотношение",
@@ -127,7 +134,11 @@ class QuestionConnectGet(generics.RetrieveAPIView):
 class QuestionExcludeAnswerGet(generics.RetrieveAPIView):
     serializer_class = SingleQuestionAnswerSerializer
     expected_question_model = QuestionSingleAnswer
-    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
+    permission_classes = [
+        IsAuthenticated,
+        CheckQuestionTypePermission,
+        SubscriptionTaskObjectPermission,
+    ]
 
     @extend_schema(
         summary="Выводит данные для трёх видов вопросов (см. описание)",
@@ -168,7 +179,11 @@ class QuestionExcludeAnswerGet(generics.RetrieveAPIView):
 class InfoSlideDetails(generics.RetrieveAPIView):
     serializer_class = InfoSlideSerializer
     expected_question_model = InfoSlide
-    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
+    permission_classes = [
+        IsAuthenticated,
+        CheckQuestionTypePermission,
+        SubscriptionTaskObjectPermission,
+    ]
 
     @extend_schema(
         summary="Выводит информацию для информационного слайда",
@@ -196,11 +211,14 @@ class InfoSlideDetails(generics.RetrieveAPIView):
             return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# GET вопрос для текста
 class QuestionWriteAnswer(generics.RetrieveAPIView):
     serializer_class = WriteQuestionSerializer
     expected_question_model = QuestionWrite
-    permission_classes = [IfSubscriptionOutdatedPermission, CheckQuestionTypePermission]
+    permission_classes = [
+        IsAuthenticated,
+        CheckQuestionTypePermission,
+        SubscriptionTaskObjectPermission,
+    ]
 
     @extend_schema(
         summary="Выводит информацию для слайда с вопросом, для которого надо будет написать ответ",

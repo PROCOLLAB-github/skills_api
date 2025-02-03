@@ -22,6 +22,7 @@ from progress.models import (
     UserSkillDone,
     TaskObjUserResult,
 )
+from subscription.services import user_sub_is_active
 
 User = get_user_model()
 
@@ -134,14 +135,13 @@ def get_user_available_week(profile_id: int) -> tuple[int, CustomUser]:
     Пример запроса для Task:
         `Q(week__lte=available_week)`
     """
-    user_profile = UserProfile.objects.select_related("user").get(pk=profile_id)
+    user_profile: UserProfile = UserProfile.objects.select_related("user").get(pk=profile_id)
 
     if user_profile.user.is_superuser or user_profile.user.is_staff:
         return 4, user_profile.user
 
-    subscription_date: datetime = user_profile.last_subscription_date
-
-    if subscription_date:
+    if user_sub_is_active(user_profile.user):
+        subscription_date: datetime = user_profile.last_subscription_date
         current_date: datetime = timezone.now().date()
         # Если подписка была сегодня то прошло дней 0, сооотв -> 1.
         days_since_subscription: datetime.timedelta = (current_date - subscription_date).days or 1

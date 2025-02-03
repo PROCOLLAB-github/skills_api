@@ -23,6 +23,7 @@ class TaskSerializer(serializers.Serializer):
     skill_preview = serializers.CharField(allow_null=True)
     skill_point_logo = serializers.CharField(allow_null=True)
     count = serializers.IntegerField(help_text="количество вопросов и информационных слайдов у задания")
+    free_access = serializers.BooleanField(allow_null=True)
     step_data = StepSerializer(many=True)
 
 
@@ -44,33 +45,43 @@ class TaskOfSkillProgressSerializer(DataclassSerializer):
 
 
 class SkillsBasicSerializer(serializers.ModelSerializer):
-    file_link = serializers.URLField(source="file.link")  # Access the link field from the related FileModel
+    # Access the link field from the related FileModel
+    file_link = serializers.URLField(source="file.link")
     # Просьба захардкодить, статичный 1 уровень для всех навыков
     quantity_of_levels = serializers.SerializerMethodField()
 
     class Meta:
         model = Skill
-        fields = ("id", "name", "who_created", "file_link", "quantity_of_levels", "description")
+        fields = (
+            "id",
+            "name",
+            "who_created",
+            "file_link",
+            "quantity_of_levels",
+            "description",
+            "free_access",
+        )
 
     def get_quantity_of_levels(self, obj) -> int:
         # Просьба захардкодить, статичный 1 уровень для всех навыков
         return 1
 
 
-class SkillsDoneSerializer(serializers.ModelSerializer):
-    # Access the link field from the related FileModel
-    file_link = serializers.URLField(source="file.link", required=False)
-    # Просьба захардкодить, статичный 1 уровень для всех навыков
-    quantity_of_levels = serializers.SerializerMethodField()
+class SkillsDoneSerializer(SkillsBasicSerializer):
     is_done = serializers.BooleanField()
 
     class Meta:
         model = Skill
-        fields = ("id", "name", "who_created", "file_link", "quantity_of_levels", "description", "is_done")
-
-    def get_quantity_of_levels(self, obj) -> int:
-        # Просьба захардкодить, статичный 1 уровень для всех навыков
-        return 1
+        fields = (
+            "id",
+            "name",
+            "who_created",
+            "file_link",
+            "quantity_of_levels",
+            "description",
+            "free_access",
+            "is_done",
+        )
 
 
 class TaskResult(DataclassSerializer):
@@ -102,6 +113,7 @@ class SkillDetailsSerializer(serializers.ModelSerializer):
             "skill_point_logo",
             "description",
             "level",
+            "free_access",
         )
 
     def get_level(self, obj) -> int:

@@ -46,13 +46,12 @@ def test_auth_client_wo_sub_available(path, api_auth_without_sub_client: APIClie
     (
         constants.USER_SCORE_RATING_PATH,
         constants.SKILL_RATING_PATH,
-        constants.ADD_SKILLS_PATH,
         constants.SKILL_RATING_PATH,
     )
 )
 def test_auth_client_wo_sub_forbidden(path, api_auth_without_sub_client: APIClient):
     response = api_auth_without_sub_client.get(path)
-    assert response.status_code == 403, f"Auth пользователь без подписки, получил доступ к {path}"
+    assert response.status_code == 200, f"Auth пользователь без подписки, не получил доступ к {path}"
 
 
 @pytest.mark.parametrize("path", constants.PROGRESS_NO_ACCESS_GET_PATHS)

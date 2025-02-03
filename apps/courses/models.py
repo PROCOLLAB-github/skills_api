@@ -16,7 +16,19 @@ class AbstractStatusField(models.Model):
         ("stuff_only", "Доступ только у персонала"),
     ]
 
-    status = models.CharField(choices=STATUS_CHOICES, max_length=15, default="draft", verbose_name="Статус")
+    status = models.CharField(
+        choices=STATUS_CHOICES,
+        max_length=15,
+        default="draft",
+        verbose_name="Статус",
+    )
+    free_access = models.BooleanField(
+        default=False,
+        null=False,
+        blank=False,
+        verbose_name="Доступ бесплатно",
+        help_text="Возможность проходить без подписки."
+    )
 
     objects = models.Manager()
     published = PublishedManager()

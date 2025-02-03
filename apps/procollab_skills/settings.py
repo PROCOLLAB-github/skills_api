@@ -12,9 +12,9 @@ mimetypes.add_type("text/html", ".html", True)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config("DJANGO_SECRET_KEY", cast=str)
+SECRET_KEY = config("DJANGO_SECRET_KEY", cast=str, default="some_key")
 
-DEBUG = config("DEBUG", default=False, cast=bool)
+DEBUG = config("DEBUG", cast=bool, default=False)
 
 # ALLOWED_HOSTS = [
 #     "127.0.0.1:8001",
@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     "progress",
     "questions",
     "subscription",
+    "webinars",
 ]
 
 MIDDLEWARE = [
@@ -90,7 +91,7 @@ ROOT_URLCONF = "procollab_skills.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR, "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -111,7 +112,7 @@ REST_FRAMEWORK = {
         "procollab_skills.auth.CustomAuth",
         "rest_framework.authentication.BasicAuthentication",
     ],
-    "DEFAULT_PERMISSION_CLASSES": ["procollab_skills.permissions.IfSubscriptionOutdatedPermission"],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
 }
 
 CACHES = {
@@ -150,9 +151,10 @@ SELECTEL_STORAGES = {
     },
 }
 
+# Костыль для тестов в workflow и локальной отладки
+USE_SQLITE: bool = config("USE_SQLITE", cast=bool, default=False)
 
-if 0:
-
+if USE_SQLITE:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -204,8 +206,6 @@ TIME_ZONE = "Europe/Moscow"
 USE_I18N = True
 
 USE_TZ = True
-
-# statics settings
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"
@@ -282,3 +282,19 @@ Configuration.account_id = config("YOOKASSA_SHOP_ID", default="")
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+
+EMAIL_BACKEND = "anymail.backends.unisender_go.EmailBackend"
+UNISENDER_GO_API_KEY = config("UNISENDER_GO_API_KEY", default="", cast=str)
+ANYMAIL = {
+    "UNISENDER_GO_API_KEY": UNISENDER_GO_API_KEY,
+    "UNISENDER_GO_API_URL": "https://go1.unisender.ru/ru/transactional/api/v1/",
+    "UNISENDER_GO_SEND_DEFAULTS": {
+        "esp_extra": {
+            "global_language": "ru",
+        }
+    },
+}
+EMAIL_USE_TLS = True
+EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
+EMAIL_USER = config("EMAIL_USER", cast=str, default="example@mail.ru")

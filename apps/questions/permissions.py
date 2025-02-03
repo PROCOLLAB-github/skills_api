@@ -1,10 +1,8 @@
 from django.shortcuts import get_object_or_404
-from django.db.models import Q
 from rest_framework import permissions
 from rest_framework.exceptions import PermissionDenied
 
 from courses.models import TaskObject
-from courses.services import get_user_available_week
 from progress.services import DBObjectStatusFilters
 from questions.mapping import get_fields_for_answer_type, wrong_endpoint_text
 from questions.services.helpers import get_error_message_for_permissions
@@ -19,7 +17,6 @@ class CheckQuestionTypePermission(permissions.BasePermission):
     def has_permission(self, request, view):
         task_object_id = view.kwargs.get("task_obj_id")
         prefetch_fields_list: list[str] = get_fields_for_answer_type(view)
-        available_week, _ = get_user_available_week(view.profile_id)
         # Для GET запроса необходимо подягивать файлы, для POST нет.
         if request.method == "GET":
             prefetch_fields_list.extend(["content_object__files", "popup", "popup__file"])
@@ -31,7 +28,7 @@ class CheckQuestionTypePermission(permissions.BasePermission):
             request_task_object: TaskObject = get_object_or_404(
                 (TaskObject.objects
                  .prefetch_related(*prefetch_fields_list)
-                 .filter(Q(task__week__lte=available_week) & task_skill_status & task_status_filter)),
+                 .filter(task_skill_status & task_status_filter)),
                 id=task_object_id,
             )
         except AttributeError as e:
@@ -49,6 +46,7 @@ class CheckQuestionTypePermission(permissions.BasePermission):
         needed_model_class, gotten_model_class = wrong_endpoint_text(request_question, view)
         if isinstance(request_question, view.expected_question_model) and needed_model_class == gotten_model_class:
             # Установка атрибутов класса представления, чтобы повторно не дергать БД с запросом.
+            view.task = request_task_object.task
             view.request_task_object = request_task_object
             view.task_object_id = task_object_id
             view.request_question = request_question
@@ -65,18 +63,19 @@ class SimpleCheckQuestionTypePermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
         task_object_id = view.kwargs.get("task_obj_id")
-        available_week, _ = get_user_available_week(view.profile_id)
         task_status_filter = DBObjectStatusFilters().get_task_status_filter_for_user(request.user)
         task_skill_status = DBObjectStatusFilters().get_task_skill_status_for_for_user(request.user)
         request_task_object: TaskObject = get_object_or_404(
             (TaskObject.objects
              .prefetch_related("content_object")
-             .filter(Q(task__week__lte=available_week) & task_skill_status & task_status_filter)),
+             .filter(task_skill_status & task_status_filter)),
             id=task_object_id,
         )
         request_question = request_task_object.content_object
         needed_model_class, gotten_model_class = wrong_endpoint_text(request_question, view)
         if isinstance(request_question, view.expected_question_model) and needed_model_class == gotten_model_class:
+            # Установка атрибутов класса представления, чтобы повторно не дергать БД с запросом.
+            view.task = request_task_object.task
             view.request_task_object = request_task_object
             view.task_object_id = task_object_id
             view.request_question = request_question
