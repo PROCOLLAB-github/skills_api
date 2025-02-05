@@ -20,7 +20,7 @@ def user(random_file_intance):
         first_name="Юзер",
         last_name="Юзер",
         specialization="Специальность",
-        age=datetime(year=2000, month=12, day=31, hour=23, minute=23, second=59),
+        age=datetime(year=2000, month=1, day=1, hour=0, minute=0, second=1),
         city="Москва",
     )
     user.profiles.file = random_file_intance
