@@ -1,24 +1,33 @@
+# Стандартные библиотеки
 import json
 import requests
 
+# Django
 from django.core.exceptions import ValidationError
+from files.models import FileModel
+from django.http import HttpRequest
+from courses.models import Skill
+from progress.models import CustomUser, IntermediateUserSkills
+from procollab_skills import settings
+
+# Django REST Framework
 from rest_framework import (
     generics,
     status,
     permissions,
 )
-from rest_framework.response import Response
 from rest_framework.generics import (
     CreateAPIView,
     ListAPIView,
     UpdateAPIView,
     get_object_or_404,
 )
-from drf_spectacular.utils import extend_schema
+from rest_framework.response import Response
 
-from courses.models import Skill
-from procollab_skills import settings
-from progress.models import CustomUser, IntermediateUserSkills
+# drf_spectacular
+from drf_spectacular.utils import extend_schema, OpenApiResponse
+
+# Локальные приложения
 from progress.services import (
     get_user_data,
     get_user_profile_skills_progress,
@@ -146,3 +155,122 @@ class GetUserProfileData(ListAPIView):
         serialized_data["verification_date"] = self._get_date_verificated()
 
         return Response(serialized_data, status=status.HTTP_200_OK)
+
+
+class SyncUserProfile(generics.GenericAPIView):
+    """
+    API-эндпоинт для синхронизации данных пользователя между сервисами Skills и Procollab.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    @extend_schema(
+        summary="Синхронизация данных профиля skills с сервисом procollab",
+        responses={
+                status.HTTP_200_OK: OpenApiResponse(
+                    description="Данные успешно синхронизированы",
+                    examples={
+                        "application/json": {
+                            "message": "Данные успешно синхронизированы"
+                        }
+                    }
+                ),
+                status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                    description="Ошибка при получении данных",
+                    examples={
+                        "application/json": {
+                            "error": "Ошибка получения данных от procollab"
+                        }
+                    }
+                ),
+                status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
+                    description="Неавторизованный доступ",
+                    examples={
+                        "application/json": {
+                            "error": "Неавторизованный доступ"
+                        }
+                    }
+                )
+            },
+        tags=["Профиль"]
+    )
+    def post(self, request: HttpRequest, *args, **kwargs) -> Response:
+        """
+        Обработчик POST-запроса для синхронизации профиля.
+
+        Процесс синхронизации включает:
+        1. Получение данных пользователя из Procollab
+        2. Обновление информации в профиле Skills
+        3. Обработку ошибок и возвращение соответствующего ответа
+        """
+        try:
+            procollab_data = self._fetch_procollab_data(request.user.email)
+            self._update_user_profile(request.user, procollab_data)
+            return Response("Данные успешно синхронизированы")
+        except Exception as e:
+            return self._handle_error(e)
+
+    def _fetch_procollab_data(self, email: str) -> dict:
+        """
+        Получение данных пользователя из сервиса Procollab.
+
+        Args:
+            email (str): Email пользователя для поиска в Procollab
+        """
+        url_name = "dev" if settings.DEBUG else "api"
+        response = requests.get(
+            f"https://{url_name}.procollab.ru/auth/users/clone-data",
+            data={"email": email}
+        )
+
+        if response.status_code != status.HTTP_200_OK:
+            raise ValueError("Ошибка получения данных от procollab")
+
+        return json.loads(response.content)[0]
+
+    def _update_user_profile(self, user: CustomUser, data: dict) -> None:
+        """
+        Обновление данных профиля пользователя в сервисе Skills.
+
+        Args:
+            user (CustomUser): Объект пользователя для обновления
+            data (dict): Данные из Procollab для обновления профиля
+
+        Updates:
+            - Личные данные пользователя (имя, фамилия, отчество)
+            - Информацию о городе и специализации
+            - Дату рождения
+            - Аватар профиля (если предоставлен)
+        """
+        user_fields = {
+            'first_name': data["first_name"],
+            'last_name': data["last_name"],
+            'patronymic': data["patronymic"],
+            'city': data["city"],
+            'age': data["birthday"],
+            'specialization': data["speciality"]
+        }
+        for field, value in user_fields.items():
+            setattr(user, field, value)
+        user.save()
+
+        user_profile = self.user_profile
+        if avatar_url := data.get("avatar"):
+            file_instance, _ = FileModel.objects.get_or_create(
+                link=avatar_url,
+                defaults={
+                    "user": user,
+                    "name": "avatar",
+                    "extension": avatar_url.split(".")[-1],
+                }
+            )
+            user_profile.file = file_instance
+        user_profile.save()
+
+    def _handle_error(self, error: Exception) -> Response:
+        """
+        Обработчик ошибок для эндпоинта синхронизации.
+        """
+        return Response(
+            {"error": str(error)},
+            status=status.HTTP_400_BAD_REQUEST
+        )

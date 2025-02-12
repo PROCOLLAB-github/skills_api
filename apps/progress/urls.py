@@ -7,6 +7,7 @@ from progress.views.profile import (
     SubscriptionUserData,
     UpdateAutoRenewal,
     GetUserProfileData,
+    SyncUserProfile,
 )
 from progress.views.rating import UserScoreRating, UserSkillsRating
 
@@ -52,4 +53,7 @@ urlpatterns = [
         GetUserProfileData.as_view(),
         name="user-data",
     ),
+    path(
+        'sync-profile/', 
+        SyncUserProfile.as_view()),
 ]
