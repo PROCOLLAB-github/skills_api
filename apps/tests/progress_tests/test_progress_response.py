@@ -54,7 +54,6 @@ class TestProgressProfileResponse:
     def test_progress_profile_new_sub_full_data(self, api_auth_with_sub_client: APIClient):
         response = api_auth_with_sub_client.get(constants.USER_PROFILE_PATH)
         response_dct = response.json()
-
         assert response_dct == constants.PROGRESS_USER_PROFILE_RESPONSE
 
     @pytest.mark.usefixtures("full_filled_published_skill")
@@ -88,9 +87,9 @@ class TestProgressProfileResponse:
 
         assert response_dct["user_data"]["points"] == 0, "(Без подп.) Бесплтаный курс не должен давать поинтов"
         assert len(response_dct["skills"]) == 1, "(Без подп.) После ответа скилл не перешел в профиль"
-        assert response_dct["skills"][0]["skill_progress"] == self.SKILL_PERCENT_DONE, (
-            "(Без подп.) Прогресс в профиле некорректный"
-        )
+        assert (
+            response_dct["skills"][0]["skill_progress"] == self.SKILL_PERCENT_DONE
+        ), "(Без подп.) Прогресс в профиле некорректный"
 
 
 class TestSubscriptionDataResponse:
@@ -131,6 +130,7 @@ class TestUserScoreRating:
     """
     Тесты пути: `/progress/user-rating/?time_frame=...`
     """
+
     SINGLE_SCORE_COUNT = 5
 
     @pytest.mark.parametrize("time_frame", ("last_day", "last_month", "last_year"))
@@ -170,24 +170,18 @@ class TestUserScoreRating:
         """Все ответы даны в 1 время, таймлайн не решает, рейтинг по дате должен быть одинаковым."""
         response = api_auth_with_sub_client.get(constants.USER_SCORE_RATING_PATH + f"?time_frame={time_frame}")
         response_dct = response.json()
-        assert response_dct["count"] == 1, (
-            "В рейтинге должeн быть 1 пользователь (Стафф и админ не должны отображаться)"
-        )
-        assert response_dct["results"][0]["score_count"] == self.SINGLE_SCORE_COUNT * 1, (
-            "Неверные баллы у 1го в рейтинге"
-        )
+        assert (
+            response_dct["count"] == 1
+        ), "В рейтинге должeн быть 1 пользователь (Стафф и админ не должны отображаться)"
+        assert (
+            response_dct["results"][0]["score_count"] == self.SINGLE_SCORE_COUNT * 1
+        ), "Неверные баллы у 1го в рейтинге"
 
-    @pytest.mark.parametrize(
-        "time_frame, count_users",
-        (("last_day", 1), ("last_month", 2), ("last_year", 3))
-    )
+    @pytest.mark.parametrize("time_frame, count_users", (("last_day", 1), ("last_month", 2), ("last_year", 3)))
     @pytest.mark.usefixtures("skill_three_users_some_old_answers")
     @override_settings(task_always_eager=True)
     def test_user_count_in_different_timeline(
-        self,
-        time_frame: str,
-        count_users: int,
-        api_auth_with_sub_client: APIClient
+        self, time_frame: str, count_users: int, api_auth_with_sub_client: APIClient
     ):
         """В фикстуре на каждый таймлайн по 1му пользователю, где: сегодня - 1, за ласт год - 3 юзера в рейтинге."""
         response = api_auth_with_sub_client.get(constants.USER_SCORE_RATING_PATH + f"?time_frame={time_frame}")

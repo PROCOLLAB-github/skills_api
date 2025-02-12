@@ -56,5 +56,3 @@ flake8 (делает то же самое + указывает на неиспо
 3. вводишь в консоль ``` docker-compose -f docker-compose.dev-ci.yml up --build```
 4. создаешь супер-юзера путём команды ```docker exec -it skills_web sh -c "cd apps && python manage.py createsuperuser"```
 5. приложение работает на порту 8001. документация на странице /docs/
-6. ???
-7. enjoy :)
