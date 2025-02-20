@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Trajectory, Month, UserTrajectory, Meeting
+
+from .models import Meeting, Month, Trajectory, UserTrajectory
 
 
 @admin.register(Trajectory)

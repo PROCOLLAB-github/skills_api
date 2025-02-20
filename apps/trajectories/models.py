@@ -1,6 +1,7 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
 from django.utils import timezone
+
 from files.models import FileModel
 
 CustomUser = get_user_model()
@@ -47,13 +48,33 @@ class Month(models.Model):
 
     trajectory = models.ForeignKey(Trajectory, on_delete=models.CASCADE, related_name="months")
     skills = models.ManyToManyField("courses.Skill", verbose_name="Навыки")
+    order = models.PositiveIntegerField(verbose_name="Порядковый номер месяца")
 
     def __str__(self):
-        return f"Месяц в траектории '{self.trajectory.name}'"
+        return f"Месяц {self.order} в траектории '{self.trajectory.name}'"
+
+    def is_accessible_for_user(self, user, current_date):
+        """
+        Проверяет, доступен ли месяц для пользователя на основе его подписки и прогресса.
+        """
+        user_trajectory = user.user_trajectories.filter(is_active=True).first()
+
+        if not user_trajectory:
+            return False
+
+        trajectory_start_date = user_trajectory.start_date
+
+        if not trajectory_start_date:
+            return False
+
+        months_passed = (current_date - trajectory_start_date).days // 30
+
+        return self.order <= months_passed + 1
 
     class Meta:
         verbose_name = "Месяц"
         verbose_name_plural = "Месяцы"
+        ordering = ["order"]
 
 
 class UserTrajectory(models.Model):

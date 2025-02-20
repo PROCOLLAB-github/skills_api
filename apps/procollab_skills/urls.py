@@ -31,6 +31,7 @@ urlpatterns = [
     path("progress/", include("progress.urls")),
     path("subscription/", include("subscription.urls")),
     path("webinars/", include("webinars.urls")),
+    path("trajectories/", include("trajectories.urls")),
 ]
 
 if settings.DEBUG:
