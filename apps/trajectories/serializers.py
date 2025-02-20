@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
+from courses.models import Skill
 from courses.serializers import SkillNameAndLogoSerializer
 
 from .models import Trajectory, UserTrajectory
-from courses.models import Skill
 
 
 class TrajectorySerializer(serializers.ModelSerializer):
