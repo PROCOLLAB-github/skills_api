@@ -2,6 +2,7 @@ from django.db.models import Prefetch, QuerySet
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -54,29 +55,41 @@ class TrajectorySkillsView(generics.RetrieveAPIView):
     lookup_field = "id"
 
     def get_queryset(self):
-        """Предзагружаем траектории с месяцами и навыками."""
+        """
+        Предзагружаем траектории с месяцами и навыками.
+        Возвращает все траектории, чтобы get_object() мог использовать prefetch.
+        """
         return Trajectory.objects.prefetch_related(Prefetch("months__skills", queryset=Skill.objects.all()))
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        lookup_field = self.lookup_field
+        filter_kwargs = {lookup_field: self.kwargs[lookup_field]}
+        try:
+            obj = queryset.get(**filter_kwargs)
+        except queryset.model.DoesNotExist:
+            raise NotFound("Траектория с указанным id не найдена.")
+        self.check_object_permissions(self.request, obj)
+        return obj
 
     def retrieve(self, request, *args, **kwargs):
         """Разделяет навыки на доступные, недоступные и выполненные."""
-        trajectory = self.get_object()
         user = request.user
-        current_date = timezone.now().date()
+        trajectory = self.get_object()
 
-        # Получаем список выполненных навыков
+        # Проверяем, что траектория активна для текущего пользователя
+        user_trajectory = user.user_trajectories.filter(trajectory=trajectory, is_active=True).first()
+
+        if not user_trajectory:
+            raise PermissionDenied("Эта траектория не активна для текущего пользователя.")
+
+        current_date = timezone.now().date()
         completed_skills = set(
             UserSkillDone.objects.filter(user_profile=user.profiles).values_list("skill_id", flat=True)
         )
 
         # Определяем текущий месяц пользователя
-        active_trajectory = user.user_trajectories.filter(is_active=True).first()
-        if not active_trajectory:
-            return Response(
-                {"error": "У пользователя нет активной траектории"},
-                status=400,
-            )
-
-        trajectory_start_date = active_trajectory.start_date
+        trajectory_start_date = user_trajectory.start_date
         months_passed = (current_date - trajectory_start_date).days // 30
 
         available_skills = []
