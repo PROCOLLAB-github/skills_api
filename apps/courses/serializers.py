@@ -84,6 +84,14 @@ class SkillsDoneSerializer(SkillsBasicSerializer):
         )
 
 
+class SkillNameAndLogoSerializer(serializers.ModelSerializer):
+    file_link = serializers.URLField(source="file.link")
+
+    class Meta:
+        model = Skill
+        fields = ("name", "file_link")
+
+
 class TaskResult(DataclassSerializer):
     class Meta:
         dataclass = TaskResultData

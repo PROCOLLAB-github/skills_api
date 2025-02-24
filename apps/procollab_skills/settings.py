@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     "questions",
     "subscription",
     "webinars",
+    "trajectories",
 ]
 
 MIDDLEWARE = [
