@@ -2,7 +2,8 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from courses.models import Skill
-from courses.serializers import SkillDetailsSerializer, SkillNameAndLogoSerializer
+from courses.serializers import (SkillDetailsSerializer,
+                                 SkillNameAndLogoSerializer)
 from progress.models import UserSkillDone
 
 from .models import Month, Trajectory, UserTrajectory

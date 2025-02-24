@@ -8,7 +8,8 @@ from rest_framework.response import Response
 from subscription.permissions import SubscriptionSectionPermission
 
 from .models import Trajectory, UserTrajectory
-from .serializers import TrajectoryIdSerializer, TrajectorySerializer, UserTrajectorySerializer
+from .serializers import (TrajectoryIdSerializer, TrajectorySerializer,
+                          UserTrajectorySerializer)
 
 
 @extend_schema(
