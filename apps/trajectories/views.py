@@ -1,18 +1,14 @@
-from django.db.models import Prefetch, QuerySet
+from django.db.models import QuerySet
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
-from rest_framework import generics
-from rest_framework.exceptions import NotFound, PermissionDenied
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from courses.models import Skill
-from courses.serializers import SkillDetailsSerializer
-from progress.models import UserSkillDone
 from subscription.permissions import SubscriptionSectionPermission
 
-from .models import Trajectory
-from .serializers import TrajectorySerializer
+from .models import Trajectory, UserTrajectory
+from .serializers import TrajectoryIdSerializer, TrajectorySerializer, UserTrajectorySerializer
 
 
 @extend_schema(
@@ -24,9 +20,6 @@ class TrajectoryListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated, SubscriptionSectionPermission]
 
     def get_queryset(self) -> QuerySet[Trajectory]:
-        """
-        Возвращает все траектории. Для каждой траектории будет помечено, активна ли она для текущего пользователя.
-        """
         return Trajectory.objects.all()
 
 
@@ -36,89 +29,63 @@ class TrajectoryListView(generics.ListAPIView):
 )
 class TrajectoryDetailView(generics.RetrieveAPIView):
     serializer_class = TrajectorySerializer
-    permission_classes = [IsAuthenticated, SubscriptionSectionPermission]
+    permission_classes = [IsAuthenticated]
     lookup_field = "id"
 
     def get_queryset(self) -> QuerySet[Trajectory]:
-        """
-        Возвращает траекторию по её ID.
-        """
         return Trajectory.objects.all()
 
 
 @extend_schema(
-    summary="Получает три набора навыков: доступные, выполненные, будущие",
+    summary="Получает детальную информацию о траектории пользователя",
     tags=["Траектории"],
 )
-class TrajectorySkillsView(generics.RetrieveAPIView):
+class UserTrajectoryView(generics.RetrieveAPIView):
+    serializer_class = UserTrajectorySerializer
     permission_classes = [IsAuthenticated]
-    lookup_field = "id"
-
-    def get_queryset(self):
-        """
-        Предзагружаем траектории с месяцами и навыками.
-        Возвращает все траектории, чтобы get_object() мог использовать prefetch.
-        """
-        return Trajectory.objects.prefetch_related(Prefetch("months__skills", queryset=Skill.objects.all()))
 
     def get_object(self):
-        queryset = self.get_queryset()
-        lookup_field = self.lookup_field
-        filter_kwargs = {lookup_field: self.kwargs[lookup_field]}
-        try:
-            obj = queryset.get(**filter_kwargs)
-        except queryset.model.DoesNotExist:
-            raise NotFound("Траектория с указанным id не найдена.")
-        self.check_object_permissions(self.request, obj)
-        return obj
+        user = self.request.user
+        return (
+            UserTrajectory.objects.prefetch_related("meetings", "trajectory__months__skills")
+            .filter(user=user, is_active=True)
+            .first()
+        )
 
-    def retrieve(self, request, *args, **kwargs):
-        """Разделяет навыки на доступные, недоступные и выполненные."""
-        user = request.user
-        trajectory = self.get_object()
-
-        # Проверяем, что траектория активна для текущего пользователя
-        user_trajectory = user.user_trajectories.filter(trajectory=trajectory, is_active=True).first()
-
+    def get(self, request, *args, **kwargs):
+        user_trajectory = self.get_object()
         if not user_trajectory:
-            raise PermissionDenied("Эта траектория не активна для текущего пользователя.")
+            return Response({"error": "У пользователя нет активной траектории"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = UserTrajectorySerializer(user_trajectory, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-        current_date = timezone.now().date()
-        completed_skills = set(
-            UserSkillDone.objects.filter(user_profile=user.profiles).values_list("skill_id", flat=True)
+
+@extend_schema(
+    summary="Активирует выбранную траекторию для пользователя",
+    tags=["Траектории"],
+)
+class UserTrajectoryCreateView(generics.CreateAPIView):
+    serializer_class = TrajectoryIdSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        trajectory_id = request.data.get("trajectory_id")
+
+        if UserTrajectory.objects.filter(user=user, is_active=True).exists():
+            return Response({"error": "У вас уже есть активная траектория"}, status=status.HTTP_400_BAD_REQUEST)
+
+        trajectory = Trajectory.objects.filter(id=trajectory_id).first()
+        if not trajectory:
+            return Response({"error": "Траектория не найдена"}, status=status.HTTP_404_NOT_FOUND)
+
+        user_trajectory = UserTrajectory.objects.create(
+            user=user,
+            trajectory=trajectory,
+            start_date=timezone.now().date(),
+            is_active=True,
+            mentor=None,
         )
 
-        # Определяем текущий месяц пользователя
-        trajectory_start_date = user_trajectory.start_date
-        months_passed = (current_date - trajectory_start_date).days // 30
-
-        available_skills = []
-        unavailable_skills = []
-        completed_skills_list = []
-
-        for month in trajectory.months.all():
-            is_accessible = month.order <= months_passed + 1
-
-            for skill in month.skills.all():
-                if skill.id in completed_skills:
-                    completed_skills_list.append(skill)
-                elif is_accessible:
-                    available_skills.append(
-                        {
-                            "skill": skill,
-                            "overdue": month.order < months_passed + 1,
-                        }
-                    )
-                else:
-                    unavailable_skills.append(skill)
-
-        return Response(
-            {
-                "available_skills": [
-                    {**SkillDetailsSerializer(skill_data["skill"]).data, "overdue": skill_data["overdue"]}
-                    for skill_data in available_skills
-                ],
-                "unavailable_skills": SkillDetailsSerializer(unavailable_skills, many=True).data,
-                "completed_skills": SkillDetailsSerializer(completed_skills_list, many=True).data,
-            }
-        )
+        serializer = self.get_serializer(user_trajectory)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
