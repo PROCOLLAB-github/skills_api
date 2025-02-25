@@ -54,6 +54,7 @@ class UserTrajectorySerializer(serializers.ModelSerializer):
     mentor_avatar = serializers.SerializerMethodField()
     mentor_first_name = serializers.CharField(source="mentor.first_name", allow_null=True)
     mentor_last_name = serializers.CharField(source="mentor.last_name", allow_null=True)
+    mentor_id = serializers.IntegerField(source="mentor.id", allow_null=True)
     first_meeting_done = serializers.SerializerMethodField()
     final_meeting_done = serializers.SerializerMethodField()
     available_skills = serializers.SerializerMethodField()
@@ -77,6 +78,7 @@ class UserTrajectorySerializer(serializers.ModelSerializer):
             "is_active",
             "mentor_first_name",
             "mentor_last_name",
+            "mentor_id",
             "mentor_avatar",
             "first_meeting_done",
             "final_meeting_done",
