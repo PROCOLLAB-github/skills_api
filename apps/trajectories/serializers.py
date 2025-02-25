@@ -54,6 +54,7 @@ class UserTrajectorySerializer(serializers.ModelSerializer):
     mentor_avatar = serializers.SerializerMethodField()
     mentor_first_name = serializers.CharField(source="mentor.first_name", allow_null=True)
     mentor_last_name = serializers.CharField(source="mentor.last_name", allow_null=True)
+    mentor_id = serializers.IntegerField(source="mentor.id", allow_null=True)
     first_meeting_done = serializers.SerializerMethodField()
     final_meeting_done = serializers.SerializerMethodField()
     available_skills = serializers.SerializerMethodField()
@@ -61,6 +62,12 @@ class UserTrajectorySerializer(serializers.ModelSerializer):
     completed_skills = serializers.SerializerMethodField()
     active_month = serializers.SerializerMethodField()
     end_date = serializers.SerializerMethodField()
+    company = serializers.CharField(source="trajectory.company")
+    duration_months = serializers.IntegerField(source="trajectory.duration_months")
+    background_color = serializers.CharField(source="trajectory.background_color")
+    button_color = serializers.CharField(source="trajectory.button_color")
+    select_button_color = serializers.CharField(source="trajectory.select_button_color")
+    text_color = serializers.CharField(source="trajectory.text_color")
 
     class Meta:
         model = UserTrajectory
@@ -71,6 +78,7 @@ class UserTrajectorySerializer(serializers.ModelSerializer):
             "is_active",
             "mentor_first_name",
             "mentor_last_name",
+            "mentor_id",
             "mentor_avatar",
             "first_meeting_done",
             "final_meeting_done",
@@ -78,6 +86,12 @@ class UserTrajectorySerializer(serializers.ModelSerializer):
             "unavailable_skills",
             "completed_skills",
             "active_month",
+            "company",
+            "duration_months",
+            "background_color",
+            "button_color",
+            "select_button_color",
+            "text_color",
         ]
 
     def get_mentor_avatar(self, obj):
@@ -135,7 +149,6 @@ class UserTrajectorySerializer(serializers.ModelSerializer):
         return SkillDetailsSerializer(breakdown["completed_skills"], many=True).data
 
     def get_end_date(self, obj):
-        """Рассчитывает дату завершения траектории."""
         months_count = obj.trajectory.months.count()
         if months_count == 0:
             return None
