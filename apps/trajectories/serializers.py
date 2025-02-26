@@ -16,10 +16,28 @@ class TrajectoryIdSerializer(serializers.Serializer):
 class TrajectorySerializer(serializers.ModelSerializer):
     is_active_for_user = serializers.SerializerMethodField()
     skills = serializers.SerializerMethodField()
+    company = serializers.CharField(read_only=True)
+    background_color = serializers.CharField(read_only=True)
+    button_color = serializers.CharField(read_only=True)
+    select_button_color = serializers.CharField(read_only=True)
+    text_color = serializers.CharField(read_only=True)
 
     class Meta:
         model = Trajectory
-        fields = ["id", "name", "description", "is_active_for_user", "avatar", "mentors", "skills"]
+        fields = [
+            "id",
+            "name",
+            "description",
+            "is_active_for_user",
+            "avatar",
+            "mentors",
+            "skills",
+            "company",
+            "background_color",
+            "button_color",
+            "select_button_color",
+            "text_color",
+        ]
 
     def get_is_active_for_user(self, obj):
         """
