@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -10,7 +12,13 @@ from .models import Month, Trajectory, UserTrajectory
 
 
 class TrajectoryIdSerializer(serializers.Serializer):
-    trajectory_id = serializers.IntegerField()
+    trajectory_id = serializers.IntegerField(source="id")
+
+
+class TrajectoryStudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trajectory
+        fields = ["id", "name", "avatar"]
 
 
 class TrajectorySerializer(serializers.ModelSerializer):
@@ -171,3 +179,43 @@ class UserTrajectorySerializer(serializers.ModelSerializer):
         if months_count == 0:
             return None
         return obj.start_date + timezone.timedelta(days=months_count * 30)
+
+
+class StudentSerializer(serializers.Serializer):
+    first_name = serializers.CharField(max_length=100)
+    last_name = serializers.CharField(max_length=100)
+    age = serializers.SerializerMethodField()
+    avatar = serializers.SerializerMethodField()
+
+    def get_age(self, obj):
+        if obj.age:
+            today = date.today()
+            age = today.year - obj.age.year - ((today.month, today.day) < (obj.age.month, obj.age.day))
+            return age
+        return None
+
+    def get_avatar(self, obj):
+        if file := obj.profiles.file:
+            return file.link
+
+
+class MentorStudentSerializer(serializers.ModelSerializer):
+    student = StudentSerializer(source="user")
+    initial_meeting = serializers.SerializerMethodField()
+    final_meeting = serializers.SerializerMethodField()
+    remaining_days = serializers.SerializerMethodField()
+    trajectory = TrajectoryStudentSerializer()
+    user_trajectory_id = serializers.IntegerField(source="id")
+
+    class Meta:
+        model = UserTrajectory
+        fields = ["student", "initial_meeting", "final_meeting", "remaining_days", "trajectory", "user_trajectory_id"]
+
+    def get_initial_meeting(self, obj):
+        return obj.meetings.filter(initial_meeting=True).exists()
+
+    def get_final_meeting(self, obj):
+        return obj.meetings.filter(final_meeting=True).exists()
+
+    def get_remaining_days(self, obj):
+        return obj.get_remaining_days()

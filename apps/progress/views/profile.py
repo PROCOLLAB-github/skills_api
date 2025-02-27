@@ -79,11 +79,7 @@ class UserChooseSkills(generics.UpdateAPIView):
 
     def update(self, request, *args, **kwargs):
         try:
-            skills = (
-                Skill.published
-                .for_user(self.request.user)
-                .filter(id__in=request.data)
-            )
+            skills = Skill.published.for_user(self.request.user).filter(id__in=request.data)
 
             IntermediateUserSkills.objects.bulk_create(
                 [IntermediateUserSkills(user_profile=self.user_profile, skill=skill) for skill in skills]
@@ -153,6 +149,7 @@ class GetUserProfileData(ListAPIView):
         serialized_data = self.serializer_class(user).data
 
         serialized_data["verification_date"] = self._get_date_verificated()
+        serialized_data["is_mentor"] = user.mentored_trajectories.exists()
 
         return Response(serialized_data, status=status.HTTP_200_OK)
 
@@ -161,37 +158,26 @@ class SyncUserProfile(generics.GenericAPIView):
     """
     API-эндпоинт для синхронизации данных пользователя между сервисами Skills и Procollab.
     """
+
     permission_classes = [permissions.IsAuthenticated]
 
     @extend_schema(
         summary="Синхронизация данных профиля skills с сервисом procollab",
         responses={
-                status.HTTP_200_OK: OpenApiResponse(
-                    description="Данные успешно синхронизированы",
-                    examples={
-                        "application/json": {
-                            "message": "Данные успешно синхронизированы"
-                        }
-                    }
-                ),
-                status.HTTP_400_BAD_REQUEST: OpenApiResponse(
-                    description="Ошибка при получении данных",
-                    examples={
-                        "application/json": {
-                            "error": "Ошибка получения данных от procollab"
-                        }
-                    }
-                ),
-                status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
-                    description="Неавторизованный доступ",
-                    examples={
-                        "application/json": {
-                            "error": "Неавторизованный доступ"
-                        }
-                    }
-                )
-            },
-        tags=["Профиль"]
+            status.HTTP_200_OK: OpenApiResponse(
+                description="Данные успешно синхронизированы",
+                examples={"application/json": {"message": "Данные успешно синхронизированы"}},
+            ),
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                description="Ошибка при получении данных",
+                examples={"application/json": {"error": "Ошибка получения данных от procollab"}},
+            ),
+            status.HTTP_401_UNAUTHORIZED: OpenApiResponse(
+                description="Неавторизованный доступ",
+                examples={"application/json": {"error": "Неавторизованный доступ"}},
+            ),
+        },
+        tags=["Профиль"],
     )
     def post(self, request: HttpRequest, *args, **kwargs) -> Response:
         """
@@ -217,10 +203,7 @@ class SyncUserProfile(generics.GenericAPIView):
             email (str): Email пользователя для поиска в Procollab
         """
         url_name = "dev" if settings.DEBUG else "api"
-        response = requests.get(
-            f"https://{url_name}.procollab.ru/auth/users/clone-data",
-            data={"email": email}
-        )
+        response = requests.get(f"https://{url_name}.procollab.ru/auth/users/clone-data", data={"email": email})
 
         if response.status_code != status.HTTP_200_OK:
             raise ValueError("Ошибка получения данных от procollab")
@@ -242,12 +225,12 @@ class SyncUserProfile(generics.GenericAPIView):
             - Аватар профиля (если предоставлен)
         """
         user_fields = {
-            'first_name': data["first_name"],
-            'last_name': data["last_name"],
-            'patronymic': data["patronymic"],
-            'city': data["city"],
-            'age': data["birthday"],
-            'specialization': data["speciality"]
+            "first_name": data["first_name"],
+            "last_name": data["last_name"],
+            "patronymic": data["patronymic"],
+            "city": data["city"],
+            "age": data["birthday"],
+            "specialization": data["speciality"],
         }
         for field, value in user_fields.items():
             setattr(user, field, value)
@@ -261,7 +244,7 @@ class SyncUserProfile(generics.GenericAPIView):
                     "user": user,
                     "name": "avatar",
                     "extension": avatar_url.split(".")[-1],
-                }
+                },
             )
             user_profile.file = file_instance
         user_profile.save()
@@ -270,7 +253,4 @@ class SyncUserProfile(generics.GenericAPIView):
         """
         Обработчик ошибок для эндпоинта синхронизации.
         """
-        return Response(
-            {"error": str(error)},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({"error": str(error)}, status=status.HTTP_400_BAD_REQUEST)

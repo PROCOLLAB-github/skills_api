@@ -4,12 +4,13 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from subscription.permissions import SubscriptionSectionPermission
 
 from .models import Trajectory, UserTrajectory
-from .serializers import (TrajectoryIdSerializer, TrajectorySerializer,
-                          UserTrajectorySerializer)
+from .serializers import (MentorStudentSerializer, TrajectoryIdSerializer,
+                          TrajectorySerializer, UserTrajectorySerializer)
 
 
 @extend_schema(
@@ -90,3 +91,18 @@ class UserTrajectoryCreateView(generics.CreateAPIView):
 
         serializer = self.get_serializer(user_trajectory)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@extend_schema(
+    summary="Информация о студентах ментора",
+    tags=["Траектории"],
+)
+class MentorStudentsView(APIView):
+    permission_classes = [IsAuthenticated]  # проверяем, что пользователь аутентифицирован
+
+    def get(self, request):
+        mentor = request.user
+        trajectories = UserTrajectory.objects.filter(mentor=mentor, is_active=True).prefetch_related("meetings")
+
+        serializer = MentorStudentSerializer(trajectories, many=True)
+        return Response(serializer.data)
