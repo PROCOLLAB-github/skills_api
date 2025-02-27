@@ -1,3 +1,6 @@
+from datetime import date
+
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
@@ -94,6 +97,27 @@ class UserTrajectory(models.Model):
     def __str__(self):
         return f"{self.user.email} - {self.trajectory.name}"
 
+    def get_end_date(self):
+        """Вычисляет конечную дату траектории на основе start_date и количества месяцев из Month."""
+        months_count = self.trajectory.months.count()
+        return self.start_date + relativedelta(months=months_count)
+
+    def get_remaining_days(self):
+        """Вычисляет оставшиеся дни для текущей траектории."""
+        today = date.today()
+        end_date = self.get_end_date()
+
+        if today >= end_date:
+            return 0
+
+        remaining_days = (end_date - today).days
+
+        return remaining_days
+
+        months_left = (end_date.year - today.year) * 12 + end_date.month - today.month
+
+        return months_left
+
     class Meta:
         verbose_name = "Пользовательская траектория"
         verbose_name_plural = "Пользовательские траектории"
@@ -102,7 +126,6 @@ class UserTrajectory(models.Model):
 class Meeting(models.Model):
     """
     Модель для отражения статуса встреч пользователя с наставником в рамках траектории.
-    Могут быть начальные и финальные встречи.
     """
 
     user_trajectory = models.ForeignKey(UserTrajectory, on_delete=models.CASCADE, related_name="meetings")
