@@ -12,7 +12,7 @@ from .models import Month, Trajectory, UserTrajectory
 
 
 class TrajectoryIdSerializer(serializers.Serializer):
-    trajectory_id = serializers.IntegerField(source="id")
+    user_trajectory_id = serializers.IntegerField(source="id")
 
 
 class TrajectoryStudentSerializer(serializers.ModelSerializer):
