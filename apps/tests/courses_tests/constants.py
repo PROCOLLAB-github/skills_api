@@ -121,6 +121,7 @@ CHOOSE_SKILLS_RESPONSE_NEW_SUB = {
 
 # Response по /courses/skill-details/1:
 SKILL_DETAILS_RESPONSE_NEW_SUB = {
+    "id": 1,
     "name": "Навык 1",
     "file_link": "http://some.com/",
     "skill_preview": "http://some.com/",
@@ -132,6 +133,7 @@ SKILL_DETAILS_RESPONSE_NEW_SUB = {
 
 # Response по /courses/skill-details/1:
 SKILL_DETAILS_RESPONSE_FREE = {
+    "id": 1,
     "name": "Навык 1",
     "file_link": "http://some.com/",
     "skill_preview": "http://some.com/",
