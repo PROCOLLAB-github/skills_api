@@ -121,24 +121,24 @@ CHOOSE_SKILLS_RESPONSE_NEW_SUB = {
 
 # Response по /courses/skill-details/1:
 SKILL_DETAILS_RESPONSE_NEW_SUB = {
-    "skill_name": "Навык 1",
-    "file": "http://some.com/",
+    "name": "Навык 1",
+    "file_link": "http://some.com/",
     "skill_preview": "http://some.com/",
     "skill_point_logo": "http://some.com/",
     "description": "Описание",
     "free_access": False,
-    "level": 1
+    "quantity_of_levels": 1
 }
 
 # Response по /courses/skill-details/1:
 SKILL_DETAILS_RESPONSE_FREE = {
-    "skill_name": "Навык 1",
-    "file": "http://some.com/",
+    "name": "Навык 1",
+    "file_link": "http://some.com/",
     "skill_preview": "http://some.com/",
     "skill_point_logo": "http://some.com/",
     "description": "Описание",
     "free_access": True,
-    "level": 1
+    "quantity_of_levels": 1
 }
 
 

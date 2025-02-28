@@ -182,10 +182,12 @@ class UserTrajectorySerializer(serializers.ModelSerializer):
 
 
 class StudentSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
     first_name = serializers.CharField(max_length=100)
     last_name = serializers.CharField(max_length=100)
     age = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
+    specialization = serializers.CharField()
 
     def get_age(self, obj):
         if obj.age:
@@ -206,10 +208,19 @@ class MentorStudentSerializer(serializers.ModelSerializer):
     remaining_days = serializers.SerializerMethodField()
     trajectory = TrajectoryStudentSerializer()
     user_trajectory_id = serializers.IntegerField(source="id")
+    mentor_id = serializers.IntegerField(source="mentor.id", allow_null=True)
 
     class Meta:
         model = UserTrajectory
-        fields = ["student", "initial_meeting", "final_meeting", "remaining_days", "trajectory", "user_trajectory_id"]
+        fields = [
+            "student",
+            "initial_meeting",
+            "final_meeting",
+            "remaining_days",
+            "trajectory",
+            "user_trajectory_id",
+            "mentor_id",
+        ]
 
     def get_initial_meeting(self, obj):
         return obj.meetings.filter(initial_meeting=True).exists()
