@@ -6,11 +6,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from subscription.permissions import SubscriptionSectionPermission
-
-from .models import Trajectory, UserTrajectory
-from .serializers import (MentorStudentSerializer, TrajectoryIdSerializer,
-                          TrajectorySerializer, UserTrajectorySerializer)
+from trajectories.models import Trajectory, UserTrajectory
+from trajectories.permissions import HasActiveSubscription
+from trajectories.serializers import (MentorStudentSerializer,
+                                      TrajectoryIdSerializer,
+                                      TrajectorySerializer,
+                                      UserTrajectorySerializer)
 
 
 @extend_schema(
@@ -19,7 +20,7 @@ from .serializers import (MentorStudentSerializer, TrajectoryIdSerializer,
 )
 class TrajectoryListView(generics.ListAPIView):
     serializer_class = TrajectorySerializer
-    permission_classes = [IsAuthenticated, SubscriptionSectionPermission]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self) -> QuerySet[Trajectory]:
         return Trajectory.objects.all()
@@ -44,7 +45,7 @@ class TrajectoryDetailView(generics.RetrieveAPIView):
 )
 class UserTrajectoryView(generics.RetrieveAPIView):
     serializer_class = UserTrajectorySerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, HasActiveSubscription]
 
     def get_object(self):
         user = self.request.user
@@ -68,7 +69,7 @@ class UserTrajectoryView(generics.RetrieveAPIView):
 )
 class UserTrajectoryCreateView(generics.CreateAPIView):
     serializer_class = TrajectoryIdSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, HasActiveSubscription]
 
     def create(self, request, *args, **kwargs):
         user = request.user
@@ -98,7 +99,7 @@ class UserTrajectoryCreateView(generics.CreateAPIView):
     tags=["Траектории"],
 )
 class MentorStudentsView(APIView):
-    permission_classes = [IsAuthenticated]  # проверяем, что пользователь аутентифицирован
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         mentor = request.user
