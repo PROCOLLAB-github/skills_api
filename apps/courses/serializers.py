@@ -115,6 +115,7 @@ class SkillDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
         fields = (
+            "id",
             "name",
             "file_link",
             "skill_preview",
