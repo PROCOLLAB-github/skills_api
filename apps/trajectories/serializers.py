@@ -29,6 +29,7 @@ class TrajectorySerializer(serializers.ModelSerializer):
     button_color = serializers.CharField(read_only=True)
     select_button_color = serializers.CharField(read_only=True)
     text_color = serializers.CharField(read_only=True)
+    duration_months = serializers.IntegerField()
 
     class Meta:
         model = Trajectory
@@ -45,6 +46,7 @@ class TrajectorySerializer(serializers.ModelSerializer):
             "button_color",
             "select_button_color",
             "text_color",
+            "duration_months",
         ]
 
     def get_is_active_for_user(self, obj):
