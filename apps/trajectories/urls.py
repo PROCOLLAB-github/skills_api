@@ -1,0 +1,13 @@
+from django.urls import path
+
+from .views import (MentorStudentsView, TrajectoryDetailView,
+                    TrajectoryListView, UserTrajectoryCreateView,
+                    UserTrajectoryView)
+
+urlpatterns = [
+    path("", TrajectoryListView.as_view(), name="trajectory_list"),
+    path("<int:id>/", TrajectoryDetailView.as_view(), name="trajectory-detail"),
+    path("user-trajectory/", UserTrajectoryView.as_view(), name="user-trajectory"),
+    path("user-trajectory/create/", UserTrajectoryCreateView.as_view(), name="user-trajectory-create"),
+    path("mentor/students/", MentorStudentsView.as_view(), name="mentor-students"),
+]

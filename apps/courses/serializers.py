@@ -84,6 +84,14 @@ class SkillsDoneSerializer(SkillsBasicSerializer):
         )
 
 
+class SkillNameAndLogoSerializer(serializers.ModelSerializer):
+    file_link = serializers.URLField(source="file.link")
+
+    class Meta:
+        model = Skill
+        fields = ("name", "file_link")
+
+
 class TaskResult(DataclassSerializer):
     class Meta:
         dataclass = TaskResultData
@@ -98,29 +106,30 @@ IntegerListSerializer = serializers.ListSerializer(child=serializers.IntegerFiel
 
 
 class SkillDetailsSerializer(serializers.ModelSerializer):
-    skill_name = serializers.CharField(source="name")
-    file = serializers.SerializerMethodField()
+    name = serializers.CharField()
+    file_link = serializers.SerializerMethodField()
     skill_preview = serializers.SerializerMethodField()
     skill_point_logo = serializers.SerializerMethodField()
-    level = serializers.SerializerMethodField()
+    quantity_of_levels = serializers.SerializerMethodField()
 
     class Meta:
         model = Skill
         fields = (
-            "skill_name",
-            "file",
+            "id",
+            "name",
+            "file_link",
             "skill_preview",
             "skill_point_logo",
             "description",
-            "level",
+            "quantity_of_levels",
             "free_access",
         )
 
-    def get_level(self, obj) -> int:
+    def get_quantity_of_levels(self, obj) -> int:
         # Просьба захардкодить на 1 уровень везде.
         return 1
 
-    def get_file(self, obj) -> str | None:
+    def get_file_link(self, obj) -> str | None:
         return obj.file.link if obj.file else None
 
     def get_skill_preview(self, obj) -> str | None:
