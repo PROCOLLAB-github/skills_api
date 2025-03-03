@@ -2,10 +2,12 @@ from datetime import date
 
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
 from files.models import FileModel
+from trajectories.validators import validate_hex_color, validate_positive
 
 CustomUser = get_user_model()
 
@@ -28,12 +30,20 @@ class Trajectory(models.Model):
     )
     mentors = models.ManyToManyField(CustomUser, related_name="mentored_trajectories", verbose_name="Наставники")
     start_date = models.DateField(default=timezone.now, verbose_name="Дата начала")
-    duration_months = models.IntegerField(verbose_name="Количество месяцев")
+    duration_months = models.IntegerField(verbose_name="Количество месяцев", validators=[validate_positive])
     company = models.CharField(max_length=255, verbose_name="Компания")
-    background_color = models.CharField(max_length=7, default="#FFFFFF", verbose_name="Цвет заднего фона билета")
-    button_color = models.CharField(max_length=7, default="#6c27ff", verbose_name="Цвет кнопки 'Подробнее'")
-    select_button_color = models.CharField(max_length=7, default="#6c27ff", verbose_name="Цвет кнопки 'Выбрать'")
-    text_color = models.CharField(max_length=7, default="#332e2d", verbose_name="Цвет текста на билете")
+    background_color = models.CharField(
+        max_length=7, default="#FFFFFF", verbose_name="Цвет заднего фона билета", validators=[validate_hex_color]
+    )
+    button_color = models.CharField(
+        max_length=7, default="#6c27ff", verbose_name="Цвет кнопки 'Подробнее'", validators=[validate_hex_color]
+    )
+    select_button_color = models.CharField(
+        max_length=7, default="#6c27ff", verbose_name="Цвет кнопки 'Выбрать'", validators=[validate_hex_color]
+    )
+    text_color = models.CharField(
+        max_length=7, default="#332e2d", verbose_name="Цвет текста на билете", validators=[validate_hex_color]
+    )
 
     def __str__(self):
         return f"{self.name}"
@@ -73,6 +83,18 @@ class Month(models.Model):
         months_passed = (current_date - trajectory_start_date).days // 30
 
         return self.order <= months_passed + 1
+
+    def clean(self):
+        """
+        Проверяем, что количество месяцев в траектории не превышает ее длительность.
+        """
+        current_months_count = self.trajectory.months.count()
+        if current_months_count >= self.trajectory.duration_months:
+            raise ValidationError(f"Нельзя добавить больше {self.trajectory.duration_months} месяцев в эту траекторию.")
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Месяц"
