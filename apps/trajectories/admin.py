@@ -11,13 +11,15 @@ class TrajectoryAdmin(admin.ModelAdmin):
         "company",
         "start_date",
         "duration_months",
-        "background_color",
-        "button_color",
-        "select_button_color",
-        "text_color",
     )
-    list_filter = ["company", "start_date"]
-    search_fields = ["name", "company"]
+    list_filter = ("company", "start_date",)
+    search_fields = ("name", "company",)
+    autocomplete_fields = ("mentors",)
+
+    def get_mentors(self, obj):
+        return ", ".join([mentor.email for mentor in obj.mentors.all()])
+
+    get_mentors.short_description = "Наставники"
 
 
 @admin.register(Month)
@@ -27,7 +29,9 @@ class MonthAdmin(admin.ModelAdmin):
         "trajectory",
         "skills_list",
     )
-    search_fields = ["trajectory__name"]
+    list_filter = ("trajectory",)
+    search_fields = ("trajectory__name",)
+    autocomplete_fields = ("skills",)
 
     def skills_list(self, obj):
         return ", ".join(skill.name for skill in obj.skills.all())
@@ -45,8 +49,9 @@ class UserTrajectoryAdmin(admin.ModelAdmin):
         "is_active",
         "mentor",
     )
-    list_filter = ["is_active", "trajectory"]
-    search_fields = ["user__email", "trajectory__name"]
+    list_filter = ("is_active", "trajectory",)
+    search_fields = ("user__email", "trajectory__name",)
+    autocomplete_fields = ("mentor",)
 
     def trajectory_name(self, obj):
         return obj.trajectory.name
@@ -62,8 +67,9 @@ class MeetingAdmin(admin.ModelAdmin):
         "initial_meeting",
         "final_meeting",
     )
-    list_filter = ["initial_meeting", "final_meeting"]
-    search_fields = ["user_trajectory__user__email"]
+    readonly_fields = ("user_trajectory",)
+    list_filter = ("initial_meeting", "final_meeting",)
+    search_fields = ("user_trajectory__user__email",)
 
     def user_trajectory_user_email(self, obj):
         return obj.user_trajectory.user.email

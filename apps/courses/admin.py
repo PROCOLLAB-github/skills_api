@@ -17,6 +17,7 @@ class SkillAdmin(admin.ModelAdmin):
         "status",
         "free_access",
     )
+    search_fields = ("name",)
 
 
 @admin.register(Task)
@@ -75,6 +76,7 @@ class TaskObjectAdmin(admin.ModelAdmin):
 
     def has_popups(self, obj):
         return obj.popup.exists()
+
     has_popups.boolean = True
 
 
