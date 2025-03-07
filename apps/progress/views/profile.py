@@ -1,51 +1,31 @@
 # Стандартные библиотеки
 import json
-import requests
 
+import requests
 # Django
 from django.core.exceptions import ValidationError
-from files.models import FileModel
 from django.http import HttpRequest
-from courses.models import Skill
-from progress.models import CustomUser, IntermediateUserSkills
-from procollab_skills import settings
-
+# drf_spectacular
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 # Django REST Framework
-from rest_framework import (
-    generics,
-    status,
-    permissions,
-)
-from rest_framework.generics import (
-    CreateAPIView,
-    ListAPIView,
-    UpdateAPIView,
-    get_object_or_404,
-)
+from rest_framework import generics, permissions, status
+from rest_framework.generics import (CreateAPIView, ListAPIView, UpdateAPIView,
+                                     get_object_or_404)
 from rest_framework.response import Response
 
-# drf_spectacular
-from drf_spectacular.utils import extend_schema, OpenApiResponse
-
+from courses.models import Skill
+from files.models import FileModel
+from procollab_skills import settings
+from progress.models import CustomUser, IntermediateUserSkills
+from progress.serializers import (CustomUserSerializer, HollowSerializer,
+                                  IntegerListSerializer,
+                                  ProfileResponseSerializer, SubProclong,
+                                  UserSerializer)
 # Локальные приложения
-from progress.services import (
-    get_user_data,
-    get_user_profile_skills_progress,
-    get_user_profile_months_stats,
-)
-from progress.typing import (
-    UserProfileDataDict,
-    UserSkillsProgressDict,
-    UserMonthsProgressDict,
-)
-from progress.serializers import (
-    ProfileResponseSerializer,
-    HollowSerializer,
-    IntegerListSerializer,
-    UserSerializer,
-    SubProclong,
-    CustomUserSerializer,
-)
+from progress.services import (get_user_data, get_user_profile_months_stats,
+                               get_user_profile_skills_progress)
+from progress.typing import (UserMonthsProgressDict, UserProfileDataDict,
+                             UserSkillsProgressDict)
 from subscription.serializers import UserSubscriptionDataSerializer
 
 

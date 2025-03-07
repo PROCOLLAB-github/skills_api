@@ -5,13 +5,10 @@ from rest_framework import serializers
 from rest_framework_dataclasses.serializers import DataclassSerializer
 
 from progress.models import UserProfile
-from subscription.typing import (
-    CreatePaymentResponseData,
-    WebHookRequest,
-    SubIdSerializer,
-)
 from subscription.models import SubscriptionType
 from subscription.services import user_sub_is_active
+from subscription.typing import (CreatePaymentResponseData, SubIdSerializer,
+                                 WebHookRequest)
 
 
 class CreatePaymentResponseSerializer(DataclassSerializer):

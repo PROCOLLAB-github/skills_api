@@ -1,4 +1,6 @@
+from django.core.exceptions import PermissionDenied
 from django.db.models import QuerySet
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
@@ -6,9 +8,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from trajectories.models import Trajectory, UserTrajectory
+from trajectories.models import Meeting, Trajectory, UserTrajectory
 from trajectories.permissions import HasActiveSubscription
-from trajectories.serializers import (MentorStudentSerializer,
+from trajectories.serializers import (MeetingUpdateSerializer,
+                                      MentorStudentSerializer,
                                       TrajectoryIdSerializer,
                                       TrajectorySerializer,
                                       UserTrajectorySerializer)
@@ -106,4 +109,37 @@ class MentorStudentsView(APIView):
         trajectories = UserTrajectory.objects.filter(mentor=mentor, is_active=True).prefetch_related("meetings")
 
         serializer = MentorStudentSerializer(trajectories, many=True)
+
         return Response(serializer.data)
+
+
+@extend_schema(
+    summary="Обновление статуса встреч наставника с учеником",
+    tags=["Траектории"],
+)
+class MeetingUpdateView(APIView):
+    """
+    API-вью для обновления статуса встреч.
+    """
+
+    serializer_class = MeetingUpdateSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = MeetingUpdateSerializer(data=request.data)
+        if serializer.is_valid():
+            meeting_id = serializer.validated_data["meeting_id"]
+            meeting = get_object_or_404(Meeting, id=meeting_id)
+
+            user_trajectory = meeting.user_trajectory
+
+            if user_trajectory.mentor != request.user:
+                raise PermissionDenied("У вас нет прав на изменение этой встречи.")
+
+            meeting.initial_meeting = serializer.validated_data["initial_meeting"]
+            meeting.final_meeting = serializer.validated_data["final_meeting"]
+            meeting.save()
+
+            return Response(MeetingUpdateSerializer(meeting).data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

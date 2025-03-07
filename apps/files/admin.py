@@ -1,10 +1,10 @@
 import reprlib
 
 from django.contrib import admin
-from django.forms import ModelForm, FileField
+from django.forms import FileField, ModelForm
 
-from files.service import CDN, SelectelSwiftStorage
 from files.models import FileModel
+from files.service import CDN, SelectelSwiftStorage
 
 
 class UserFileForm(ModelForm):

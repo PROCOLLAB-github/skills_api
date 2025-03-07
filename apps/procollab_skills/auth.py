@@ -2,16 +2,16 @@ import json
 
 import jwt
 import requests
-from jwt import ExpiredSignatureError, InvalidSignatureError
 from django.db import transaction
+from jwt import ExpiredSignatureError, InvalidSignatureError
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.exceptions import PermissionDenied, NotAuthenticated
+from rest_framework.exceptions import NotAuthenticated, PermissionDenied
 
 from files.models import FileModel
 from procollab_skills import settings
 from progress.exceptions import UserDoesNotExistException
-from progress.models import UserProfile, CustomUser
+from progress.models import CustomUser, UserProfile
 
 
 class CustomAuth(TokenAuthentication):

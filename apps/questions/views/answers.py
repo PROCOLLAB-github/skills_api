@@ -4,30 +4,18 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from questions.services.check_questions_answers import (
-    InfoSlideAnswerService,
-    QuestionConnectAnswerService,
-    QuestionExcludeAnswerService,
-    QuestionWriteAnswerService,
-    SingleCorrectAnswerService,
-)
 from courses.serializers import IntegerListSerializer
-from questions import serializers
-from questions import api_examples
-from questions.exceptions import (
-    QustionConnectException,
-    UserAlreadyAnsweredException,
-)
-from questions.permissions import (
-    CheckQuestionTypePermission,
-    SimpleCheckQuestionTypePermission,
-)
-from questions.models import (
-    QuestionSingleAnswer,
-    QuestionConnect,
-    QuestionWrite,
-    InfoSlide,
-)
+from questions import api_examples, serializers
+from questions.exceptions import (QustionConnectException,
+                                  UserAlreadyAnsweredException)
+from questions.models import (InfoSlide, QuestionConnect, QuestionSingleAnswer,
+                              QuestionWrite)
+from questions.permissions import (CheckQuestionTypePermission,
+                                   SimpleCheckQuestionTypePermission)
+from questions.services.check_questions_answers import (
+    InfoSlideAnswerService, QuestionConnectAnswerService,
+    QuestionExcludeAnswerService, QuestionWriteAnswerService,
+    SingleCorrectAnswerService)
 from subscription.permissions import SubscriptionTaskObjectPermission
 
 

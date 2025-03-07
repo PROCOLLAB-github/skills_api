@@ -1,15 +1,15 @@
-from django.db.models import Sum, Q
-from drf_spectacular.utils import extend_schema, OpenApiParameter
-from drf_spectacular.types import OpenApiTypes
+from django.db.models import Q, Sum
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
 
 from courses.models import Skill
+from progress.filters import UserScoreRatingFilter
 from progress.models import UserProfile
 from progress.pagination import DefaultPagination
 from progress.serializers import SkillScoreSerializer, UserScoreSerializer
-from progress.filters import UserScoreRatingFilter
 
 
 @extend_schema(

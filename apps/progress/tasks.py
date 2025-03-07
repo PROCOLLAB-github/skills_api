@@ -2,25 +2,16 @@ import calendar
 from datetime import timedelta
 
 from django.db import transaction
-from django.utils import timezone
 from django.db.models import Count, Q, QuerySet
+from django.utils import timezone
 
-from procollab_skills.celery import app
 from courses.models import Skill, Task
+from procollab_skills.celery import app
 from progress.mapping import AdditionalPoints
+from progress.models import (TaskObjUserResult, UserMonthStat, UserMonthTarget,
+                             UserProfile, UserSkillDone, UserWeekStat)
+from progress.services import DBObjectStatusFilters, get_user_available_week
 from progress.typing import UserSkillsProgress
-from progress.services import (
-    DBObjectStatusFilters,
-    get_user_available_week,
-)
-from progress.models import (
-    UserProfile,
-    TaskObjUserResult,
-    UserWeekStat,
-    UserSkillDone,
-    UserMonthTarget,
-    UserMonthStat,
-)
 
 
 @app.task

@@ -1,18 +1,16 @@
-from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.generics import get_object_or_404
-from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
+from rest_framework import generics, status
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
-from webinars.models import Webinar, WebinarRegistration
-from webinars.tasks import send_webinar_oline_link_email
-from webinars.pagination import DefaultPagination
-from webinars.serializers import (
-    WebinarActualSerializer,
-    WebinarRecordsSerializer,
-    WebinarRecordsLinkSerializer,
-)
 from subscription.permissions import SubscriptionSectionPermission
+from webinars.models import Webinar, WebinarRegistration
+from webinars.pagination import DefaultPagination
+from webinars.serializers import (WebinarActualSerializer,
+                                  WebinarRecordsLinkSerializer,
+                                  WebinarRecordsSerializer)
+from webinars.tasks import send_webinar_oline_link_email
 
 
 @extend_schema(

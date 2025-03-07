@@ -1,14 +1,11 @@
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 
 import pytest
-from model_bakery import baker
-from django.utils import timezone
 from django.test import override_settings
+from django.utils import timezone
+from model_bakery import baker
 
-from progress.models import (
-    UserProfile,
-    CustomUser,
-)
+from progress.models import CustomUser, UserProfile
 from subscription.models import SubscriptionType
 
 
