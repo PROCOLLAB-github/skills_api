@@ -1,6 +1,5 @@
 import pytest
 
-
 pytest_plugins = [
     "tests.fixtures.api_clients",
     "tests.fixtures.coureses",

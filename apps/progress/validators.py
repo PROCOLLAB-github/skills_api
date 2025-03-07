@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils import timezone
 
 CORRECTNESS_VALUE_VALIDATOR = [MinValueValidator(0), MaxValueValidator(1)]

@@ -8,7 +8,7 @@ from courses.serializers import (SkillDetailsSerializer,
                                  SkillNameAndLogoSerializer)
 from progress.models import UserSkillDone
 
-from .models import Month, Trajectory, UserTrajectory
+from .models import Meeting, Month, Trajectory, UserTrajectory
 
 
 class TrajectoryIdSerializer(serializers.Serializer):
@@ -216,6 +216,7 @@ class MentorStudentSerializer(serializers.ModelSerializer):
     trajectory = TrajectoryStudentSerializer()
     user_trajectory_id = serializers.IntegerField(source="id")
     mentor_id = serializers.IntegerField(source="mentor.id", allow_null=True)
+    meeting_id = serializers.SerializerMethodField()
 
     class Meta:
         model = UserTrajectory
@@ -227,7 +228,12 @@ class MentorStudentSerializer(serializers.ModelSerializer):
             "trajectory",
             "user_trajectory_id",
             "mentor_id",
+            "meeting_id",
         ]
+
+    def get_meeting_id(self, obj):
+        meeting = obj.meetings.first()
+        return meeting.id if meeting else None
 
     def get_initial_meeting(self, obj):
         return obj.meetings.filter(initial_meeting=True).exists()
@@ -237,3 +243,23 @@ class MentorStudentSerializer(serializers.ModelSerializer):
 
     def get_remaining_days(self, obj):
         return obj.get_remaining_days()
+
+
+class MeetingUpdateSerializer(serializers.ModelSerializer):
+    """Сериализатор для обновления встречи"""
+
+    meeting_id = serializers.IntegerField(write_only=True)
+
+    class Meta:
+        model = Meeting
+        fields = [
+            "meeting_id",
+            "initial_meeting",
+            "final_meeting",
+        ]
+
+    def validate_meeting_id(self, value):
+        """Проверяем, существует ли встреча с таким ID"""
+        if not Meeting.objects.filter(id=value).exists():
+            raise serializers.ValidationError("Встреча с таким ID не найдена.")
+        return value

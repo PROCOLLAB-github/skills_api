@@ -1,6 +1,5 @@
 from django.urls import reverse
 
-
 ACTUAL_WEBINARS_PATH: str = reverse("webinar-actual")
 WEBINAR_REGISTRATION_PATH: str = reverse("webinar-registration", kwargs={"webinar_id": 1})
 RECORD_WEBINARS_PATH: str = reverse("webinar-records")

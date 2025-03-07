@@ -4,8 +4,8 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Max
 
+from courses.managers import AvailableForUser, PublishedManager
 from files.models import FileModel
-from courses.managers import PublishedManager, AvailableForUser
 from subscription.models import SubscriptionType
 
 

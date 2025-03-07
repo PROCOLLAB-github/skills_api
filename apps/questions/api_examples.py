@@ -1,6 +1,5 @@
 from drf_spectacular.utils import OpenApiExample
 
-
 SUCCESS_RESPONSE = OpenApiExample(
     "Success Response",
     value={"is_correct": True},

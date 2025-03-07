@@ -1,16 +1,10 @@
 from django.urls import path
 
-
-from questions.views import (
-    InfoSlideDetails,
-    QuestionSingleAnswerGet,
-    SingleCorrectPost,
-    QuestionConnectGet,
-    ConnectQuestionPost,
-    QuestionExcludePost,
-    QuestionExcludeAnswerGet,
-)
-from questions.views.answers import QuestionWritePost, InfoSlidePost
+from questions.views import (ConnectQuestionPost, InfoSlideDetails,
+                             QuestionConnectGet, QuestionExcludeAnswerGet,
+                             QuestionExcludePost, QuestionSingleAnswerGet,
+                             SingleCorrectPost)
+from questions.views.answers import InfoSlidePost, QuestionWritePost
 from questions.views.questions_views import QuestionWriteAnswer
 
 urlpatterns = [

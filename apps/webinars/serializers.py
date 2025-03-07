@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from webinars.models import Webinar, Speaker, WebinarRegistration
+from webinars.models import Speaker, Webinar, WebinarRegistration
 
 
 class SpeakerSerializer(serializers.ModelSerializer):

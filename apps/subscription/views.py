@@ -10,28 +10,18 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-
 from yookassa import Payment, Refund
 
 from progress.models import UserProfile
-from subscription.typing import (
-    CreatePaymentData,
-    AmountData,
-    ConfirmationRequestData,
-    CreatePaymentViewRequestData,
-    CreatePaymentResponseData,
-    WebHookRequest,
-    ReceiptData,
-    ItemData,
-    SettlementData,
-)
 from subscription.models import SubscriptionType
-from subscription.serializers import (
-    CreatePaymentResponseSerializer,
-    SubscriptionSerializer,
-    RenewSubDateSerializer,
-    BuySubSerializer,
-)
+from subscription.serializers import (BuySubSerializer,
+                                      CreatePaymentResponseSerializer,
+                                      RenewSubDateSerializer,
+                                      SubscriptionSerializer)
+from subscription.typing import (AmountData, ConfirmationRequestData,
+                                 CreatePaymentData, CreatePaymentResponseData,
+                                 CreatePaymentViewRequestData, ItemData,
+                                 ReceiptData, SettlementData, WebHookRequest)
 from subscription.utils.create_payment import create_payment
 
 

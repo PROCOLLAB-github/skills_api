@@ -1,5 +1,6 @@
-from .questions import QuestionSingleAnswer, InfoSlide, QuestionConnect, QuestionWrite
-from .answers import AnswerSingle, AnswerConnect, AnswerUserWrite
+from .answers import AnswerConnect, AnswerSingle, AnswerUserWrite
+from .questions import (InfoSlide, QuestionConnect, QuestionSingleAnswer,
+                        QuestionWrite)
 
 __all__ = [
     "QuestionSingleAnswer",

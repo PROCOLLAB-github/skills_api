@@ -1,11 +1,7 @@
 from django.urls import path
 
-from webinars.views import (
-    WebinarActualView,
-    WebinarRecordsView,
-    WebinarRegistrationView,
-    WebinarRecordsLinkView,
-)
+from webinars.views import (WebinarActualView, WebinarRecordsLinkView,
+                            WebinarRecordsView, WebinarRegistrationView)
 
 urlpatterns = [
     path(

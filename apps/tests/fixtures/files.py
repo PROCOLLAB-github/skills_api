@@ -1,5 +1,4 @@
 import pytest
-
 from model_bakery import baker
 
 from files.models import FileModel

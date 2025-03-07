@@ -1,15 +1,12 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 import pytest
-from unittest.mock import patch
 from django.test import override_settings
 from django.utils import timezone
 
 from courses.models import Skill
-from progress.models import (
-    TaskObjUserResult,
-    CustomUser,
-)
+from progress.models import CustomUser, TaskObjUserResult
 
 
 @pytest.fixture

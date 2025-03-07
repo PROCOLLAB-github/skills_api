@@ -136,10 +136,6 @@ class UserTrajectory(models.Model):
 
         return remaining_days
 
-        months_left = (end_date.year - today.year) * 12 + end_date.month - today.month
-
-        return months_left
-
     class Meta:
         verbose_name = "Пользовательская траектория"
         verbose_name_plural = "Пользовательские траектории"

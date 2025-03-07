@@ -1,27 +1,18 @@
 import datetime
 import math
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 
-from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Q, QuerySet, Sum
+from django.utils import timezone
 
-from progress.mapping import MonthMapping
 from courses.models import Skill
-from progress.typing import (
-    UserProfileDataDict,
-    UserSkillsProgressDict,
-    UserMonthsProgressDict,
-    PreparatoryUserMonthsProgressDict,
-)
-from progress.models import (
-    CustomUser,
-    UserMonthStat,
-    UserProfile,
-    UserWeekStat,
-    UserSkillDone,
-    TaskObjUserResult,
-)
+from progress.mapping import MonthMapping
+from progress.models import (CustomUser, TaskObjUserResult, UserMonthStat,
+                             UserProfile, UserSkillDone, UserWeekStat)
+from progress.typing import (PreparatoryUserMonthsProgressDict,
+                             UserMonthsProgressDict, UserProfileDataDict,
+                             UserSkillsProgressDict)
 from subscription.services import user_sub_is_active
 
 User = get_user_model()

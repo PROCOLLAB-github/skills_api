@@ -9,29 +9,18 @@ from rest_framework.response import Response
 
 from progress.models import TaskObjUserResult
 from questions.mapping import TypeQuestionPoints
-from questions.serializers import (
-    SingleQuestionAnswerSerializer,
-    ConnectQuestionSerializer,
-    WriteQuestionSerializer,
-)
-from questions.models import (
-    QuestionSingleAnswer,
-    QuestionConnect,
-    QuestionWrite,
-    AnswerConnect,
-    InfoSlide,
-)
-from questions.serializers import InfoSlideSerializer
+from questions.models import (AnswerConnect, InfoSlide, QuestionConnect,
+                              QuestionSingleAnswer, QuestionWrite)
 from questions.permissions import CheckQuestionTypePermission
+from questions.serializers import (ConnectQuestionSerializer,
+                                   InfoSlideSerializer,
+                                   SingleQuestionAnswerSerializer,
+                                   WriteQuestionSerializer)
 from questions.services.helpers import add_popup_data
-from questions.typing import (
-    QuestionSerializerData,
-    SingleAnswerData,
-    QuestionWriteSerializerData,
-    AnswerUserWriteData,
-    QuestionСonnectSerializerData,
-    SingleConnectedAnswerData,
-)
+from questions.typing import (AnswerUserWriteData, QuestionSerializerData,
+                              QuestionWriteSerializerData,
+                              QuestionСonnectSerializerData, SingleAnswerData,
+                              SingleConnectedAnswerData)
 from subscription.permissions import SubscriptionTaskObjectPermission
 
 

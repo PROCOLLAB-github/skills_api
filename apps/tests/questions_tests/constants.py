@@ -1,4 +1,5 @@
 from typing import Any
+
 from django.urls import reverse
 
 # All get `questions` url paths:

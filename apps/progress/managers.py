@@ -2,7 +2,6 @@ from typing import TypeVar
 
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import UserManager
-
 from django.db import IntegrityError
 from django.db.models import Manager
 

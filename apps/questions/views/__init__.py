@@ -1,5 +1,8 @@
-from .answers import QuestionExcludePost, ConnectQuestionPost, SingleCorrectPost
-from .questions_views import QuestionSingleAnswerGet, QuestionConnectGet, QuestionExcludeAnswerGet, InfoSlideDetails
+from .answers import (ConnectQuestionPost, QuestionExcludePost,
+                      SingleCorrectPost)
+from .questions_views import (InfoSlideDetails, QuestionConnectGet,
+                              QuestionExcludeAnswerGet,
+                              QuestionSingleAnswerGet)
 
 __all__ = [
     "QuestionExcludePost",

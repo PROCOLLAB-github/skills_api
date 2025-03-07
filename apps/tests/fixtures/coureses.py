@@ -1,12 +1,8 @@
 import pytest
-from model_bakery import baker
 from django.contrib.contenttypes.models import ContentType
+from model_bakery import baker
 
-from courses.models import (
-    Task,
-    TaskObject,
-    Skill,
-)
+from courses.models import Skill, Task, TaskObject
 from questions.models.questions import InfoSlide
 
 

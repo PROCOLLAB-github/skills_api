@@ -1,48 +1,27 @@
+from django.db.models import (BooleanField, Case, Count, Exists, OuterRef,
+                              Prefetch, Q, QuerySet, Subquery, Sum, Value,
+                              When)
 from django.shortcuts import get_object_or_404
-
-from django.db.models import (
-    Sum, Q,
-    BooleanField,
-    Case,
-    Count,
-    Exists,
-    OuterRef,
-    Prefetch,
-    QuerySet,
-    Value,
-    Subquery,
-    When,
-)
-from rest_framework import generics, status
-from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from progress.models import TaskObjUserResult, UserSkillDone
-from progress.services import (
-    DBObjectStatusFilters,
-    get_user_available_week,
-    get_rounded_percentage,
-)
-from subscription.permissions import (
-    SubscriptionObjectPermission,
-    SubscriptionSectionPermission,
-)
+from progress.pagination import DefaultPagination
+from progress.services import (DBObjectStatusFilters, get_rounded_percentage,
+                               get_user_available_week)
+from subscription.permissions import (SubscriptionObjectPermission,
+                                      SubscriptionSectionPermission)
+
 from .mapping import TYPE_TASK_OBJECT
-from .models import Task, Skill, TaskObject
+from .models import Skill, Task, TaskObject
+from .serializers import (CoursesResponseSerializer, IntegerListSerializer,
+                          SkillDetailsSerializer, SkillsBasicSerializer,
+                          SkillsDoneSerializer, TaskOfSkillProgressSerializer,
+                          TaskResult, TaskSerializer)
 from .services import get_stats
 from .typing import TaskResultData
-from .serializers import (
-    TaskSerializer,
-    SkillsBasicSerializer,
-    TaskOfSkillProgressSerializer,
-    TaskResult,
-    CoursesResponseSerializer,
-    SkillDetailsSerializer,
-    SkillsDoneSerializer,
-)
-from progress.pagination import DefaultPagination
-from .serializers import IntegerListSerializer
 
 
 class TaskList(generics.RetrieveAPIView):

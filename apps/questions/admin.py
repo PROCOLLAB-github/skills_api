@@ -2,16 +2,10 @@ from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django_summernote.admin import SummernoteModelAdmin
 
-from questions.models import (
-    QuestionSingleAnswer,
-    AnswerSingle,
-    InfoSlide,
-    QuestionConnect,
-    AnswerConnect,
-    QuestionWrite,
-)
-
-from courses.models import TaskObject, Skill, Task
+from courses.models import Skill, Task, TaskObject
+from questions.models import (AnswerConnect, AnswerSingle, InfoSlide,
+                              QuestionConnect, QuestionSingleAnswer,
+                              QuestionWrite)
 
 
 class AbstractQuestionShowcase(admin.ModelAdmin):

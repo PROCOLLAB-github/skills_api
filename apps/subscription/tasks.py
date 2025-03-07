@@ -1,9 +1,10 @@
-from procollab_skills.celery import app
-from progress.models import UserProfile
 from datetime import timedelta
+
 from django.utils import timezone
 from yookassa import Payment
 
+from procollab_skills.celery import app
+from progress.models import UserProfile
 from subscription.models import SubscriptionType
 from subscription.typing import AmountData, CreateRecurrentPaymentData
 from subscription.utils.create_payment import create_payment

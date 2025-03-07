@@ -1,12 +1,11 @@
 from django.db import transaction
-from rest_framework import generics
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
-from files.service import CDN, SelectelSwiftStorage
 from files.models import FileModel
 from files.serializers import UserFileSerializer
+from files.service import CDN, SelectelSwiftStorage
 
 
 class FileView(generics.GenericAPIView):

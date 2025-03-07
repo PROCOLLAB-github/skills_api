@@ -1,8 +1,7 @@
+import constants
 import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
-
-import constants
 
 
 @pytest.mark.usefixtures("trying_sub", "optimum_sub")
