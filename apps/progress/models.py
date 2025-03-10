@@ -1,10 +1,9 @@
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
-from django.core.validators import MinValueValidator
-from django.contrib.auth.models import AbstractUser
 
-from progress.managers import TaskObjUserResultManager, CustomUserManager
-
+from progress.managers import CustomUserManager, TaskObjUserResultManager
 from progress.validators import user_name_validator
 from subscription.models import SubscriptionType
 

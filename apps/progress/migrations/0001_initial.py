@@ -2,10 +2,11 @@
 
 import django.db.models.deletion
 import django.utils.timezone
-import progress.managers
-import progress.validators
 from django.conf import settings
 from django.db import migrations, models
+
+import progress.managers
+import progress.validators
 
 
 class Migration(migrations.Migration):

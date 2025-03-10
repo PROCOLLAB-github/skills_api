@@ -1,12 +1,7 @@
 from django.contrib import admin
-
 from django_summernote.admin import SummernoteModelAdmin
 
-from webinars.models import (
-    Webinar,
-    WebinarRegistration,
-    Speaker,
-)
+from webinars.models import Speaker, Webinar, WebinarRegistration
 
 
 @admin.register(Webinar)

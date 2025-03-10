@@ -2,30 +2,18 @@ from abc import ABC, abstractmethod
 from copy import deepcopy
 from typing import Any, Iterable, Optional, Union
 
-from rest_framework import status
 from django.db import transaction
 from django.db.models import QuerySet
+from rest_framework import status
 
-from questions.exceptions import (
-    QustionConnectException,
-    UserAlreadyAnsweredException,
-)
-from questions.mapping import TypeQuestionPoints
-from progress.models import (
-    TaskObjUserResult,
-    UserAnswersAttemptCounter,
-)
 from courses.models import TaskObject
-from questions.models.answers import (
-    AnswerConnect,
-    AnswerSingle,
-)
-from questions.models.questions import (
-    InfoSlide,
-    QuestionWrite,
-    QuestionConnect,
-    QuestionSingleAnswer,
-)
+from progress.models import TaskObjUserResult, UserAnswersAttemptCounter
+from questions.exceptions import (QustionConnectException,
+                                  UserAlreadyAnsweredException)
+from questions.mapping import TypeQuestionPoints
+from questions.models.answers import AnswerConnect, AnswerSingle
+from questions.models.questions import (InfoSlide, QuestionConnect,
+                                        QuestionSingleAnswer, QuestionWrite)
 
 
 class AbstractAnswersService(ABC):

@@ -1,8 +1,8 @@
 from django.core.exceptions import ValidationError
-
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import CustomUser, UserProfile, TaskObjUserResult
+
+from .models import CustomUser, TaskObjUserResult, UserProfile
 
 
 def skills_changed(sender, instance, action, **kwargs):

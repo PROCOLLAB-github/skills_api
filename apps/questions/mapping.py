@@ -1,7 +1,8 @@
 from enum import Enum
 from typing import Union
 
-from questions.models import QuestionSingleAnswer, InfoSlide, QuestionConnect, QuestionWrite
+from questions.models import (InfoSlide, QuestionConnect, QuestionSingleAnswer,
+                              QuestionWrite)
 
 
 class TypeQuestionPoints(Enum):

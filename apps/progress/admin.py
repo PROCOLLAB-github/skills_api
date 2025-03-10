@@ -2,17 +2,9 @@ from django import forms
 from django.contrib import admin
 
 from .filters import AdminUserSubscriptionFilter
-from .models import (
-    TaskObjUserResult,
-    CustomUser,
-    UserProfile,
-    IntermediateUserSkills,
-    UserSkillDone,
-    UserWeekStat,
-    UserMonthStat,
-    UserMonthTarget,
-    UserAnswersAttemptCounter,
-)
+from .models import (CustomUser, IntermediateUserSkills, TaskObjUserResult,
+                     UserAnswersAttemptCounter, UserMonthStat, UserMonthTarget,
+                     UserProfile, UserSkillDone, UserWeekStat)
 
 
 @admin.register(TaskObjUserResult)

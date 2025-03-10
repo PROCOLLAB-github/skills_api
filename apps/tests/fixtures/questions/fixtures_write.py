@@ -1,6 +1,6 @@
 import pytest
-from django.test import override_settings
 from django.contrib.contenttypes.models import ContentType
+from django.test import override_settings
 
 from courses.models import TaskObject
 from progress.models import TaskObjUserResult

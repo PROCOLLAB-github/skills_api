@@ -2,7 +2,6 @@ from typing import TypedDict
 
 from progress.models import UserProfile
 
-
 UserSkillsProgress = dict[UserProfile, list[bool]]
 
 

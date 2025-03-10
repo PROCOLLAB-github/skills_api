@@ -1,10 +1,10 @@
+import mimetypes
 import os
 from datetime import timedelta
 from pathlib import Path
+
 from decouple import config
 from yookassa import Configuration
-
-import mimetypes
 
 mimetypes.add_type("application/javascript", ".js", True)
 mimetypes.add_type("text/css", ".css", True)

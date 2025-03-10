@@ -1,10 +1,10 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
-from django import forms
 from django.db.models import Q
 from django.utils.html import format_html
 
-from courses.models import Skill, Task, TaskObject, Popup
+from courses.models import Popup, Skill, Task, TaskObject
 from questions.models import QuestionSingleAnswer
 
 

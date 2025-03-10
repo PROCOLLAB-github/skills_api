@@ -1,24 +1,14 @@
 import datetime
 
-from django_filters import rest_framework as filters
 from django.contrib import admin
-from django.utils import timezone
-from django.db.models import (
-    F, Q, Sum,
-    QuerySet,
-    Value,
-    IntegerField,
-    Subquery,
-    OuterRef,
-)
+from django.db.models import (F, IntegerField, OuterRef, Q, QuerySet, Subquery,
+                              Sum, Value)
 from django.db.models.functions import Coalesce
+from django.utils import timezone
+from django_filters import rest_framework as filters
 
-from progress.models import (
-    TaskObjUserResult,
-    UserProfile,
-    UserSkillDone,
-    UserWeekStat,
-)
+from progress.models import (TaskObjUserResult, UserProfile, UserSkillDone,
+                             UserWeekStat)
 
 
 class UserScoreRatingFilter(filters.FilterSet):

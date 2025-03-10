@@ -1,9 +1,9 @@
 from datetime import datetime
-from rest_framework import serializers
 
-from progress.models import UserProfile
+from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from progress.models import CustomUser
+
+from progress.models import CustomUser, UserProfile
 
 
 class UserDataSerializer(serializers.Serializer):

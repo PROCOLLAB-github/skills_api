@@ -3,10 +3,7 @@ from datetime import timedelta
 import pytest
 from django.utils import timezone
 
-from webinars.models import (
-    Webinar,
-    Speaker,
-)
+from webinars.models import Speaker, Webinar
 
 
 @pytest.fixture

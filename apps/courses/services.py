@@ -1,17 +1,10 @@
-from django.db.models import Prefetch, Count, QuerySet, Max
+from django.db.models import Count, Max, Prefetch, QuerySet
 
 from courses.models import Skill, Task
 from courses.typing import GetStatsDict, WeekStatsDict
-from progress.services import (
-    DBObjectStatusFilters,
-    get_user_available_week,
-)
-from progress.models import (
-    CustomUser,
-    TaskObjUserResult,
-    UserWeekStat,
-)
-from progress.services import get_rounded_percentage
+from progress.models import CustomUser, TaskObjUserResult, UserWeekStat
+from progress.services import (DBObjectStatusFilters, get_rounded_percentage,
+                               get_user_available_week)
 
 
 def get_stats(skill: Skill, profile_id: int, request_user: CustomUser | None = None) -> GetStatsDict:

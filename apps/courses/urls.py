@@ -1,6 +1,7 @@
 from django.urls import path
 
-from courses.views import SkillsList, SkillDetails, TaskList, TasksOfSkill, TaskStatsGet, DoneSkillsList
+from courses.views import (DoneSkillsList, SkillDetails, SkillsList, TaskList,
+                           TasksOfSkill, TaskStatsGet)
 
 urlpatterns = [
     path("<int:task_id>", TaskList.as_view(), name="task_list"),

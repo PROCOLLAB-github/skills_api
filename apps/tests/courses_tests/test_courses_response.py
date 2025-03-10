@@ -1,11 +1,12 @@
 import json
+
 import pytest
 from django.test import override_settings
-
 from rest_framework.test import APIClient
 
-from . import constants
 from tests.questions_tests import constants as questions_constants
+
+from . import constants
 
 
 class TestTaskListPathResponse:

@@ -1,6 +1,7 @@
 from django.urls import path
 
-from subscription.views import CreatePayment, ViewSubscriptions, NotificationWebHook, CreateRefund
+from subscription.views import (CreatePayment, CreateRefund,
+                                NotificationWebHook, ViewSubscriptions)
 
 urlpatterns = [
     path("buy/", CreatePayment.as_view()),

@@ -3,12 +3,9 @@ from rest_framework_dataclasses.serializers import DataclassSerializer
 
 from courses.mapping import SWAGGER_API_HINTS
 from courses.models import Skill
-from courses.typing import (
-    TaskResultData,
-    TaskResponseSerializerData,
-    PopupSerializerData,
-    TaskOfSkillProgressSerializerData,
-)
+from courses.typing import (PopupSerializerData,
+                            TaskOfSkillProgressSerializerData,
+                            TaskResponseSerializerData, TaskResultData)
 
 
 class StepSerializer(serializers.Serializer):

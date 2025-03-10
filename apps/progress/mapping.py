@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 MonthMapping: dict[int, str] = {
     1: "Январь",
     2: "Февраль",
