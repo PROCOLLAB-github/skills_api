@@ -3,9 +3,12 @@ from rest_framework_dataclasses.serializers import DataclassSerializer
 
 from courses.mapping import SWAGGER_API_HINTS
 from courses.models import Skill
-from courses.typing import (PopupSerializerData,
-                            TaskOfSkillProgressSerializerData,
-                            TaskResponseSerializerData, TaskResultData)
+from courses.typing import (
+    PopupSerializerData,
+    TaskOfSkillProgressSerializerData,
+    TaskResponseSerializerData,
+    TaskResultData,
+)
 
 
 class StepSerializer(serializers.Serializer):
@@ -82,7 +85,7 @@ class SkillsDoneSerializer(SkillsBasicSerializer):
 
 
 class SkillNameAndLogoSerializer(serializers.ModelSerializer):
-    file_link = serializers.URLField(source="file.link")
+    file_link = serializers.URLField(source="file.link", default=None)
 
     class Meta:
         model = Skill
