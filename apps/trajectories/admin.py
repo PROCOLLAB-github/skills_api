@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from .models import Meeting, Month, Trajectory, UserTrajectory
+from .models import (Meeting, Month, Trajectory, UserIndividualSkill,
+                     UserTrajectory)
 
 
 @admin.register(Trajectory)
@@ -12,8 +13,14 @@ class TrajectoryAdmin(admin.ModelAdmin):
         "start_date",
         "duration_months",
     )
-    list_filter = ("company", "start_date",)
-    search_fields = ("name", "company",)
+    list_filter = (
+        "company",
+        "start_date",
+    )
+    search_fields = (
+        "name",
+        "company",
+    )
     autocomplete_fields = ("mentors",)
 
     def get_mentors(self, obj):
@@ -49,8 +56,14 @@ class UserTrajectoryAdmin(admin.ModelAdmin):
         "is_active",
         "mentor",
     )
-    list_filter = ("is_active", "trajectory",)
-    search_fields = ("user__email", "trajectory__name",)
+    list_filter = (
+        "is_active",
+        "trajectory",
+    )
+    search_fields = (
+        "user__email",
+        "trajectory__name",
+    )
     autocomplete_fields = ("mentor",)
 
     def trajectory_name(self, obj):
@@ -68,10 +81,22 @@ class MeetingAdmin(admin.ModelAdmin):
         "final_meeting",
     )
     readonly_fields = ("user_trajectory",)
-    list_filter = ("initial_meeting", "final_meeting",)
+    list_filter = (
+        "initial_meeting",
+        "final_meeting",
+    )
     search_fields = ("user_trajectory__user__email",)
 
     def user_trajectory_user_email(self, obj):
         return obj.user_trajectory.user.email
 
     user_trajectory_user_email.short_description = "Пользователь"
+
+
+@admin.register(UserIndividualSkill)
+class UserIndividualSkillAdmin(admin.ModelAdmin):
+    exclude = ("user_trajectory",)
+    autocomplete_fields = ["user"]
+
+    def get_readonly_fields(self, request, obj=None):
+        return ["user_trajectory"] if obj else []

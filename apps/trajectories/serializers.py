@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.utils import timezone
 from rest_framework import serializers
@@ -7,8 +7,8 @@ from courses.models import Skill
 from courses.serializers import (SkillDetailsSerializer,
                                  SkillNameAndLogoSerializer)
 from progress.models import UserSkillDone
-
-from .models import Meeting, Month, Trajectory, UserTrajectory
+from trajectories.models import (Meeting, Month, Trajectory,
+                                 UserIndividualSkill, UserTrajectory)
 
 
 class TrajectoryIdSerializer(serializers.Serializer):
@@ -59,7 +59,9 @@ class TrajectorySerializer(serializers.ModelSerializer):
         Проверка, активна ли траектория для текущего пользователя.
         """
         user = self.context["request"].user
-        active_trajectory = UserTrajectory.objects.filter(user=user, trajectory=obj, is_active=True).exists()
+        active_trajectory = UserTrajectory.objects.filter(
+            user=user, trajectory=obj, is_active=True
+        ).exists()
         return active_trajectory
 
     def get_skills(self, obj):
@@ -85,7 +87,9 @@ class MonthSerializer(serializers.ModelSerializer):
 class UserTrajectorySerializer(serializers.ModelSerializer):
     trajectory_id = serializers.IntegerField(source="trajectory.id")
     mentor_avatar = serializers.SerializerMethodField()
-    mentor_first_name = serializers.CharField(source="mentor.first_name", allow_null=True)
+    mentor_first_name = serializers.CharField(
+        source="mentor.first_name", allow_null=True
+    )
     mentor_last_name = serializers.CharField(source="mentor.last_name", allow_null=True)
     mentor_id = serializers.IntegerField(source="mentor.id", allow_null=True)
     first_meeting_done = serializers.SerializerMethodField()
@@ -146,7 +150,9 @@ class UserTrajectorySerializer(serializers.ModelSerializer):
         current_date = timezone.now().date()
         months_passed = (current_date - obj.start_date).days // 30
         completed_skills_ids = set(
-            UserSkillDone.objects.filter(user_profile=user.profiles).values_list("skill_id", flat=True)
+            UserSkillDone.objects.filter(user_profile=user.profiles).values_list(
+                "skill_id", flat=True
+            )
         )
         available_skills = []
         unavailable_skills = []
@@ -157,7 +163,9 @@ class UserTrajectorySerializer(serializers.ModelSerializer):
                 if skill.id in completed_skills_ids:
                     completed_skills_list.append(skill)
                 elif is_accessible:
-                    available_skills.append({"skill": skill, "overdue": month.order < months_passed + 1})
+                    available_skills.append(
+                        {"skill": skill, "overdue": month.order < months_passed + 1}
+                    )
                 else:
                     unavailable_skills.append(skill)
         return {
@@ -199,7 +207,11 @@ class StudentSerializer(serializers.Serializer):
     def get_age(self, obj):
         if obj.age:
             today = date.today()
-            age = today.year - obj.age.year - ((today.month, today.day) < (obj.age.month, obj.age.day))
+            age = (
+                today.year
+                - obj.age.year
+                - ((today.month, today.day) < (obj.age.month, obj.age.day))
+            )
             return age
         return None
 
@@ -263,3 +275,53 @@ class MeetingUpdateSerializer(serializers.ModelSerializer):
         if not Meeting.objects.filter(id=value).exists():
             raise serializers.ValidationError("Встреча с таким ID не найдена.")
         return value
+
+
+class IndividualSkillStatusSerializer(SkillDetailsSerializer):
+    is_done = serializers.SerializerMethodField()
+    overdue = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Skill
+        fields = (
+            "id",
+            "name",
+            "file_link",
+            "skill_preview",
+            "skill_point_logo",
+            "description",
+            "quantity_of_levels",
+            "free_access",
+            "is_done",
+            "overdue",
+        )
+
+    def get_is_done(self, obj):
+        if UserSkillDone.objects.filter(skill=obj):
+            return True
+        else:
+            return False
+
+    def get_overdue(self, obj):
+        start_date = self.context.get("start_date")
+        if start_date:
+            if start_date + timedelta(days=30) < timezone.now():
+                return True
+            else:
+                return False
+
+
+class UserIndividualSkillSerializer(serializers.ModelSerializer):
+    skills = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserIndividualSkill
+        fields = ("skills",)
+
+    def get_skills(self, obj):
+        """Сериализует список навыков для месяца."""
+        skills = obj.skills.all()
+        serializer = IndividualSkillStatusSerializer(
+            skills, many=True, context={"start_date": obj.start_date}
+        )
+        return serializer.data
