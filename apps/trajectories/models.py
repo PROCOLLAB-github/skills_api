@@ -162,6 +162,11 @@ class UserTrajectory(models.Model):
 
         return remaining_days
 
+    def clean(self):
+        """Проверяет, что пользователь не является ментором для себя."""
+        if self.mentor == self.user:
+            raise ValidationError("Пользователь не может быть ментором самому себе.")
+
     class Meta:
         verbose_name = "Пользовательская траектория"
         verbose_name_plural = "Пользовательские траектории"
