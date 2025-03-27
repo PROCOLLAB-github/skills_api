@@ -64,7 +64,7 @@ class UserTrajectoryAdmin(admin.ModelAdmin):
         "user__email",
         "trajectory__name",
     )
-    autocomplete_fields = ("mentor",)
+    autocomplete_fields = ("user", "mentor",)
 
     def trajectory_name(self, obj):
         return obj.trajectory.name
