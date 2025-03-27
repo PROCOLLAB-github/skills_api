@@ -177,17 +177,30 @@ class UserTrajectorySerializer(serializers.ModelSerializer):
     def get_available_skills(self, obj):
         breakdown = self.get_skills_breakdown(obj)
         return [
-            {**SkillDetailsSerializer(item["skill"]).data, "overdue": item["overdue"]}
+            {
+                **SkillDetailsSerializer(item["skill"]).data,
+                "overdue": item["overdue"],
+                "is_done": False,
+            }
             for item in breakdown["available_skills"]
         ]
 
     def get_unavailable_skills(self, obj):
         breakdown = self.get_skills_breakdown(obj)
-        return SkillDetailsSerializer(breakdown["unavailable_skills"], many=True).data
+        return [
+            {
+                **SkillDetailsSerializer(skill).data,
+                "is_done": False,
+            }
+            for skill in breakdown["unavailable_skills"]
+        ]
 
     def get_completed_skills(self, obj):
         breakdown = self.get_skills_breakdown(obj)
-        return SkillDetailsSerializer(breakdown["completed_skills"], many=True).data
+        return [
+            {**SkillDetailsSerializer(skill).data, "is_done": True}
+            for skill in breakdown["completed_skills"]
+        ]
 
     def get_end_date(self, obj):
         months_count = obj.trajectory.months.count()
