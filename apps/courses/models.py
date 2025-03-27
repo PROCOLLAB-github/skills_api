@@ -27,7 +27,7 @@ class AbstractStatusField(models.Model):
         null=False,
         blank=False,
         verbose_name="Доступ бесплатно",
-        help_text="Возможность проходить без подписки."
+        help_text="Возможность проходить без подписки.",
     )
 
     objects = models.Manager()
@@ -38,7 +38,16 @@ class AbstractStatusField(models.Model):
 
 
 class Skill(AbstractStatusField):
-
+    is_from_trajectory = models.BooleanField(
+        default=False,
+        verbose_name="Из траектории",
+        help_text="Указывает, что навык доступен только в рамках траектории.",
+    )
+    requires_subscription = models.BooleanField(
+        default=False,
+        verbose_name="Требует подписку",
+        help_text="Определяет, необходима ли подписка для доступа к навыку.",
+    )
     name = models.CharField(max_length=50, verbose_name="Название навыка")
     description = models.TextField(null=True)
     who_created = models.CharField(max_length=50, verbose_name="Кто создал")
@@ -76,18 +85,32 @@ class Skill(AbstractStatusField):
         verbose_name="Тип подписки",
     )
 
-    def __str__(self):
-        return f"{self.name}"
-
     class Meta:
         verbose_name = "Навык"
         verbose_name_plural = "Навыки"
 
+    def __str__(self):
+        return f"{self.name}"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.free_access and (self.requires_subscription or self.is_from_trajectory):
+            raise ValidationError(
+                "Навык не может быть одновременно бесплатным и требовать подписку или принадлежать траектории."
+            )
+
+        super().clean()
+
     def save(self, *args, **kwargs):
         if self.pk is None:  # Проверка, сохранен ли объект в базе данных
-            super().save(*args, **kwargs)  # Если объект еще не сохранен, сохраняем его сначала
+            super().save(
+                *args, **kwargs
+            )  # Если объект еще не сохранен, сохраняем его сначала
 
-        quantity_unique_levels = Task.objects.filter(skill=self).values("level").distinct().count()
+        quantity_unique_levels = (
+            Task.objects.filter(skill=self).values("level").distinct().count()
+        )
         self.quantity_of_levels = quantity_unique_levels
 
         super().save(*args, **kwargs)
@@ -107,9 +130,13 @@ class Task(AbstractStatusField):
         help_text="Если не указать, то автоматически станет последним в порядке показа",
     )
     name = models.CharField(max_length=50, verbose_name="Название")
-    skill = models.ForeignKey(Skill, on_delete=models.CASCADE, related_name="tasks", verbose_name="Навык")
+    skill = models.ForeignKey(
+        Skill, on_delete=models.CASCADE, related_name="tasks", verbose_name="Навык"
+    )
     level = models.IntegerField(default=1, verbose_name="Уровень")
-    week = models.PositiveSmallIntegerField(choices=WEEK_CHOICES, default=1, verbose_name="Неделя")
+    week = models.PositiveSmallIntegerField(
+        choices=WEEK_CHOICES, default=1, verbose_name="Неделя"
+    )
 
     objects = models.Manager()
     available = AvailableForUser()
@@ -145,10 +172,15 @@ class TaskObject(models.Model):
         verbose_name="Задача",
     )
     content_type = models.ForeignKey(
-        ContentType, on_delete=models.CASCADE, related_name="task_objects_content", verbose_name="Тип единицы задачи"
+        ContentType,
+        on_delete=models.CASCADE,
+        related_name="task_objects_content",
+        verbose_name="Тип единицы задачи",
     )
     object_id = models.PositiveIntegerField(verbose_name="ID единицы задачи")
-    popup = models.ManyToManyField("Popup", blank=True, related_name="task_objects", verbose_name="Поп-ап")
+    popup = models.ManyToManyField(
+        "Popup", blank=True, related_name="task_objects", verbose_name="Поп-ап"
+    )
     content_object = GenericForeignKey("content_type", "object_id")
     validate_answer = models.BooleanField(
         default=True,
@@ -180,12 +212,21 @@ class TaskObject(models.Model):
 
 
 class Popup(models.Model):
-    title = models.CharField(null=True, blank=True, max_length=150, verbose_name="Заголовок")
+    title = models.CharField(
+        null=True, blank=True, max_length=150, verbose_name="Заголовок"
+    )
     text = models.TextField(null=True, blank=True, verbose_name="Содержимое")
     file = models.ForeignKey(
-        FileModel, null=True, blank=True, on_delete=models.PROTECT, related_name="popups", verbose_name="Изображение"
+        FileModel,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="popups",
+        verbose_name="Изображение",
     )
-    ordinal_number = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name="Порядковый номер")
+    ordinal_number = models.PositiveSmallIntegerField(
+        null=True, blank=True, verbose_name="Порядковый номер"
+    )
 
     class Meta:
         verbose_name = "Поп-ап"
@@ -197,7 +238,8 @@ class Popup(models.Model):
     def clean(self):
         if not self.title and not self.text and not self.file:
             raise ValidationError(
-                "Должено быть заполнено хотя бы один из полей: " "'Заголовок', 'Содержимое' или 'Изображение'"
+                "Должено быть заполнено хотя бы один из полей: "
+                "'Заголовок', 'Содержимое' или 'Изображение'"
             )
 
     def save(self, *args, **kwargs):
