@@ -8,12 +8,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from trajectories.models import Meeting, Trajectory, UserTrajectory
+from trajectories.models import (Meeting, Trajectory, UserIndividualSkill,
+                                 UserTrajectory)
 from trajectories.permissions import HasActiveSubscription
 from trajectories.serializers import (MeetingUpdateSerializer,
                                       MentorStudentSerializer,
                                       TrajectoryIdSerializer,
                                       TrajectorySerializer,
+                                      UserIndividualSkillSerializer,
                                       UserTrajectorySerializer)
 
 
@@ -53,7 +55,9 @@ class UserTrajectoryView(generics.RetrieveAPIView):
     def get_object(self):
         user = self.request.user
         return (
-            UserTrajectory.objects.prefetch_related("meetings", "trajectory__months__skills")
+            UserTrajectory.objects.prefetch_related(
+                "meetings", "trajectory__months__skills"
+            )
             .filter(user=user, is_active=True)
             .first()
         )
@@ -61,8 +65,13 @@ class UserTrajectoryView(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
         user_trajectory = self.get_object()
         if not user_trajectory:
-            return Response({"error": "У пользователя нет активной траектории"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = UserTrajectorySerializer(user_trajectory, context={"request": request})
+            return Response(
+                {"error": "У пользователя нет активной траектории"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        serializer = UserTrajectorySerializer(
+            user_trajectory, context={"request": request}
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -79,11 +88,16 @@ class UserTrajectoryCreateView(generics.CreateAPIView):
         trajectory_id = request.data.get("trajectory_id")
 
         if UserTrajectory.objects.filter(user=user, is_active=True).exists():
-            return Response({"error": "У вас уже есть активная траектория"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "У вас уже есть активная траектория"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         trajectory = Trajectory.objects.filter(id=trajectory_id).first()
         if not trajectory:
-            return Response({"error": "Траектория не найдена"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Траектория не найдена"}, status=status.HTTP_404_NOT_FOUND
+            )
 
         user_trajectory = UserTrajectory.objects.create(
             user=user,
@@ -106,7 +120,9 @@ class MentorStudentsView(APIView):
 
     def get(self, request):
         mentor = request.user
-        trajectories = UserTrajectory.objects.filter(mentor=mentor, is_active=True).prefetch_related("meetings")
+        trajectories = UserTrajectory.objects.filter(
+            mentor=mentor, is_active=True
+        ).prefetch_related("meetings")
 
         serializer = MentorStudentSerializer(trajectories, many=True)
 
@@ -140,6 +156,20 @@ class MeetingUpdateView(APIView):
             meeting.final_meeting = serializer.validated_data["final_meeting"]
             meeting.save()
 
-            return Response(MeetingUpdateSerializer(meeting).data, status=status.HTTP_200_OK)
+            return Response(
+                MeetingUpdateSerializer(meeting).data, status=status.HTTP_200_OK
+            )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(
+    summary="Получения списка индивидуальных навыков",
+    tags=["Траектории"],
+)
+class UserIndividualSkillListView(generics.ListAPIView):
+    serializer_class = UserIndividualSkillSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return UserIndividualSkill.objects.filter(user=self.request.user)

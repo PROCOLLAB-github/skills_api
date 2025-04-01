@@ -19,7 +19,9 @@ class TaskSerializer(serializers.Serializer):
     skill_name = serializers.CharField(allow_null=True)
     skill_preview = serializers.CharField(allow_null=True)
     skill_point_logo = serializers.CharField(allow_null=True)
-    count = serializers.IntegerField(help_text="количество вопросов и информационных слайдов у задания")
+    count = serializers.IntegerField(
+        help_text="количество вопросов и информационных слайдов у задания"
+    )
     free_access = serializers.BooleanField(allow_null=True)
     step_data = StepSerializer(many=True)
 
@@ -82,7 +84,7 @@ class SkillsDoneSerializer(SkillsBasicSerializer):
 
 
 class SkillNameAndLogoSerializer(serializers.ModelSerializer):
-    file_link = serializers.URLField(source="file.link")
+    file_link = serializers.URLField(source="file.link", default=None)
 
     class Meta:
         model = Skill
@@ -99,7 +101,9 @@ class PopupSerializer(DataclassSerializer):
         dataclass = PopupSerializerData
 
 
-IntegerListSerializer = serializers.ListSerializer(child=serializers.IntegerField(), allow_empty=False)
+IntegerListSerializer = serializers.ListSerializer(
+    child=serializers.IntegerField(), allow_empty=False
+)
 
 
 class SkillDetailsSerializer(serializers.ModelSerializer):
