@@ -11,7 +11,8 @@ from progress.models import TaskObjUserResult, UserSkillDone
 from progress.pagination import DefaultPagination
 from progress.services import (DBObjectStatusFilters, get_rounded_percentage,
                                get_user_available_week)
-from subscription.permissions import (SubscriptionObjectPermission,
+from subscription.permissions import (SkillAccessPermission,
+                                      SubscriptionObjectPermission,
                                       SubscriptionSectionPermission)
 
 from .mapping import TYPE_TASK_OBJECT
@@ -24,7 +25,7 @@ from .services import get_stats
 from .typing import TaskResultData
 
 
-class TaskList(generics.RetrieveAPIView):
+class TaskDetail(generics.RetrieveAPIView):
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated, SubscriptionObjectPermission]
 
@@ -34,7 +35,6 @@ class TaskList(generics.RetrieveAPIView):
         responses={200: CoursesResponseSerializer},
     )
     def get(self, request, *args, **kwargs):
-
         task_id = self.kwargs.get("task_id")
         available_week, _ = get_user_available_week(self.profile_id)
         task: Task = self.get_object(task_id, available_week)
@@ -43,7 +43,9 @@ class TaskList(generics.RetrieveAPIView):
             TaskObject.objects.filter(task=task)
             .annotate(
                 has_user_results=Exists(
-                    TaskObjUserResult.objects.filter(task_object=OuterRef("pk"), user_profile_id=self.profile_id)
+                    TaskObjUserResult.objects.filter(
+                        task_object=OuterRef("pk"), user_profile_id=self.profile_id
+                    )
                 )
             )
             .distinct()
@@ -52,10 +54,16 @@ class TaskList(generics.RetrieveAPIView):
 
         data = {
             "skill_name": task.skill.name,
-            "skill_preview": task.skill.skill_preview.link if task.skill.skill_preview else None,
-            "skill_point_logo": task.skill.skill_point_logo.link if task.skill.skill_point_logo else None,
+            "skill_preview": task.skill.skill_preview.link
+            if task.skill.skill_preview
+            else None,
+            "skill_point_logo": task.skill.skill_point_logo.link
+            if task.skill.skill_point_logo
+            else None,
             "current_level": task.level,
-            "next_level": task.level + 1 if task.level + 1 < task.skill.quantity_of_levels else None,
+            "next_level": task.level + 1
+            if task.level + 1 < task.skill.quantity_of_levels
+            else None,
             "count": task_objects.count(),
             "free_access": task.free_access,
             "step_data": [],
@@ -63,7 +71,10 @@ class TaskList(generics.RetrieveAPIView):
         for task_object in task_objects:
             type_task = TYPE_TASK_OBJECT[task_object.content_type.model]
             # TODO вместо словаря сделать Enum
-            if type_task == "question_single_answer" and task_object.content_object.is_exclude:
+            if (
+                type_task == "question_single_answer"
+                and task_object.content_object.is_exclude
+            ):
                 type_task = "exclude_question"
             data["step_data"].append(
                 {
@@ -79,7 +90,9 @@ class TaskList(generics.RetrieveAPIView):
             skill_data = get_stats(task.skill, self.profile_id, self.request.user)
             return Response(skill_data | data, status=status.HTTP_200_OK)
         else:
-            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+            )
 
     def get_object(self, task_id: int, available_week: int) -> Task:
         task: Task = get_object_or_404(
@@ -88,9 +101,9 @@ class TaskList(generics.RetrieveAPIView):
         )
         self.check_object_permissions(request=self.request, obj=task)
         return get_object_or_404(
-            Task.available
-            .only_awailable_weeks(available_week, self.request.user)
-            .select_related("skill__skill_preview", "skill__skill_point_logo"),
+            Task.available.only_awailable_weeks(
+                available_week, self.request.user
+            ).select_related("skill__skill_preview", "skill__skill_point_logo"),
             id=int(task_id),
         )
 
@@ -120,13 +133,21 @@ class DoneSkillsList(generics.ListAPIView):
 
     # TODO FIX: В сериализаторе указан статичный уровень 1 для всех навыков
     def get_queryset(self) -> Skill:
-        return Skill.published.for_user(self.request.user).annotate(
-            has_user_done_skills=Exists(
-                UserSkillDone.objects.filter(user_profile=self.user_profile, skill_id=OuterRef("id"))
+        return (
+            Skill.published.for_user(self.request.user)
+            .annotate(
+                has_user_done_skills=Exists(
+                    UserSkillDone.objects.filter(
+                        user_profile=self.user_profile, skill_id=OuterRef("id")
+                    )
+                )
             )
-        ).annotate(
-            is_done=Case(
-                When(has_user_done_skills=True, then=Value(True)), default=Value(False), output_field=BooleanField()
+            .annotate(
+                is_done=Case(
+                    When(has_user_done_skills=True, then=Value(True)),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                )
             )
         )
 
@@ -139,7 +160,7 @@ class DoneSkillsList(generics.ListAPIView):
 )
 class SkillDetails(generics.RetrieveAPIView):
     serializer_class = SkillDetailsSerializer
-    permission_classes = [IsAuthenticated, SubscriptionObjectPermission]
+    permission_classes = [IsAuthenticated, SkillAccessPermission]
     lookup_url_kwarg = "skill_id"
 
     def get_queryset(self):
@@ -183,18 +204,22 @@ class TaskStatsGet(generics.RetrieveAPIView):
         # TODO Optimize
         task, available_week = self.get_object(task_id)
 
-        skill_status_filter = DBObjectStatusFilters().get_skill_status_for_user(self.request.user)
+        skill_status_filter = DBObjectStatusFilters().get_skill_status_for_user(
+            self.request.user
+        )
 
         tasks_of_skill: QuerySet[Task] = (
-            Task.available
-            .only_awailable_weeks(available_week, self.request.user)
+            Task.available.only_awailable_weeks(available_week, self.request.user)
             .prefetch_related(
                 Prefetch(
                     "task_objects__user_results",
-                    queryset=TaskObjUserResult.objects.filter(user_profile_id=self.profile_id),
+                    queryset=TaskObjUserResult.objects.filter(
+                        user_profile_id=self.profile_id
+                    ),
                     to_attr="filtered_user_results",
                 )
-            ).prefetch_related("task_objects")
+            )
+            .prefetch_related("task_objects")
             .annotate(task_objects_count=Count("task_objects"))
             .filter(skill_id=task.skill.id)
             .filter(skill_status_filter)
@@ -203,11 +228,17 @@ class TaskStatsGet(generics.RetrieveAPIView):
         user_done_task_objects: list[int] = []
         all_task_objects: list[int] = []
         for task_on_skill in tasks_of_skill:
-            user_results_count = sum(1 for obj in task_on_skill.task_objects.all() if obj.filtered_user_results)
+            user_results_count = sum(
+                1
+                for obj in task_on_skill.task_objects.all()
+                if obj.filtered_user_results
+            )
             user_done_task_objects.append(user_results_count)
             all_task_objects.append(task_on_skill.task_objects_count)
 
-        progress = get_rounded_percentage(sum(user_done_task_objects), sum(all_task_objects))
+        progress = get_rounded_percentage(
+            sum(user_done_task_objects), sum(all_task_objects)
+        )
 
         data = TaskResultData(
             points_gained=task.points_gained if task.points_gained else 0,
@@ -233,30 +264,43 @@ class TaskStatsGet(generics.RetrieveAPIView):
         available_week = available_week if not task.free_access else 4
         task = get_object_or_404(
             (
-                Task.available
-                .only_awailable_weeks(available_week, self.request.user)  # Только доступыне недели.
-                .annotate(
-                    total_questions=Count("task_objects", distinct=True),  # Всего вопросов в задании.
+                Task.available.only_awailable_weeks(
+                    available_week, self.request.user
+                ).annotate(  # Только доступыне недели.
+                    total_questions=Count(
+                        "task_objects", distinct=True
+                    ),  # Всего вопросов в задании.
                     total_answers=Count(  # Всего ответов пользователя в задании.
                         "task_objects__user_results",
-                        filter=Q(task_objects__user_results__user_profile_id=self.profile_id),
+                        filter=Q(
+                            task_objects__user_results__user_profile_id=self.profile_id
+                        ),
                         distinct=True,
                     ),
                     total_correct_answers=Count(  # Всего ответов пользователя в задании.
                         "task_objects__user_results",
                         filter=(
-                            Q(task_objects__user_results__user_profile_id=self.profile_id)
+                            Q(
+                                task_objects__user_results__user_profile_id=self.profile_id
+                            )
                             & Q(task_objects__user_results__correct_answer=True)
                         ),
                         distinct=True,
                     ),
                     points_gained=Sum(  # Кол-во полученных поинтов юзером в рамках задания.
                         "task_objects__user_results__points_gained",
-                        filter=Q(task_objects__user_results__user_profile_id=self.profile_id),
+                        filter=Q(
+                            task_objects__user_results__user_profile_id=self.profile_id
+                        ),
                     ),
                     next_task_id=Subquery(  # ID следующего задания.
-                        Task.available.only_awailable_weeks(available_week, self.request.user)
-                        .filter(skill=OuterRef("skill"), ordinal_number=OuterRef("ordinal_number") + 1)
+                        Task.available.only_awailable_weeks(
+                            available_week, self.request.user
+                        )
+                        .filter(
+                            skill=OuterRef("skill"),
+                            ordinal_number=OuterRef("ordinal_number") + 1,
+                        )
                         .values("id")[:1]
                     ),
                 )
