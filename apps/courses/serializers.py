@@ -45,7 +45,7 @@ class TaskOfSkillProgressSerializer(DataclassSerializer):
 
 class SkillsBasicSerializer(serializers.ModelSerializer):
     # Access the link field from the related FileModel
-    file_link = serializers.URLField(source="file.link")
+    file_link = serializers.SerializerMethodField()
     # Просьба захардкодить, статичный 1 уровень для всех навыков
     quantity_of_levels = serializers.SerializerMethodField()
 
@@ -64,6 +64,11 @@ class SkillsBasicSerializer(serializers.ModelSerializer):
     def get_quantity_of_levels(self, obj) -> int:
         # Просьба захардкодить, статичный 1 уровень для всех навыков
         return 1
+
+    def get_file_link(self, obj):
+        if obj.file and obj.file.link:
+            return obj.file.link
+        return None
 
 
 class SkillsDoneSerializer(SkillsBasicSerializer):

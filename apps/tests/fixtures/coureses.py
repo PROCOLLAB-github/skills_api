@@ -69,16 +69,19 @@ def create_full_skill(random_file_intance, status="published", free_access=False
         skill_point_logo=random_file_intance,
         quantity_of_levels=4,
         free_access=free_access,
+        requires_subscription=True,
     )
     skill.save()
 
-    InfoSlide.objects.bulk_create([
-        InfoSlide(
-            text=f"Заголовок {idx}",
-            description=f"Текст {idx}",
-        )
-        for idx in range(1, 9)
-    ])
+    InfoSlide.objects.bulk_create(
+        [
+            InfoSlide(
+                text=f"Заголовок {idx}",
+                description=f"Текст {idx}",
+            )
+            for idx in range(1, 9)
+        ]
+    )
 
     info_slide_content_type = ContentType.objects.get_for_model(InfoSlide)
     tasks_list = []

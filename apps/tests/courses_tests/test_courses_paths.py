@@ -31,37 +31,37 @@ class TestPaidSKillTasks:
         response = api_auth_with_overdue_sub_client.get(path)
         assert response.status_code == 403, f"Пользователь с просроченной подписокй НЕ должен иметь доступ к {path}"
 
-    @pytest.mark.parametrize("task_path", (constants.TASK_LIST_PATH, constants.TASK_RESULT))
+    @pytest.mark.parametrize("task_path", (constants.TASK_DETAIL_PATH, constants.TASK_RESULT))
     @pytest.mark.usefixtures("full_filled_only_stuff_skill")
     def test_tasks_paths_for_stuff_by_default_user(self, task_path: str, api_auth_with_sub_client: APIClient):
         response = api_auth_with_sub_client.get(task_path)
         assert response.status_code == 404, "Юзеру не должны быть доступны таски staff only"
 
-    @pytest.mark.parametrize("task_path", (constants.TASK_LIST_PATH, constants.TASK_RESULT))
+    @pytest.mark.parametrize("task_path", (constants.TASK_DETAIL_PATH, constants.TASK_RESULT))
     @pytest.mark.usefixtures("full_filled_draft_skill")
     def test_tasks_paths_for_admin_by_default_user(self, task_path: str, api_auth_with_sub_client: APIClient):
         response = api_auth_with_sub_client.get(task_path)
         assert response.status_code == 404, "Юзеру не должны быть доступны таски draft"
 
-    @pytest.mark.parametrize("task_path", (constants.TASK_LIST_PATH, constants.TASK_RESULT))
+    @pytest.mark.parametrize("task_path", (constants.TASK_DETAIL_PATH, constants.TASK_RESULT))
     @pytest.mark.usefixtures("full_filled_draft_skill")
     def test_tasks_paths_for_admin_by_stuff_user(self, task_path: str, api_auth_with_sub_client_staff: APIClient):
         response = api_auth_with_sub_client_staff.get(task_path)
         assert response.status_code == 404, "Персоналу не должны быть доступны таски draft"
 
-    @pytest.mark.parametrize("task_path", (constants.TASK_LIST_PATH, constants.TASK_RESULT))
+    @pytest.mark.parametrize("task_path", (constants.TASK_DETAIL_PATH, constants.TASK_RESULT))
     @pytest.mark.usefixtures("full_filled_published_skill")
     def test_tasks_paths_published_by_admin(self, task_path: str, api_auth_with_sub_client_admin: APIClient):
         response = api_auth_with_sub_client_admin.get(task_path)
         assert response.status_code == 200, "Админу должны быть доступны publish таски"
 
-    @pytest.mark.parametrize("task_path", (constants.TASK_LIST_PATH, constants.TASK_RESULT))
+    @pytest.mark.parametrize("task_path", (constants.TASK_DETAIL_PATH, constants.TASK_RESULT))
     @pytest.mark.usefixtures("full_filled_only_stuff_skill")
     def test_tasks_paths_staff_only_by_admin(self, task_path: str, api_auth_with_sub_client_admin: APIClient):
         response = api_auth_with_sub_client_admin.get(task_path)
         assert response.status_code == 200, "Админу должны быть доступны staff_only таски"
 
-    @pytest.mark.parametrize("task_path", (constants.TASK_LIST_PATH, constants.TASK_RESULT))
+    @pytest.mark.parametrize("task_path", (constants.TASK_DETAIL_PATH, constants.TASK_RESULT))
     @pytest.mark.usefixtures("full_filled_draft_skill")
     def test_tasks_paths_draft_by_admin(self, task_path: str, api_auth_with_sub_client_admin: APIClient):
         response = api_auth_with_sub_client_admin.get(task_path)
@@ -137,37 +137,37 @@ class TestFreeSKillTasks:
             f"(Бесплатно) Пользователь с просроченной подписокй ДОЛЖЕН иметь доступ к {path}"
         )
 
-    @pytest.mark.parametrize("task_path", (constants.TASK_LIST_PATH, constants.TASK_RESULT))
+    @pytest.mark.parametrize("task_path", (constants.TASK_DETAIL_PATH, constants.TASK_RESULT))
     @pytest.mark.usefixtures("full_filled_free_only_stuff_skill")
     def test_tasks_paths_for_stuff_by_default_user(self, task_path: str, api_auth_with_sub_client: APIClient):
         response = api_auth_with_sub_client.get(task_path)
         assert response.status_code == 404, "(Бесплатно) Юзеру НЕ должны быть доступны таски staff only"
 
-    @pytest.mark.parametrize("task_path", (constants.TASK_LIST_PATH, constants.TASK_RESULT))
+    @pytest.mark.parametrize("task_path", (constants.TASK_DETAIL_PATH, constants.TASK_RESULT))
     @pytest.mark.usefixtures("full_filled_free_draft_skill")
     def test_tasks_paths_for_admin_by_default_user(self, task_path: str, api_auth_with_sub_client: APIClient):
         response = api_auth_with_sub_client.get(task_path)
         assert response.status_code == 404, "(Бесплатно) Юзеру НЕ должны быть доступны таски draft"
 
-    @pytest.mark.parametrize("task_path", (constants.TASK_LIST_PATH, constants.TASK_RESULT))
+    @pytest.mark.parametrize("task_path", (constants.TASK_DETAIL_PATH, constants.TASK_RESULT))
     @pytest.mark.usefixtures("full_filled_free_draft_skill")
     def test_tasks_paths_for_admin_by_stuff_user(self, task_path: str, api_auth_with_sub_client_staff: APIClient):
         response = api_auth_with_sub_client_staff.get(task_path)
         assert response.status_code == 404, "(Бесплатно) Персоналу НЕ должны быть доступны таски draft"
 
-    @pytest.mark.parametrize("task_path", (constants.TASK_LIST_PATH, constants.TASK_RESULT))
+    @pytest.mark.parametrize("task_path", (constants.TASK_DETAIL_PATH, constants.TASK_RESULT))
     @pytest.mark.usefixtures("full_filled_free_published_skill")
     def test_tasks_paths_published_by_admin(self, task_path: str, api_auth_with_sub_client_admin: APIClient):
         response = api_auth_with_sub_client_admin.get(task_path)
         assert response.status_code == 200, "(Бесплатно) Админу ДОЛЖНЫ быть доступны publish таски"
 
-    @pytest.mark.parametrize("task_path", (constants.TASK_LIST_PATH, constants.TASK_RESULT))
+    @pytest.mark.parametrize("task_path", (constants.TASK_DETAIL_PATH, constants.TASK_RESULT))
     @pytest.mark.usefixtures("full_filled_free_only_stuff_skill")
     def test_tasks_paths_staff_only_by_admin(self, task_path: str, api_auth_with_sub_client_admin: APIClient):
         response = api_auth_with_sub_client_admin.get(task_path)
         assert response.status_code == 200, "(Бесплатно) Админу ДОЛЖНЫ быть доступны staff_only таски"
 
-    @pytest.mark.parametrize("task_path", (constants.TASK_LIST_PATH, constants.TASK_RESULT))
+    @pytest.mark.parametrize("task_path", (constants.TASK_DETAIL_PATH, constants.TASK_RESULT))
     @pytest.mark.usefixtures("full_filled_free_draft_skill")
     def test_tasks_paths_draft_by_admin(self, task_path: str, api_auth_with_sub_client_admin: APIClient):
         response = api_auth_with_sub_client_admin.get(task_path)
