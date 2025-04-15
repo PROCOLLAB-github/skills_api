@@ -8,13 +8,15 @@ class SubscriptionType(models.Model):
         ("PRO", "PRO"),
         ("PRO+", "PRO+"),
     ]
-
     name = models.CharField(
+        null=False, blank=False, verbose_name="Название подписки", max_length=30
+    )
+    subscription_level = models.CharField(
         choices=SUBSCRIPTION_CHOICES,
         unique=True,
-        null=False,
+        null=True,
         blank=False,
-        verbose_name="Название подписки",
+        verbose_name="Уровень подписки",
         max_length=30,
     )
     price = models.IntegerField(
