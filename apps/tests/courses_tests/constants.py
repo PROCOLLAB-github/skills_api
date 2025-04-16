@@ -3,14 +3,14 @@ from django.urls import reverse
 # All `courses` url paths:
 ALL_SKILLS_PATH: str = reverse("all-skills")
 CHOOSE_SKILLS_PATH: str = reverse("choose-skills")
-TASK_LIST_PATH: str = reverse("task_list", kwargs={"task_id": 1})
+TASK_DETAIL_PATH: str = reverse("task_detail", kwargs={"task_id": 1})
 SKILL_DETAILS_PATH: str = reverse("skill-details", kwargs={"skill_id": 1})
 TASK_RESULT: str = reverse("task-result", kwargs={"task_id": 1})
 TASKS_OF_SKILL: str = reverse("tasks-of-skill", kwargs={"skill_id": 1})
 
 
 COURSES_ALL_PATHS: list[str] = [
-    TASK_LIST_PATH,
+    TASK_DETAIL_PATH,
     ALL_SKILLS_PATH,
     CHOOSE_SKILLS_PATH,
     SKILL_DETAILS_PATH,
@@ -19,7 +19,7 @@ COURSES_ALL_PATHS: list[str] = [
 ]
 
 COURSES_FREE_AUTH_PATHS: list[str] = [
-    TASK_LIST_PATH,
+    TASK_DETAIL_PATH,
     ALL_SKILLS_PATH,
     SKILL_DETAILS_PATH,
     TASKS_OF_SKILL,
@@ -27,7 +27,7 @@ COURSES_FREE_AUTH_PATHS: list[str] = [
 ]
 
 COURSES_NO_ACCESS_PATHS: list[str] = [
-    TASK_LIST_PATH,
+    TASK_DETAIL_PATH,
     CHOOSE_SKILLS_PATH,
     SKILL_DETAILS_PATH,
     TASKS_OF_SKILL,
@@ -37,7 +37,7 @@ COURSES_NO_ACCESS_PATHS: list[str] = [
 
 # Tasks только для stuff(в фикстуре статус должен быть указан)
 TASKS_PATH_STUFF_ONLY = [
-    TASK_LIST_PATH,
+    TASK_DETAIL_PATH,
     TASK_RESULT,
 ]
 

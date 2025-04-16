@@ -8,9 +8,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from subscription.permissions import HasActiveSubscription
 from trajectories.models import (Meeting, Trajectory, UserIndividualSkill,
                                  UserTrajectory)
-from trajectories.permissions import HasActiveSubscription
 from trajectories.serializers import (MeetingUpdateSerializer,
                                       MentorStudentSerializer,
                                       TrajectoryIdSerializer,
@@ -112,6 +112,18 @@ class UserTrajectoryCreateView(generics.CreateAPIView):
 
 
 @extend_schema(
+    summary="Получения списка индивидуальных навыков",
+    tags=["Траектории"],
+)
+class UserIndividualSkillListView(generics.ListAPIView):
+    serializer_class = UserIndividualSkillSerializer
+    permission_classes = [IsAuthenticated, HasActiveSubscription]
+
+    def get_queryset(self):
+        return UserIndividualSkill.objects.filter(user=self.request.user)
+
+
+@extend_schema(
     summary="Информация о студентах ментора",
     tags=["Траектории"],
 )
@@ -161,15 +173,3 @@ class MeetingUpdateView(APIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@extend_schema(
-    summary="Получения списка индивидуальных навыков",
-    tags=["Траектории"],
-)
-class UserIndividualSkillListView(generics.ListAPIView):
-    serializer_class = UserIndividualSkillSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return UserIndividualSkill.objects.filter(user=self.request.user)

@@ -23,7 +23,7 @@ class AbstractStatusField(models.Model):
         verbose_name="Статус",
     )
     free_access = models.BooleanField(
-        default=False,
+        default=True,
         null=False,
         blank=False,
         verbose_name="Доступ бесплатно",
@@ -93,8 +93,13 @@ class Skill(AbstractStatusField):
         return f"{self.name}"
 
     def clean(self):
-        from django.core.exceptions import ValidationError
-
+        if not any(
+            [self.is_from_trajectory, self.requires_subscription, self.free_access]
+        ):
+            raise ValidationError(
+                "Навык должен иметь хотя бы одно из значений: "
+                "'Из траектории', 'Требует подписку' или 'Бесплатный доступ'."
+            )
         if self.free_access and (self.requires_subscription or self.is_from_trajectory):
             raise ValidationError(
                 "Навык не может быть одновременно бесплатным и требовать подписку или принадлежать траектории."
