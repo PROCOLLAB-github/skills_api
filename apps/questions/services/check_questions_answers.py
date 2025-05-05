@@ -137,18 +137,23 @@ class AbstractAnswersService(ABC):
         correct_answer: bool = True,
     ):
         """
-        Формирование результата.
-        Если навык Task бесплатный, то без поинтов.
+        Формирование результата выполнения задачи:
+        - 80 / количество задач в навыке
+        - 0 баллов, если задача бесплатная
         """
         if self.request_task_object.task.free_access:
-            point_type = TypeQuestionPoints.QUESTION_WO_POINTS
+            points = 0
+        else:
+            skill = self.request_task_object.task.skill
+            tasks_count = skill.tasks.count() or 1  # защита от деления на 0
+            points = round(80 / tasks_count)
 
-        TaskObjUserResult.objects.create_user_result(
-            self.request_task_object.id,
-            self.request_profile_id,
-            point_type,
+        TaskObjUserResult.objects.create(
+            task_object=self.request_task_object,
+            user_profile_id=self.request_profile_id,
             text=text,
             correct_answer=correct_answer,
+            points_gained=points,
         )
 
     def _delete_self_counter(self):

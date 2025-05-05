@@ -285,7 +285,7 @@ class TestTaskResultPathResponse:
     OLD_SUB_NEXT_TASK_ID: int = 2
     NEW_SUB_PERCENT_PROGRESS: int = 50
     OLD_SUB_PERCENT_PROGRESS: int = 13
-    POINTS_GAINED: int = 5
+    POINTS_GAINED: int = 20
     DONE_CORRECT: int = 1
 
     @pytest.mark.usefixtures("full_filled_published_skill")

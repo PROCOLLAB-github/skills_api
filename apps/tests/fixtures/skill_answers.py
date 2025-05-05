@@ -29,19 +29,19 @@ def skill_three_users_answers(
             TaskObjUserResult.objects.create(
                 task_object_id=task_obj_idx,
                 user_profile=user_admin_with_trial_sub.profiles,
-                points_gained=5
+                points_gained=20
             )
         for task_obj_idx in range(1, 3):
             TaskObjUserResult.objects.create(
                 task_object_id=task_obj_idx,
                 user_profile=user_staff_with_trial_sub.profiles,
-                points_gained=5
+                points_gained=20
             )
 
         TaskObjUserResult.objects.create(
             task_object_id=1,
             user_profile=user_with_trial_sub.profiles,
-            points_gained=5
+            points_gained=20
         )
 
 
