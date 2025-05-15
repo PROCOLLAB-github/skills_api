@@ -540,7 +540,9 @@ class TestTaskOfSkillPathResponse:
         assert response_dct["stats_of_weeks"][0]["is_done"] is True, (
             "Засчитало неделю неверно."
         )
-        assert response_dct["stats_of_weeks"][0]["done_on_time"] is True, (
+        # Значение изменено на False: 
+        # система больше не учитывает бонусные баллы за месяц. 
+        assert response_dct["stats_of_weeks"][0]["done_on_time"] is False, (
             "Засчитало неделю неверно."
         )
         assert response_dct["tasks"][0]["status"] is True, "Засчитало задачу неверно."
