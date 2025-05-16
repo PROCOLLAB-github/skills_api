@@ -6,11 +6,11 @@ from questions.models import (InfoSlide, QuestionConnect, QuestionSingleAnswer,
 
 
 class TypeQuestionPoints(Enum):
-    INFO_SLIDE: int = 5
-    QUESTION_SINGLE_ANSWER: int = 5
-    QUESTION_WRITE: int = 5
-    QUESTION_CONNECT: int = 5
-    QUESTION_EXCLUDE: int = 5
+    INFO_SLIDE: int = 20
+    QUESTION_SINGLE_ANSWER: int = 20
+    QUESTION_WRITE: int = 20
+    QUESTION_CONNECT: int = 20
+    QUESTION_EXCLUDE: int = 20
     QUESTION_WO_POINTS: int = 0
 
 

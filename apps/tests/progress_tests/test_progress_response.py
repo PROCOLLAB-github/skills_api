@@ -48,7 +48,7 @@ class TestProgressProfileResponse:
     Тесты пути: `/progress/profile/`
     """
 
-    POINTS_IN_PROFILE: int = 5
+    POINTS_IN_PROFILE: int = 20
     SKILL_PERCENT_DONE: int = 13
 
     def test_progress_profile_new_sub_full_data(self, api_auth_with_sub_client: APIClient):
@@ -131,7 +131,7 @@ class TestUserScoreRating:
     Тесты пути: `/progress/user-rating/?time_frame=...`
     """
 
-    SINGLE_SCORE_COUNT = 5
+    SINGLE_SCORE_COUNT = 20
 
     @pytest.mark.parametrize("time_frame", ("last_day", "last_month", "last_year"))
     def test_empty_data_without_answers(self, time_frame: str, api_auth_with_sub_client: APIClient):
@@ -169,7 +169,11 @@ class TestUserScoreRating:
     def test_user_rating_with_different_roles(self, time_frame: str, api_auth_with_sub_client: APIClient):
         """Все ответы даны в 1 время, таймлайн не решает, рейтинг по дате должен быть одинаковым."""
         response = api_auth_with_sub_client.get(constants.USER_SCORE_RATING_PATH + f"?time_frame={time_frame}")
+        print("1"*100)
+        print(response)
         response_dct = response.json()
+        print("1"*100)
+        print(response_dct)
         assert (
             response_dct["count"] == 1
         ), "В рейтинге должeн быть 1 пользователь (Стафф и админ не должны отображаться)"

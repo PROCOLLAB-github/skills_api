@@ -17,5 +17,5 @@ MonthMapping: dict[int, str] = {
 
 
 class AdditionalPoints(Enum):
-    MONTH = 10
-    SKILL = 50
+    MONTH = 0
+    SKILL = 20

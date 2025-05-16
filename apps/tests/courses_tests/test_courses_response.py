@@ -285,7 +285,7 @@ class TestTaskResultPathResponse:
     OLD_SUB_NEXT_TASK_ID: int = 2
     NEW_SUB_PERCENT_PROGRESS: int = 50
     OLD_SUB_PERCENT_PROGRESS: int = 13
-    POINTS_GAINED: int = 5
+    POINTS_GAINED: int = 20
     DONE_CORRECT: int = 1
 
     @pytest.mark.usefixtures("full_filled_published_skill")
@@ -540,7 +540,9 @@ class TestTaskOfSkillPathResponse:
         assert response_dct["stats_of_weeks"][0]["is_done"] is True, (
             "Засчитало неделю неверно."
         )
-        assert response_dct["stats_of_weeks"][0]["done_on_time"] is True, (
+        # Значение изменено на False: 
+        # система больше не учитывает бонусные баллы за месяц. 
+        assert response_dct["stats_of_weeks"][0]["done_on_time"] is False, (
             "Засчитало неделю неверно."
         )
         assert response_dct["tasks"][0]["status"] is True, "Засчитало задачу неверно."
