@@ -54,6 +54,8 @@ class SkillsBasicSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
+            "is_from_trajectory",
+            "requires_subscription",
             "who_created",
             "file_link",
             "quantity_of_levels",
