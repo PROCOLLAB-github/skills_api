@@ -89,6 +89,8 @@ ALL_SKILLS_RESPONSE_NEW_SUB = {
         {
             "id": 1,
             "name": "Навык 1",
+            "is_from_trajectory": False, 
+            "requires_subscription": True,
             "who_created": "Создатель",
             "file_link": "http://some.com/",
             "free_access": False,
