@@ -3,25 +3,36 @@ from dataclasses import asdict
 
 from django.db.models import QuerySet
 from drf_spectacular.utils import extend_schema
+from progress.models import TaskObjUserResult
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
-from progress.models import TaskObjUserResult
-from questions.mapping import TypeQuestionPoints
-from questions.models import (AnswerConnect, InfoSlide, QuestionConnect,
-                              QuestionSingleAnswer, QuestionWrite)
-from questions.permissions import CheckQuestionTypePermission
-from questions.serializers import (ConnectQuestionSerializer,
-                                   InfoSlideSerializer,
-                                   SingleQuestionAnswerSerializer,
-                                   WriteQuestionSerializer)
-from questions.services.helpers import add_popup_data
-from questions.typing import (AnswerUserWriteData, QuestionSerializerData,
-                              QuestionWriteSerializerData,
-                              QuestionСonnectSerializerData, SingleAnswerData,
-                              SingleConnectedAnswerData)
 from subscription.permissions import SubscriptionTaskObjectPermission
+
+from questions.mapping import TypeQuestionPoints
+from questions.models import (
+    AnswerConnect,
+    InfoSlide,
+    QuestionConnect,
+    QuestionSingleAnswer,
+    QuestionWrite,
+)
+from questions.permissions import CheckQuestionTypePermission
+from questions.serializers import (
+    ConnectQuestionSerializer,
+    InfoSlideSerializer,
+    SingleQuestionAnswerSerializer,
+    WriteQuestionSerializer,
+)
+from questions.services.helpers import add_popup_data
+from questions.typing import (
+    AnswerUserWriteData,
+    QuestionSerializerData,
+    QuestionWriteSerializerData,
+    QuestionСonnectSerializerData,
+    SingleAnswerData,
+    SingleConnectedAnswerData,
+)
 
 
 class QuestionSingleAnswerGet(generics.RetrieveAPIView):
@@ -37,22 +48,28 @@ class QuestionSingleAnswerGet(generics.RetrieveAPIView):
         summary="Выводит данные для трёх видов вопросов (см. описание)",
         tags=["Вопросы и инфо-слайд"],
         description="""для: вопроса с одним правильным ответом, вопроса на исключение,
-         вопроса на выбор нескольких правильных
+        вопроса на выбор нескольких правильных
         ответов (возможно пока его нет, но в будущем может появится).""",
     )
     def get(self, request, *args, **kwargs) -> Response:
         question: QuestionSingleAnswer = self.request_question
-        all_answers = question.single_answers.all()
-        answers = [SingleAnswerData(id=answer.id, text=answer.text) for answer in all_answers]
+        all_answers = question.single_answers.order_by("id")
+
+        answers = [
+            SingleAnswerData(id=answer.id, text=answer.text) for answer in all_answers
+        ]
 
         user_result = TaskObjUserResult.objects.get_answered(
-            self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_SINGLE_ANSWER
+            self.task_object_id,
+            self.profile_id,
+            TypeQuestionPoints.QUESTION_SINGLE_ANSWER,
         )
 
-        correct_answer = [
-            SingleAnswerData(id=all_answers.get(is_correct=True).id, text=all_answers.get(is_correct=True).text)
-        ]
-        random.shuffle(answers)
+        try:
+            correct = all_answers.get(is_correct=True)
+            correct_answer = [SingleAnswerData(id=correct.id, text=correct.text)]
+        except all_answers.model.DoesNotExist:
+            correct_answer = []
 
         serializer = self.serializer_class(
             QuestionSerializerData(
@@ -61,11 +78,14 @@ class QuestionSingleAnswerGet(generics.RetrieveAPIView):
                 description=question.description,
                 files=[file.link for file in question.files.all()],
                 answers=correct_answer if user_result else answers,
-                is_answered=True if user_result else False,
+                is_answered=bool(user_result),
                 video_url=question.video_url,
             )
         )
-        return Response(add_popup_data(serializer.data, self.request_task_object), status=status.HTTP_200_OK)
+        return Response(
+            add_popup_data(serializer.data, self.request_task_object),
+            status=status.HTTP_200_OK,
+        )
 
 
 class QuestionConnectGet(generics.RetrieveAPIView):
@@ -117,7 +137,10 @@ class QuestionConnectGet(generics.RetrieveAPIView):
             random.shuffle(target_left)
 
         serializer = self.serializer_class(question_data)
-        return Response(add_popup_data(serializer.data, self.request_task_object), status=status.HTTP_200_OK)
+        return Response(
+            add_popup_data(serializer.data, self.request_task_object),
+            status=status.HTTP_200_OK,
+        )
 
 
 class QuestionExcludeAnswerGet(generics.RetrieveAPIView):
@@ -140,9 +163,13 @@ class QuestionExcludeAnswerGet(generics.RetrieveAPIView):
         question: QuestionSingleAnswer = self.request_question
 
         all_answers = question.single_answers.all()
-        answers = [SingleAnswerData(id=answer.id, text=answer.text) for answer in all_answers]
+        answers = [
+            SingleAnswerData(id=answer.id, text=answer.text) for answer in all_answers
+        ]
         answers_to_exclude = [
-            SingleAnswerData(id=answer.id, text=answer.text) for answer in all_answers if answer.is_correct
+            SingleAnswerData(id=answer.id, text=answer.text)
+            for answer in all_answers
+            if answer.is_correct
         ]
 
         data_to_serialize = QuestionSerializerData(
@@ -162,7 +189,10 @@ class QuestionExcludeAnswerGet(generics.RetrieveAPIView):
         random.shuffle(answers)
 
         serializer = self.serializer_class(data_to_serialize)
-        return Response(add_popup_data(serializer.data, self.request_task_object), status=status.HTTP_200_OK)
+        return Response(
+            add_popup_data(serializer.data, self.request_task_object),
+            status=status.HTTP_200_OK,
+        )
 
 
 class InfoSlideDetails(generics.RetrieveAPIView):
@@ -188,16 +218,23 @@ class InfoSlideDetails(generics.RetrieveAPIView):
                 "files": [file.link for file in info_slide.files.all()],
                 "is_done": bool(
                     TaskObjUserResult.objects.get_answered(
-                        self.task_object_id, self.profile_id, TypeQuestionPoints.INFO_SLIDE
+                        self.task_object_id,
+                        self.profile_id,
+                        TypeQuestionPoints.INFO_SLIDE,
                     )
                 ),
-                "video_url": info_slide.video_url
+                "video_url": info_slide.video_url,
             }
         )
         if serializer.is_valid():
-            return Response(add_popup_data(serializer.data, self.request_task_object), status=status.HTTP_200_OK)
+            return Response(
+                add_popup_data(serializer.data, self.request_task_object),
+                status=status.HTTP_200_OK,
+            )
         else:
-            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class QuestionWriteAnswer(generics.RetrieveAPIView):
@@ -221,12 +258,16 @@ class QuestionWriteAnswer(generics.RetrieveAPIView):
             text=question.text,
             description=question.description,
             files=[file.link for file in question.files.all()],
-            video_url=question.video_url
+            video_url=question.video_url,
         )
 
         if user_answer := TaskObjUserResult.objects.get_answered(
             self.task_object_id, self.profile_id, TypeQuestionPoints.QUESTION_WRITE
         ):
-            write_question.answer = AnswerUserWriteData(id=user_answer.id, text=user_answer.text)
+            write_question.answer = AnswerUserWriteData(
+                id=user_answer.id, text=user_answer.text
+            )
         data = asdict(write_question)
-        return Response(add_popup_data(data, self.request_task_object), status=status.HTTP_200_OK)
+        return Response(
+            add_popup_data(data, self.request_task_object), status=status.HTTP_200_OK
+        )

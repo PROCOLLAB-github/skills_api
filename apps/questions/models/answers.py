@@ -3,12 +3,16 @@ from django.db import models
 
 from files.models import FileModel
 from progress.models import UserProfile
-from questions.models.questions import (QuestionConnect, QuestionSingleAnswer,
-                                        QuestionWrite)
+from questions.models.questions import (
+    QuestionConnect,
+    QuestionSingleAnswer,
+    QuestionWrite,
+)
 
 
 class AnswerSingle(models.Model):
-    text = models.CharField(max_length=100, null=False)
+    # Task изменить максимальную длину строки до 200 символов
+    text = models.CharField(max_length=150, null=False)
     is_correct = models.BooleanField(default=False)
     question = models.ForeignKey(
         QuestionSingleAnswer,
@@ -22,8 +26,12 @@ class AnswerSingle(models.Model):
 
 
 class AnswerConnect(models.Model):
-    connect_left = models.TextField(max_length=450, null=True, blank=True, verbose_name="Вопрос (текст)")
-    connect_right = models.TextField(max_length=450, null=True, blank=True, verbose_name="Ответ (текст)")
+    connect_left = models.TextField(
+        max_length=450, null=True, blank=True, verbose_name="Вопрос (текст)"
+    )
+    connect_right = models.TextField(
+        max_length=450, null=True, blank=True, verbose_name="Ответ (текст)"
+    )
     file_left = models.ForeignKey(
         FileModel,
         on_delete=models.PROTECT,
@@ -53,11 +61,17 @@ class AnswerConnect(models.Model):
     def clean(self):
         """Проверка на заполненность полей."""
         if not (self.connect_left or self.file_left):
-            raise ValidationError("Необходимо заполнить хотя бы одно из полей 'Вопрос'.")
+            raise ValidationError(
+                "Необходимо заполнить хотя бы одно из полей 'Вопрос'."
+            )
         if not (self.connect_right or self.file_right):
             raise ValidationError("Необходимо заполнить хотя бы одно из полей 'Ответ'.")
-        if (self.connect_left and self.file_left) or (self.connect_right and self.file_right):
-            raise ValidationError("Заполните только одно из полей 'Вопрос' или 'Ответ'.")
+        if (self.connect_left and self.file_left) or (
+            self.connect_right and self.file_right
+        ):
+            raise ValidationError(
+                "Заполните только одно из полей 'Вопрос' или 'Ответ'."
+            )
 
     def save(self, *args, **kwargs):
         self.full_clean()
