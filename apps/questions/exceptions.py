@@ -4,7 +4,6 @@ from django.db import IntegrityError
 
 
 class AbstractException(BaseException, ABC):
-
     def __init__(self, text_error: str | None = None, *args) -> None:
         super().__init__(*args)
         self.text_error = text_error
@@ -22,6 +21,5 @@ class UserAlreadyAnsweredException(IntegrityError):
 
 
 class QustionConnectException(AbstractException):
-
     def __str__(self) -> str:
         return self.text_error or "Ошибка в ответе"

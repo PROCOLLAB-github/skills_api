@@ -42,8 +42,10 @@ QUERY_DOES_NOT_EXISTS = OpenApiExample(
 WRONG_TASKOBJECT = OpenApiExample(
     "Wrong Taskobject",
     value={
-        "error": ("You tried to summon taskobject with a wrong endpoint. "
-                  "Instead of using 'This' endpoint, try using 'Somebody else' endpoint.")
+        "error": (
+            "You tried to summon taskobject with a wrong endpoint. "
+            "Instead of using 'This' endpoint, try using 'Somebody else' endpoint."
+        )
     },
     status_codes=["403"],
     response_only=True,

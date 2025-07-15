@@ -1,8 +1,8 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-
 from files.models import FileModel
 from progress.models import UserProfile
+
 from questions.models.questions import (
     QuestionConnect,
     QuestionSingleAnswer,

@@ -1,8 +1,12 @@
 from enum import Enum
 from typing import Union
 
-from questions.models import (InfoSlide, QuestionConnect, QuestionSingleAnswer,
-                              QuestionWrite)
+from questions.models import (
+    InfoSlide,
+    QuestionConnect,
+    QuestionSingleAnswer,
+    QuestionWrite,
+)
 
 
 class TypeQuestionPoints(Enum):
@@ -31,7 +35,9 @@ def get_fields_for_answer_type(view_class) -> list[str]:
         QuestionWrite: ["content_object"],
         InfoSlide: ["content_object"],
     }
-    question_field: list[str] = field_for_prefetch.get(view_class.expected_question_model)
+    question_field: list[str] = field_for_prefetch.get(
+        view_class.expected_question_model
+    )
     return question_field
 
 
@@ -41,7 +47,11 @@ def wrong_endpoint_text(request_question, view) -> tuple[str, str]:
 
     view_name = view.__class__.__name__.lower()
     if isinstance(request_question, QuestionSingleAnswer):
-        gotten = "Вопрос на исключение" if request_question.is_exclude else "Вопрос с одним правильным ответом"
+        gotten = (
+            "Вопрос на исключение"
+            if request_question.is_exclude
+            else "Вопрос с одним правильным ответом"
+        )
     if view.expected_question_model == QuestionSingleAnswer:
         if "exclude" in view_name:
             needed = "Вопрос на исключение"

@@ -1,6 +1,5 @@
 from django.core.validators import MinValueValidator
 from django.db import models
-
 from files.models import FileModel
 
 
@@ -43,9 +42,12 @@ class AbstractVideo(models.Model):
 
 
 class QuestionSingleAnswer(AbstractQuestion, AbstractVideo, AbstractHint):
-    files = models.ManyToManyField(FileModel, related_name="single_questions", blank=True)
+    files = models.ManyToManyField(
+        FileModel, related_name="single_questions", blank=True
+    )
     is_exclude = models.BooleanField(
-        help_text="Если этот вопрос является типом 'исключить неправильное', поставить на True", default=False
+        help_text="Если этот вопрос является типом 'исключить неправильное', поставить на True",
+        default=False,
     )
 
     class Meta:
@@ -54,7 +56,9 @@ class QuestionSingleAnswer(AbstractQuestion, AbstractVideo, AbstractHint):
 
 
 class QuestionConnect(AbstractQuestion, AbstractVideo, AbstractHint):
-    files = models.ManyToManyField(FileModel, related_name="connect_questions", blank=True)
+    files = models.ManyToManyField(
+        FileModel, related_name="connect_questions", blank=True
+    )
 
     class Meta:
         verbose_name = "Вопрос на соотношение"
@@ -73,7 +77,9 @@ class InfoSlide(AbstractVideo):
 
 
 class QuestionWrite(AbstractQuestion, AbstractVideo):
-    files = models.ManyToManyField(FileModel, related_name="write_questions", blank=True)
+    files = models.ManyToManyField(
+        FileModel, related_name="write_questions", blank=True
+    )
 
     class Meta:
         verbose_name = "Вопрос на ввод ответа"

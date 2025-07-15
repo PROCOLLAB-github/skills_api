@@ -1,22 +1,30 @@
+from courses.serializers import IntegerListSerializer
 from django.core.exceptions import ObjectDoesNotExist
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
-from courses.serializers import IntegerListSerializer
-from questions import api_examples, serializers
-from questions.exceptions import (QustionConnectException,
-                                  UserAlreadyAnsweredException)
-from questions.models import (InfoSlide, QuestionConnect, QuestionSingleAnswer,
-                              QuestionWrite)
-from questions.permissions import (CheckQuestionTypePermission,
-                                   SimpleCheckQuestionTypePermission)
-from questions.services.check_questions_answers import (
-    InfoSlideAnswerService, QuestionConnectAnswerService,
-    QuestionExcludeAnswerService, QuestionWriteAnswerService,
-    SingleCorrectAnswerService)
 from subscription.permissions import SubscriptionTaskObjectPermission
+
+from questions import api_examples, serializers
+from questions.exceptions import QustionConnectException, UserAlreadyAnsweredException
+from questions.models import (
+    InfoSlide,
+    QuestionConnect,
+    QuestionSingleAnswer,
+    QuestionWrite,
+)
+from questions.permissions import (
+    CheckQuestionTypePermission,
+    SimpleCheckQuestionTypePermission,
+)
+from questions.services.check_questions_answers import (
+    InfoSlideAnswerService,
+    QuestionConnectAnswerService,
+    QuestionExcludeAnswerService,
+    QuestionWriteAnswerService,
+    SingleCorrectAnswerService,
+)
 
 
 @extend_schema(
@@ -98,7 +106,11 @@ class ConnectQuestionPost(generics.CreateAPIView):
             )
             response_body, response_status = service.create_answer()
             return Response(response_body, status=response_status)
-        except (UserAlreadyAnsweredException, ObjectDoesNotExist, QustionConnectException) as e:
+        except (
+            UserAlreadyAnsweredException,
+            ObjectDoesNotExist,
+            QustionConnectException,
+        ) as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 

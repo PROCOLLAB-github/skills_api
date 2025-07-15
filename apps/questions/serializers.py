@@ -1,12 +1,13 @@
+from courses.serializers import PopupSerializer
 from rest_framework import serializers
 from rest_framework_dataclasses.serializers import DataclassSerializer
 
-from courses.serializers import PopupSerializer
 from questions import typing
 
 
 class AbstractPopupField(DataclassSerializer):
     """Абстрактный класс под поле popups"""
+
     popups = PopupSerializer(many=True, read_only=True, required=False, allow_null=True)
 
     class Meta:
@@ -15,6 +16,7 @@ class AbstractPopupField(DataclassSerializer):
 
 class InfoSlideSerializer(AbstractPopupField):
     """GET: инфо-слайд (response)."""
+
     description = serializers.CharField(allow_blank=True, allow_null=True)
 
     class Meta:
@@ -44,8 +46,14 @@ class ConnectQuestionSerializer(AbstractPopupField):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         # Удаляет "лишние" null поля: если вопрос содержит картинку, но не содержит "text" поля, "text" убирается.
-        data["connect_left"] = [{k: v for k, v in item.items() if v is not None} for item in data["connect_left"]]
-        data["connect_right"] = [{k: v for k, v in item.items() if v is not None} for item in data["connect_right"]]
+        data["connect_left"] = [
+            {k: v for k, v in item.items() if v is not None}
+            for item in data["connect_left"]
+        ]
+        data["connect_right"] = [
+            {k: v for k, v in item.items() if v is not None}
+            for item in data["connect_right"]
+        ]
         return data
 
 

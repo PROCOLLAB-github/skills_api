@@ -1,11 +1,16 @@
+from courses.models import Skill, Task, TaskObject
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django_summernote.admin import SummernoteModelAdmin
 
-from courses.models import Skill, Task, TaskObject
-from questions.models import (AnswerConnect, AnswerSingle, InfoSlide,
-                              QuestionConnect, QuestionSingleAnswer,
-                              QuestionWrite)
+from questions.models import (
+    AnswerConnect,
+    AnswerSingle,
+    InfoSlide,
+    QuestionConnect,
+    QuestionSingleAnswer,
+    QuestionWrite,
+)
 
 
 class AbstractQuestionShowcase(admin.ModelAdmin):
@@ -15,19 +20,27 @@ class AbstractQuestionShowcase(admin.ModelAdmin):
 
     def short_description(self, obj) -> str:
         """Сокращенное описание вопроса."""
-        return obj.description[:50] + "..." if len(obj.description) > 50 else obj.description
+        return (
+            obj.description[:50] + "..."
+            if len(obj.description) > 50
+            else obj.description
+        )
+
     short_description.short_description = "Описание"
 
     def related_task_object(self, obj) -> int | None:
         """ID части задачи, если вопрос уже привязан."""
         content_type: ContentType = ContentType.objects.get_for_model(obj)
         try:
-            task_object: TaskObject = TaskObject.objects.get(content_type=content_type, object_id=obj.id)
+            task_object: TaskObject = TaskObject.objects.get(
+                content_type=content_type, object_id=obj.id
+            )
             return task_object.id
         except TaskObject.DoesNotExist:
             return None
         except TaskObject.MultipleObjectsReturned:
             return "Ошибка заполнения, 1 вопрос указан у двух разных TaskObject"
+
     related_task_object.short_description = "ID части задачи"
 
     def related_skill(self, obj) -> Skill | None:
@@ -36,17 +49,26 @@ class AbstractQuestionShowcase(admin.ModelAdmin):
         if task_object_id and isinstance(task_object_id, int):
             task: Task = TaskObject.objects.get(id=task_object_id).task
             return task.skill if task else None
+
     related_skill.short_description = "Навык"
 
 
-class ConnectAnswersInline(admin.StackedInline):  # Или TabularInline для другого стиля отображения
+class ConnectAnswersInline(
+    admin.StackedInline
+):  # Или TabularInline для другого стиля отображения
     model = AnswerConnect
     extra = 0
     fieldsets = (
-        (None, {
-            "fields": (("connect_left", "file_left"), ("connect_right", "file_right")),
-            "classes": ("wide",),
-        }),
+        (
+            None,
+            {
+                "fields": (
+                    ("connect_left", "file_left"),
+                    ("connect_right", "file_right"),
+                ),
+                "classes": ("wide",),
+            },
+        ),
     )
 
 
@@ -70,7 +92,6 @@ class QuestionConnectAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
                 "Подсказка: 1) Без подсказки - оставить все пустым; "
                 "2) Без подсказки, но с попытками к ответу: `Попытки до подсказки`; "
                 "3) С подсказкой в конце, но без попыток после подсказки: оставить пустым `Попытки после подсказки`;."
-
             ),
             {
                 "fields": (
@@ -78,7 +99,7 @@ class QuestionConnectAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
                     "attempts_before_hint",
                     "attempts_after_hint",
                 )
-            }
+            },
         ),
     )
 
@@ -112,17 +133,21 @@ class QuestionSingleAnswerAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
                     "attempts_before_hint",
                     "attempts_after_hint",
                 )
-            }
+            },
         ),
     )
 
 
 @admin.register(InfoSlide)
 class InfoSlideAdmin(AbstractQuestionShowcase, SummernoteModelAdmin):
-
     def short_description(self, obj) -> str:
         """Сокращенное описание вопроса."""
-        return obj.description[:50] + "..." if len(obj.description) > 50 else obj.description
+        return (
+            obj.description[:50] + "..."
+            if len(obj.description) > 50
+            else obj.description
+        )
+
     short_description.short_description = "Описание"
 
 
